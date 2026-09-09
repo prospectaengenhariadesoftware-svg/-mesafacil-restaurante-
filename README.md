@@ -2,6 +2,8 @@
 
 MVP web para restaurante receber pedidos digitais por QR Code, organizar a cozinha e administrar cardápio, mesas e pedidos.
 
+O MesaFácil será uma plataforma **SaaS Multi-Tenant**: múltiplos restaurantes usando a mesma plataforma, com isolamento absoluto de dados por `restaurant_id`.
+
 ## Status atual
 
 Base criada com:
@@ -14,7 +16,8 @@ Base criada com:
 - Vitest;
 - estrutura inicial de telas;
 - schema SQL inicial do Supabase;
-- dados demonstrativos.
+- dados demonstrativos;
+- documentação técnica e de segurança em `/docs`.
 
 ## Rotas iniciais
 
@@ -46,6 +49,26 @@ npm test
 npm run lint
 npm run build
 ```
+
+## Documentação
+
+A documentação de produto, arquitetura, segurança, permissões e testes está em:
+
+```text
+docs/
+```
+
+Documentos principais:
+
+- `docs/00-visao-geral.md`;
+- `docs/01-prd.md`;
+- `docs/02-mvp-roadmap.md`;
+- `docs/03-modelo-dados.md`;
+- `docs/04-telas-fluxos.md`;
+- `docs/05-plano-tecnico-implementacao.md`;
+- `docs/06-seguranca-multitenant.md`;
+- `docs/07-permissoes-usuarios.md`;
+- `docs/08-plano-testes.md`.
 
 ## Supabase
 
