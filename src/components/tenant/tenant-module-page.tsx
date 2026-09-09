@@ -11,16 +11,16 @@ const moduleGuidance: Record<TenantModuleSlug, string[]> = {
     'Acompanhar se a fundação SaaS está pronta antes dos módulos operacionais.',
   ],
   cardapio: [
-    'Página reservada para categorias, itens e disponibilidade.',
-    'Ainda não há cadastro operacional de cardápio nesta entrega.',
+    'Categorias do cardápio já podem ser cadastradas por tenant.',
+    'Os produtos usam essas categorias como vínculo obrigatório.',
   ],
   produtos: [
-    'Página reservada para produtos, preços e complementos.',
-    'O módulo real deve respeitar tenant_id e RLS em etapa própria.',
+    'Produtos já podem ser cadastrados com categoria, descrição, preço e disponibilidade.',
+    'O vínculo produto-categoria é validado no app e protegido por RLS no banco.',
   ],
   mesas: [
-    'Página reservada para mesas, setores e QR Codes.',
-    'Nenhum QR Code operacional foi gerado nesta entrega.',
+    'Mesas já podem ser cadastradas com identificação, lugares, setor e token de QR Code.',
+    'A geração visual de QR Code fica para etapa posterior.',
   ],
   pedidos: [
     'Página reservada para listagem e status dos pedidos.',
@@ -51,9 +51,11 @@ const moduleGuidance: Record<TenantModuleSlug, string[]> = {
 export async function TenantModulePage({
   tenantId,
   module,
+  children,
 }: Readonly<{
   tenantId: string;
   module: TenantModuleSlug;
+  children?: React.ReactNode;
 }>) {
   if (!isUuid(tenantId)) redirect('/dashboard?erro=tenant-invalido');
 
@@ -77,11 +79,13 @@ export async function TenantModulePage({
           </div>
         </div>
 
+        {children ? <div className="space-y-5">{children}</div> : null}
+
         <div className="grid gap-4 md:grid-cols-2">
           <article className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5">
             <h2 className="text-lg font-bold text-slate-100">Estado atual</h2>
             <p className="mt-2 text-sm leading-6 text-slate-300">
-              Página criada como estrutura inicial protegida. A regra principal já está ativa: somente usuários vinculados a este tenant conseguem acessar esta rota.
+              Página protegida por tenant. Quando houver formulário neste módulo, os cadastros são gravados com tenant_id e respeitam as policies RLS do Supabase.
             </p>
           </article>
           <article className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5">

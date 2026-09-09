@@ -1,0 +1,51 @@
+import { describe, expect, it } from 'vitest';
+import {
+  formatMoneyFromCents,
+  parseMoneyToCents,
+  validateCategoryInput,
+  validateProductInput,
+  validateTableInput,
+} from './catalog';
+
+describe('catalog validation', () => {
+  it('validates product categories before products', () => {
+    expect(validateCategoryInput({ name: 'Bebidas' })).toEqual({ success: true, data: { name: 'Bebidas', description: null } });
+    expect(validateCategoryInput({ name: 'A' }).success).toBe(false);
+  });
+
+  it('validates products with required category and positive price', () => {
+    const result = validateProductInput({
+      categoryId: '11111111-1111-4111-8111-111111111111',
+      name: 'Suco natural',
+      description: 'Laranja 500ml',
+      price: '12,50',
+      isAvailable: true,
+    });
+
+    expect(result).toEqual({
+      success: true,
+      data: {
+        categoryId: '11111111-1111-4111-8111-111111111111',
+        name: 'Suco natural',
+        description: 'Laranja 500ml',
+        priceCents: 1250,
+        isAvailable: true,
+      },
+    });
+    expect(validateProductInput({ categoryId: '', name: 'Suco', price: '0' }).success).toBe(false);
+  });
+
+  it('parses and formats Brazilian money values safely', () => {
+    expect(parseMoneyToCents('1.234,56')).toBe(123456);
+    expect(parseMoneyToCents('12.50')).toBe(1250);
+    expect(formatMoneyFromCents(1250)).toBe('R$ 12,50');
+  });
+
+  it('validates restaurant tables with number and seats', () => {
+    expect(validateTableInput({ number: '12', seats: '4', sector: 'Salão' })).toEqual({
+      success: true,
+      data: { number: '12', seats: 4, sector: 'Salão', isActive: true },
+    });
+    expect(validateTableInput({ number: '', seats: '0' }).success).toBe(false);
+  });
+});
