@@ -1,7 +1,16 @@
 import Link from 'next/link';
 import { signOutAction } from '@/app/actions/auth';
+import { getTenantNavigation } from '@/lib/tenant/navigation';
 
-export function AppShell({ children }: Readonly<{ children: React.ReactNode }>) {
+export function AppShell({
+  children,
+  tenantId,
+}: Readonly<{
+  children: React.ReactNode;
+  tenantId?: string;
+}>) {
+  const tenantNav = tenantId ? getTenantNavigation(tenantId) : [];
+
   return (
     <main className="min-h-screen bg-slate-950 text-slate-100">
       <header className="border-b border-slate-800 bg-slate-900/80">
@@ -16,6 +25,21 @@ export function AppShell({ children }: Readonly<{ children: React.ReactNode }>) 
             </form>
           </nav>
         </div>
+        {tenantNav.length > 0 ? (
+          <div className="border-t border-slate-800">
+            <nav className="mx-auto flex max-w-6xl gap-2 overflow-x-auto px-4 py-3 text-sm text-slate-300">
+              {tenantNav.map((item) => (
+                <Link
+                  key={item.slug}
+                  href={item.href}
+                  className="shrink-0 rounded-full border border-slate-800 px-3 py-1.5 hover:border-emerald-300 hover:text-emerald-300"
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </nav>
+          </div>
+        ) : null}
       </header>
       <div className="mx-auto max-w-6xl px-4 py-8">{children}</div>
     </main>
