@@ -1,36 +1,89 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# MesaFácil — App para Restaurante
 
-## Getting Started
+MVP web para restaurante receber pedidos digitais por QR Code, organizar a cozinha e administrar cardápio, mesas e pedidos.
 
-First, run the development server:
+## Status atual
+
+Base criada com:
+
+- Next.js 16;
+- React 19;
+- TypeScript;
+- Tailwind CSS 4;
+- Supabase SDK;
+- Vitest;
+- estrutura inicial de telas;
+- schema SQL inicial do Supabase;
+- dados demonstrativos.
+
+## Rotas iniciais
+
+- `/` — landing/demo do produto;
+- `/r/mesafacil-demo/m/mesa-12` — cardápio público demo do cliente;
+- `/pedido-confirmado` — confirmação demo;
+- `/admin` — painel administrativo demo;
+- `/admin/kitchen` — painel da cozinha demo.
+
+## Como rodar localmente
 
 ```bash
+cd /root/.hermes/naia/projetos/app-restaurante/mesafacil
+npm install
+cp .env.example .env.local
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Abrir:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```text
+http://localhost:3000
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Testes e verificação
 
-## Learn More
+```bash
+npm test
+npm run lint
+npm run build
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Supabase
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+O schema inicial está em:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```text
+supabase/schema.sql
+```
 
-## Deploy on Vercel
+Ele cria:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- restaurants;
+- restaurant_users;
+- tables;
+- categories;
+- products;
+- orders;
+- order_items;
+- order_status_events;
+- enums;
+- índices;
+- RLS habilitado.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+As policies de RLS ainda precisam ser detalhadas antes de produção.
+
+## Próximas etapas recomendadas
+
+1. Criar projeto Supabase real;
+2. Aplicar `supabase/schema.sql`;
+3. Criar seed de restaurante/categorias/produtos;
+4. Implementar login interno;
+5. Trocar dados mockados por queries Supabase;
+6. Implementar carrinho real no cliente;
+7. Criar API/server action para envio de pedido;
+8. Adicionar realtime no painel da cozinha.
+
+## Observações de segurança
+
+- Não colocar `SUPABASE_SERVICE_ROLE_KEY` em código client-side.
+- Usar `NEXT_PUBLIC_SUPABASE_ANON_KEY` apenas para operações públicas controladas por RLS.
+- Ativar e testar políticas de RLS antes de usar dados reais.
