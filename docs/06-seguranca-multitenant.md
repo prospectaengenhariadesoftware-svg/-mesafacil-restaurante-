@@ -9,10 +9,10 @@ Cada restaurante será tratado como um tenant independente.
 A abordagem padronizada para identificação do tenant será:
 
 ```text
-restaurant_id
+tenant_id
 ```
 
-Neste projeto, `restaurant_id` é o identificador oficial do tenant. Não será utilizado `tenant_id` em paralelo para evitar ambiguidade, duplicidade de regras e risco de falha de isolamento.
+Neste projeto, `tenant_id` é o identificador oficial do tenant. Não será utilizado `tenant_id` em paralelo para evitar ambiguidade, duplicidade de regras e risco de falha de isolamento.
 
 ## 1. Arquitetura SaaS Multi-Tenant
 
@@ -28,7 +28,7 @@ PLATAFORMA MESAFÁCIL
 → DADOS OPERACIONAIS DO RESTAURANTE
 ```
 
-Todos os dados operacionais pertencentes a um restaurante devem possuir vínculo direto ou indireto com `restaurant_id`.
+Todos os dados operacionais pertencentes a um restaurante devem possuir vínculo direto ou indireto com `tenant_id`.
 
 O isolamento entre restaurantes deve ser absoluto. Um restaurante nunca poderá visualizar, alterar, excluir, exportar ou inferir dados pertencentes a outro restaurante.
 
@@ -56,12 +56,12 @@ Essa regra vale para:
 
 ### Regra obrigatória
 
-Nenhuma tabela operacional multi-tenant deve existir sem uma estratégia clara de associação ao `restaurant_id`.
+Nenhuma tabela operacional multi-tenant deve existir sem uma estratégia clara de associação ao `tenant_id`.
 
-Quando a tabela não tiver `restaurant_id` direto, o caminho de associação deve ser explícito e protegido por chave estrangeira. Exemplo:
+Quando a tabela não tiver `tenant_id` direto, o caminho de associação deve ser explícito e protegido por chave estrangeira. Exemplo:
 
 ```text
-order_items → orders → restaurant_id
+order_items → orders → tenant_id
 ```
 
 ## 2. Autenticação
@@ -127,17 +127,17 @@ O frontend pode filtrar por conveniência de interface, mas a segurança real pr
 
 ### Regras esperadas de RLS
 
-Para tabelas com `restaurant_id` direto:
+Para tabelas com `tenant_id` direto:
 
-- `SELECT`: usuário só acessa registros cujo `restaurant_id` esteja vinculado a ele em `restaurant_users`;
+- `SELECT`: usuário só acessa registros cujo `tenant_id` esteja vinculado a ele em `tenant_users`;
 - `INSERT`: usuário só cria registros para restaurante ao qual pertence e no qual tem permissão;
 - `UPDATE`: usuário só altera registros do próprio restaurante e dentro da permissão do papel;
 - `DELETE`: usuário só exclui registros do próprio restaurante e quando seu papel permitir.
 
 Para tabelas com vínculo indireto:
 
-- `order_items` deve herdar isolamento via `orders.restaurant_id`;
-- `order_status_events` deve herdar isolamento via `orders.restaurant_id`;
+- `order_items` deve herdar isolamento via `orders.tenant_id`;
+- `order_status_events` deve herdar isolamento via `orders.tenant_id`;
 - arquivos devem herdar isolamento por caminho/bucket associado ao restaurante.
 
 ### Princípio obrigatório
@@ -150,13 +150,13 @@ Qualquer consulta sem filtro no frontend ainda deve retornar apenas o que a RLS 
 
 O tenant não poderá ser escolhido livremente pelo navegador.
 
-O sistema nunca deve aceitar diretamente um `restaurant_id` enviado pelo cliente como autorização suficiente.
+O sistema nunca deve aceitar diretamente um `tenant_id` enviado pelo cliente como autorização suficiente.
 
 Fluxo seguro:
 
 1. usuário autentica pelo Supabase Auth;
 2. backend obtém `auth.uid()`;
-3. banco verifica vínculo em `restaurant_users`;
+3. banco verifica vínculo em `tenant_users`;
 4. restaurante ativo é carregado;
 5. permissões são resolvidas;
 6. operação é executada somente no tenant autorizado.
@@ -177,7 +177,7 @@ Campos planejados:
 - `created_at`;
 - `updated_at`.
 
-## `restaurants`
+## `tenants`
 
 Representa o tenant/restaurante.
 
@@ -193,14 +193,14 @@ Campos planejados:
 - `created_at`;
 - `updated_at`.
 
-## `restaurant_users`
+## `tenant_users`
 
 Associação autorizada entre usuário e restaurante.
 
 Campos obrigatórios:
 
 - `id`;
-- `restaurant_id`;
+- `tenant_id`;
 - `user_id`;
 - `role`;
 - `status`;
@@ -301,12 +301,12 @@ Qualquer API, Server Action, Route Handler, Edge Function ou endpoint deve segui
 7. registrar evento quando aplicável;
 8. retornar resposta mínima necessária.
 
-Nunca aceitar diretamente um `restaurant_id` enviado pelo navegador sem validar que o usuário pertence àquele restaurante.
+Nunca aceitar diretamente um `tenant_id` enviado pelo navegador sem validar que o usuário pertence àquele restaurante.
 
 Exemplo proibido:
 
 ```ts
-await updateProduct({ restaurantId: form.restaurant_id, productId })
+await updateProduct({ restaurantId: form.tenant_id, productId })
 ```
 
 Exemplo esperado:
@@ -344,7 +344,7 @@ Regras:
 - buckets privados quando o arquivo não for público;
 - imagens públicas de cardápio podem ser servidas publicamente, mas upload/alteração exige autorização;
 - documentos, contratos e arquivos financeiros devem ficar privados;
-- políticas de Storage devem validar path iniciado pelo `restaurant_id` autorizado;
+- políticas de Storage devem validar path iniciado pelo `tenant_id` autorizado;
 - service role não deve ser usada no browser.
 
 ## 9. Secrets e variáveis de ambiente
@@ -387,7 +387,7 @@ Tabela recomendada:
 Campos:
 
 - `id`;
-- `restaurant_id`, opcional para eventos globais;
+- `tenant_id`, opcional para eventos globais;
 - `actor_user_id`;
 - `actor_role`;
 - `operation`;
@@ -420,9 +420,9 @@ Devem existir testes específicos contra vazamento horizontal.
 
 Cenário obrigatório:
 
-1. Restaurante A cria um pedido.
-2. Restaurante B cria outro usuário.
-3. Usuário do Restaurante B tenta acessar diretamente o ID do pedido do Restaurante A.
+1. Tenant A / Restaurante A cria um pedido.
+2. Tenant B / Restaurante B cria outro usuário.
+3. Usuário do Tenant B / Restaurante B tenta acessar diretamente o ID do pedido do Tenant A / Restaurante A.
 4. Resultado esperado: **ACESSO NEGADO** ou recurso invisível.
 
 Esse padrão deve ser repetido para:
@@ -475,7 +475,7 @@ Critério mínimo antes de produção comercial:
 
 - RLS habilitada e com políticas testadas;
 - APIs protegidas por autenticação/autorização;
-- storage isolado por `restaurant_id`;
+- storage isolado por `tenant_id`;
 - testes de IDOR executados;
 - matriz RBAC implementada;
 - logs de auditoria para ações críticas;

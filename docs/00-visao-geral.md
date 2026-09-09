@@ -14,7 +14,7 @@ Outras opções de nome:
 
 Criar uma plataforma web responsiva SaaS Multi-Tenant para restaurantes receberem pedidos digitais por QR Code, reduzindo atrito no atendimento, organizando a cozinha e permitindo ao administrador controlar cardápio, mesas, pedidos e vendas.
 
-Cada restaurante será tratado como tenant independente da plataforma. O isolamento padrão será feito por `restaurant_id`, com RLS no Supabase/PostgreSQL, autorização no backend e testes específicos contra vazamento entre restaurantes.
+Cada restaurante será tratado como tenant independente da plataforma. O isolamento padrão será feito por `tenant_id`, com RLS no Supabase/PostgreSQL, autorização no backend e testes específicos contra vazamento entre restaurantes.
 
 ## Problema que o app resolve
 

@@ -1,18 +1,10 @@
-import Link from 'next/link';
-
-export default function OrderConfirmedPage() {
+export default function PedidoConfirmadoPlaceholderPage() {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-stone-100 px-5 text-stone-950">
-      <section className="max-w-md rounded-[2rem] bg-white p-8 text-center shadow-sm">
-        <div className="mx-auto flex size-16 items-center justify-center rounded-full bg-emerald-100 text-3xl">✓</div>
-        <p className="mt-6 text-sm uppercase tracking-[0.25em] text-amber-700">Pedido recebido</p>
-        <h1 className="mt-3 text-4xl font-bold">Pedido #0001 enviado</h1>
-        <p className="mt-4 leading-7 text-stone-600">
-          Demonstração do fluxo do cliente. Na versão conectada, este pedido será salvo no Supabase e aparecerá em tempo real na cozinha.
-        </p>
-        <Link className="mt-8 inline-flex rounded-full bg-stone-950 px-6 py-3 font-bold text-white" href="/admin/kitchen">
-          Ver na cozinha
-        </Link>
+    <main className="min-h-screen bg-slate-950 px-4 py-10 text-slate-100">
+      <section className="mx-auto max-w-2xl rounded-3xl border border-slate-800 bg-slate-900 p-6">
+        <p className="text-sm font-semibold text-amber-300">Módulo não iniciado</p>
+        <h1 className="mt-2 text-3xl font-black">Pedidos ainda não fazem parte da Etapa 1</h1>
+        <p className="mt-3 text-slate-300">Esta página permanece como placeholder até a etapa operacional de pedidos ser autorizada.</p>
       </section>
     </main>
   );

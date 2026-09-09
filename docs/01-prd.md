@@ -4,7 +4,7 @@
 
 O MesaFácil é uma plataforma web **SaaS Multi-Tenant** para digitalizar o atendimento em restaurantes por meio de cardápio digital, pedidos via QR Code e painel operacional para cozinha/atendimento.
 
-Cada restaurante será tratado como um tenant independente, identificado de forma padronizada por `restaurant_id`. O isolamento entre restaurantes é requisito crítico: um restaurante nunca poderá visualizar, alterar ou excluir dados de outro.
+Cada restaurante será tratado como um tenant independente, identificado de forma padronizada por `tenant_id`. O isolamento entre restaurantes é requisito crítico: um restaurante nunca poderá visualizar, alterar ou excluir dados de outro.
 
 O MVP deve permitir que restaurantes cadastrem cardápio, gerem QR Codes por mesa e recebam pedidos em tempo real, com controle simples de status, mantendo a arquitetura preparada para planos, assinatura, trial, cobrança recorrente, limites por plano e painel Super Admin.
 
@@ -178,7 +178,7 @@ O MVP será considerado pronto quando:
 - sistema funciona em celular e desktop;
 - dados ficam isolados por restaurante;
 - políticas RLS e validações backend impedem vazamento entre tenants;
-- usuários só acessam restaurantes aos quais estão vinculados em `restaurant_users`.
+- usuários só acessam restaurantes aos quais estão vinculados em `tenant_users`.
 
 ## 8. Métricas iniciais
 

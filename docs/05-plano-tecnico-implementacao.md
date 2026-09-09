@@ -4,11 +4,11 @@
 
 ## Objetivo
 
-Construir o MVP do MesaFácil como plataforma SaaS Multi-Tenant, com cardápio digital, pedido por QR Code, painel interno e gestão básica, mantendo desde o início isolamento absoluto entre restaurantes por `restaurant_id`.
+Construir o MVP do MesaFácil como plataforma SaaS Multi-Tenant, com cardápio digital, pedido por QR Code, painel interno e gestão básica, mantendo desde o início isolamento absoluto entre restaurantes por `tenant_id`.
 
 ## Arquitetura
 
-Aplicação web full-stack com Next.js no frontend/backend, Supabase como banco, autenticação, storage e realtime. A área pública permite pedido sem login apenas por QR Code válido; a área interna exige autenticação, autorização RBAC e isolamento por `restaurant_id`. O frontend nunca será a única camada de segurança: RLS, APIs e Server Actions devem validar tenant e permissão.
+Aplicação web full-stack com Next.js no frontend/backend, Supabase como banco, autenticação, storage e realtime. A área pública permite pedido sem login apenas por QR Code válido; a área interna exige autenticação, autorização RBAC e isolamento por `tenant_id`. O frontend nunca será a única camada de segurança: RLS, APIs e Server Actions devem validar tenant e permissão.
 
 ## Stack
 
@@ -84,7 +84,7 @@ Regra:
 
 Criar tabelas:
 - restaurants;
-- restaurant_users;
+- tenant_users;
 - tables;
 - categories;
 - products;
@@ -114,7 +114,7 @@ Comportamento:
 ### Tarefa 6: Carregar restaurante do usuário
 
 Função:
-- buscar vínculo em `restaurant_users`;
+- buscar vínculo em `tenant_users`;
 - carregar restaurante ativo;
 - bloquear acesso se não houver vínculo.
 

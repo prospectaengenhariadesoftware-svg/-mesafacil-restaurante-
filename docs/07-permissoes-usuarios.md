@@ -14,11 +14,11 @@ Um usuário autenticado pode ter papéis diferentes em restaurantes diferentes.
 
 Exemplo futuro permitido:
 
-- Maria é `proprietário` no Restaurante A;
-- Maria é `gerente` no Restaurante B;
+- Maria é `proprietário` no Tenant A / Restaurante A;
+- Maria é `gerente` no Tenant B / Restaurante B;
 - Maria não tem acesso ao Restaurante C.
 
-A associação autorizada deve estar registrada em `restaurant_users`.
+A associação autorizada deve estar registrada em `tenant_users`.
 
 ## Modelo base de usuários
 
@@ -36,12 +36,12 @@ Representa dados globais do usuário, como nome, telefone e status geral.
 
 ## Vínculo com restaurante
 
-Tabela: `restaurant_users`.
+Tabela: `tenant_users`.
 
 Campos essenciais:
 
 - `id`;
-- `restaurant_id`;
+- `tenant_id`;
 - `user_id`;
 - `role`;
 - `status`;
@@ -491,9 +491,9 @@ Inclui apenas permissões configuradas explicitamente.
 2. Server Actions e APIs devem chamar uma função central como `requireTenantPermission(permission)`.
 3. RLS deve bloquear acesso horizontal entre restaurantes.
 4. Funções administrativas devem gerar log de auditoria.
-5. Usuário desativado em `restaurant_users.status` não pode operar aquele restaurante.
+5. Usuário desativado em `tenant_users.status` não pode operar aquele restaurante.
 6. Restaurante bloqueado/inadimplente deve bloquear operações conforme regra de plano.
-7. Nunca confiar em `restaurant_id` vindo do navegador sem validação.
+7. Nunca confiar em `tenant_id` vindo do navegador sem validação.
 
 ## Critério de aprovação
 

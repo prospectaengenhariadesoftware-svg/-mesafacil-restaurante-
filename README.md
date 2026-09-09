@@ -2,7 +2,7 @@
 
 MVP web para restaurante receber pedidos digitais por QR Code, organizar a cozinha e administrar cardápio, mesas e pedidos.
 
-O MesaFácil será uma plataforma **SaaS Multi-Tenant**: múltiplos restaurantes usando a mesma plataforma, com isolamento absoluto de dados por `restaurant_id`.
+O MesaFácil será uma plataforma **SaaS Multi-Tenant**: múltiplos restaurantes usando a mesma plataforma, com isolamento absoluto de dados por `tenant_id`.
 
 ## Status atual
 
@@ -80,8 +80,8 @@ supabase/schema.sql
 
 Ele cria:
 
-- restaurants;
-- restaurant_users;
+- tenants;
+- tenant_users;
 - tables;
 - categories;
 - products;

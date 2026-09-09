@@ -1,74 +1,30 @@
 import Link from 'next/link';
 
-const highlights = [
-  'Cardápio digital por QR Code',
-  'Pedidos em tempo real',
-  'Painel da cozinha',
-  'Gestão de mesas e produtos',
-];
-
 export default function Home() {
   return (
-    <main className="min-h-screen bg-stone-950 text-stone-50">
-      <section className="mx-auto flex min-h-screen max-w-6xl flex-col justify-center px-6 py-16">
-        <div className="mb-8 inline-flex w-fit rounded-full border border-amber-400/30 bg-amber-400/10 px-4 py-2 text-sm font-medium text-amber-200">
-          MVP inicial • restaurante • QR Code
-        </div>
-
-        <div className="grid gap-10 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
-          <div>
-            <p className="mb-4 text-sm uppercase tracking-[0.35em] text-amber-300">MesaFácil</p>
-            <h1 className="max-w-3xl text-5xl font-bold tracking-tight sm:text-7xl">
-              Pedido na mesa, cozinha organizada e atendimento mais rápido.
-            </h1>
-            <p className="mt-6 max-w-2xl text-lg leading-8 text-stone-300">
-              Sistema web para restaurante receber pedidos por QR Code, controlar cardápio,
-              acompanhar status e operar o salão sem comanda manual perdida.
-            </p>
-
-            <div className="mt-10 flex flex-col gap-3 sm:flex-row">
-              <Link className="rounded-full bg-amber-400 px-6 py-3 font-semibold text-stone-950 transition hover:bg-amber-300" href="/r/mesafacil-demo/m/mesa-12">
-                Ver demo do cliente
-              </Link>
-              <Link className="rounded-full border border-stone-700 px-6 py-3 font-semibold text-stone-100 transition hover:bg-stone-900" href="/admin">
-                Abrir painel admin
-              </Link>
-              <Link className="rounded-full border border-stone-700 px-6 py-3 font-semibold text-stone-100 transition hover:bg-stone-900" href="/admin/kitchen">
-                Painel da cozinha
-              </Link>
-            </div>
-          </div>
-
-          <div className="rounded-[2rem] border border-stone-800 bg-stone-900/70 p-6 shadow-2xl">
-            <div className="rounded-[1.5rem] bg-stone-50 p-5 text-stone-950">
-              <div className="mb-4 flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-stone-500">Mesa 12</p>
-                  <h2 className="text-2xl font-bold">Pedido #0001</h2>
-                </div>
-                <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-700">Recebido</span>
-              </div>
-              <div className="space-y-3">
-                <div className="rounded-2xl bg-stone-100 p-4">
-                  <p className="font-semibold">2× Burger Clássico</p>
-                  <p className="text-sm text-stone-500">Um sem tomate</p>
-                </div>
-                <div className="rounded-2xl bg-stone-100 p-4">
-                  <p className="font-semibold">2× Suco de Laranja</p>
-                  <p className="text-sm text-stone-500">Natural gelado</p>
-                </div>
-              </div>
-              <p className="mt-5 text-right text-xl font-bold">R$ 77,80</p>
-            </div>
+    <main className="min-h-screen bg-slate-950 px-4 py-10 text-slate-100">
+      <section className="mx-auto flex max-w-6xl flex-col gap-10 py-16 lg:flex-row lg:items-center">
+        <div className="flex-1">
+          <p className="text-sm font-semibold uppercase tracking-[0.35em] text-emerald-300">MesaFácil SaaS</p>
+          <h1 className="mt-5 text-4xl font-black tracking-tight sm:text-6xl">Fundação segura para restaurantes independentes.</h1>
+          <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-300">
+            Plataforma multi-tenant com autenticação, vínculo de usuários por tenant, RLS no Supabase e base preparada para evolução comercial.
+          </p>
+          <div className="mt-8 flex flex-wrap gap-3">
+            <Link href="/cadastro" className="rounded-xl bg-emerald-400 px-5 py-3 font-bold text-slate-950 hover:bg-emerald-300">Criar conta</Link>
+            <Link href="/login" className="rounded-xl border border-slate-700 px-5 py-3 font-bold text-slate-100 hover:border-emerald-300 hover:text-emerald-300">Entrar</Link>
           </div>
         </div>
-
-        <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {highlights.map((item) => (
-            <div className="rounded-2xl border border-stone-800 bg-stone-900 p-5 text-sm text-stone-300" key={item}>
-              {item}
-            </div>
-          ))}
+        <div className="flex-1 rounded-3xl border border-slate-800 bg-slate-900 p-6">
+          <h2 className="text-2xl font-bold">Etapa 1 ativa</h2>
+          <ul className="mt-5 space-y-3 text-slate-300">
+            <li>✅ Cadastro, login, logout e recuperação de senha</li>
+            <li>✅ Criação do primeiro tenant/restaurante</li>
+            <li>✅ Vínculo owner em tenant_users</li>
+            <li>✅ Rotas autenticadas protegidas</li>
+            <li>✅ RLS e audit_logs preparados no banco</li>
+            <li>⚪ Cardápio, pedidos, cozinha e pagamentos ficam para próximas etapas</li>
+          </ul>
         </div>
       </section>
     </main>

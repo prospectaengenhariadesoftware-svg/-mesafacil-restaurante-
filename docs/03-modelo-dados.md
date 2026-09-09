@@ -5,26 +5,26 @@
 O identificador padrão de tenant no MesaFácil será:
 
 ```text
-restaurant_id
+tenant_id
 ```
 
 Neste projeto, cada restaurante é um tenant independente. Não será usado `tenant_id` em paralelo para evitar ambiguidade.
 
 Toda tabela operacional deverá possuir:
 
-1. `restaurant_id` direto; ou
-2. vínculo indireto obrigatório e documentado até uma tabela com `restaurant_id`.
+1. `tenant_id` direto; ou
+2. vínculo indireto obrigatório e documentado até uma tabela com `tenant_id`.
 
 Exemplo de vínculo indireto:
 
 ```text
-order_items → orders → restaurant_id
-order_status_events → orders → restaurant_id
+order_items → orders → tenant_id
+order_status_events → orders → tenant_id
 ```
 
 ## Entidades atuais do MVP
 
-## restaurants
+## tenants
 
 Representa o restaurante cliente e também o tenant da plataforma.
 
@@ -67,23 +67,23 @@ Campos recomendados:
 Observação:
 
 - `profiles` representa a pessoa globalmente;
-- permissões por restaurante ficam em `restaurant_users`.
+- permissões por restaurante ficam em `tenant_users`.
 
-## restaurant_users
+## tenant_users
 
-Relaciona usuários ao restaurante/tenant.
+Relaciona usuários ao tenant/restaurante.
 
 Campos atuais/recomendados:
 
 - `id`: uuid, PK;
-- `restaurant_id`: uuid, FK `restaurants.id`;
+- `tenant_id`: uuid, FK `tenants.id`;
 - `user_id`: uuid, FK `auth.users.id`;
 - `role`: enum;
 - `status`: enum active/invited/blocked/removed;
 - `is_active`: boolean no schema atual, poderá evoluir para `status`;
 - `created_at`: timestamp;
 - `updated_at`: timestamp;
-- unique (`restaurant_id`, `user_id`).
+- unique (`tenant_id`, `user_id`).
 
 Papéis planejados:
 
@@ -130,7 +130,7 @@ Mesas do restaurante.
 Campos:
 
 - `id`: uuid, PK;
-- `restaurant_id`: uuid, FK `restaurants.id`;
+- `tenant_id`: uuid, FK `tenants.id`;
 - `number`: text;
 - `label`: text;
 - `qr_token`: text, único;
@@ -151,7 +151,7 @@ Categorias do cardápio.
 Campos:
 
 - `id`: uuid, PK;
-- `restaurant_id`: uuid, FK `restaurants.id`;
+- `tenant_id`: uuid, FK `tenants.id`;
 - `name`: text;
 - `description`: text;
 - `sort_order`: integer;
@@ -172,7 +172,7 @@ Produtos/pratos/bebidas do cardápio.
 Campos:
 
 - `id`: uuid, PK;
-- `restaurant_id`: uuid, FK `restaurants.id`;
+- `tenant_id`: uuid, FK `tenants.id`;
 - `category_id`: uuid, FK `categories.id`;
 - `name`: text;
 - `description`: text;
@@ -186,7 +186,7 @@ Campos:
 
 Regras:
 
-- produto deve pertencer ao mesmo `restaurant_id` da categoria;
+- produto deve pertencer ao mesmo `tenant_id` da categoria;
 - preço deve ser salvo em centavos;
 - alteração futura de produto não altera pedido antigo;
 - imagem do produto deve respeitar storage por restaurante.
@@ -198,7 +198,7 @@ Pedido realizado pelo cliente ou equipe.
 Campos:
 
 - `id`: uuid, PK;
-- `restaurant_id`: uuid, FK `restaurants.id`;
+- `tenant_id`: uuid, FK `tenants.id`;
 - `table_id`: uuid, FK `tables.id`;
 - `order_number`: integer;
 - `status`: enum received/confirmed/preparing/ready/delivered/cancelled;
@@ -214,7 +214,7 @@ Campos:
 Regras:
 
 - pedido deve pertencer a um único restaurante;
-- `table_id`, quando existir, deve pertencer ao mesmo `restaurant_id`;
+- `table_id`, quando existir, deve pertencer ao mesmo `tenant_id`;
 - `order_number` pode ser único por restaurante;
 - total deve ser recalculado no servidor;
 - cliente não pode forjar preço;
@@ -238,7 +238,7 @@ Campos:
 
 Regras:
 
-- isolamento herdado por `orders.restaurant_id`;
+- isolamento herdado por `orders.tenant_id`;
 - produto deve pertencer ao mesmo restaurante do pedido;
 - salvar snapshot de nome e preço;
 - subtotal deve ser calculado no servidor.
@@ -259,7 +259,7 @@ Campos:
 
 Regras:
 
-- isolamento herdado por `orders.restaurant_id`;
+- isolamento herdado por `orders.tenant_id`;
 - alteração relevante de status deve gerar evento;
 - cancelamentos e fechamentos devem ser auditáveis.
 
@@ -270,7 +270,7 @@ Tabela planejada para auditoria.
 Campos recomendados:
 
 - `id`: uuid, PK;
-- `restaurant_id`: uuid, opcional para eventos globais;
+- `tenant_id`: uuid, opcional para eventos globais;
 - `actor_user_id`: uuid;
 - `actor_role`: text;
 - `operation`: text;
@@ -316,7 +316,7 @@ Assinatura do restaurante.
 Campos recomendados:
 
 - `id`;
-- `restaurant_id`;
+- `tenant_id`;
 - `plan_id`;
 - `status`;
 - `trial_ends_at`;
@@ -335,7 +335,7 @@ Uso por restaurante para limites de plano.
 Campos recomendados:
 
 - `id`;
-- `restaurant_id`;
+- `tenant_id`;
 - `period_start`;
 - `period_end`;
 - `orders_count`;
@@ -346,41 +346,41 @@ Campos recomendados:
 
 ## Regras de isolamento
 
-- Todo dado operacional deve ter `restaurant_id` direto ou vínculo indireto protegido;
-- usuário interno só acessa restaurante vinculado em `restaurant_users`;
+- Todo dado operacional deve ter `tenant_id` direto ou vínculo indireto protegido;
+- usuário interno só acessa restaurante vinculado em `tenant_users`;
 - cliente público só pode ler restaurante/cardápio/mesa ativos;
 - cliente público só pode criar pedidos para mesa ativa;
 - cliente público não pode listar pedidos de outras mesas;
 - RLS deve proteger SELECT/INSERT/UPDATE/DELETE;
 - APIs devem validar autenticação, tenant e permissão;
-- Storage deve separar arquivos por `restaurant_id`.
+- Storage deve separar arquivos por `tenant_id`.
 
 ## Índices recomendados
 
-- `restaurants.slug`;
-- `restaurant_users.restaurant_id`;
-- `restaurant_users.user_id`;
-- `tables.restaurant_id`;
+- `tenants.slug`;
+- `tenant_users.tenant_id`;
+- `tenant_users.user_id`;
+- `tables.tenant_id`;
 - `tables.qr_token`;
-- `categories.restaurant_id`;
-- `products.restaurant_id`;
+- `categories.tenant_id`;
+- `products.tenant_id`;
 - `products.category_id`;
 - `products.is_available`;
-- `orders.restaurant_id`;
+- `orders.tenant_id`;
 - `orders.table_id`;
 - `orders.status`;
 - `orders.created_at`;
 - `order_items.order_id`;
 - `order_status_events.order_id`;
-- `audit_logs.restaurant_id`;
+- `audit_logs.tenant_id`;
 - `audit_logs.actor_user_id`.
 
 ## Status do schema atual
 
 O schema inicial em `mesafacil/supabase/schema.sql` já contém:
 
-- `restaurants`;
-- `restaurant_users`;
+- `tenants`;
+- `tenant_users`;
 - `tables`;
 - `categories`;
 - `products`;
@@ -405,4 +405,4 @@ Pendências antes de operação comercial:
 - Pedido deve salvar nome e preço do produto como snapshot.
 - Alteração futura de produto não deve alterar histórico do pedido.
 - Status deve ter histórico para auditoria operacional.
-- `restaurant_id` deve ser tratado como tenant do SaaS inteiro.
+- `tenant_id` deve ser tratado como tenant do SaaS inteiro.

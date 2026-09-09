@@ -38,9 +38,9 @@ Não deve ser usada para testes destrutivos.
 
 Criar pelo menos:
 
-## Restaurante A
+## Tenant A / Restaurante A
 
-- restaurante: `Restaurante A`;
+- restaurante: `Tenant A / Restaurante A`;
 - usuário proprietário A;
 - usuário administrador A;
 - usuário gerente A;
@@ -53,9 +53,9 @@ Criar pelo menos:
 - pedidos A;
 - arquivos A.
 
-## Restaurante B
+## Tenant B / Restaurante B
 
-- restaurante: `Restaurante B`;
+- restaurante: `Tenant B / Restaurante B`;
 - usuário proprietário B;
 - usuário administrador B;
 - usuário gerente B;
@@ -98,7 +98,7 @@ Resultados esperados:
 
 ## 2. Testes Multi-Tenant
 
-Criar cenários com Restaurante A e Restaurante B.
+Criar cenários com Tenant A / Restaurante A e Tenant B / Restaurante B.
 
 Validar que A não consegue acessar absolutamente nenhum dado de B, e B não consegue acessar dados de A.
 
@@ -123,8 +123,8 @@ Cenário obrigatório:
 
 1. Usuário A autentica.
 2. Usuário A lista produtos.
-3. Resultado deve conter somente produtos do Restaurante A.
-4. Usuário A tenta acessar produto do Restaurante B pelo ID.
+3. Resultado deve conter somente produtos do Tenant A / Restaurante A.
+4. Usuário A tenta acessar produto do Tenant B / Restaurante B pelo ID.
 5. Resultado esperado: **ACESSO NEGADO** ou recurso inexistente.
 
 Repetir o mesmo padrão para cada recurso.
@@ -139,7 +139,7 @@ Exemplos:
 /admin/orders/{id_do_restaurante_b}
 /admin/products/{id_do_restaurante_b}
 /admin/users/{id_do_usuario_b}
-/admin/reports?restaurant_id={restaurante_b}
+/admin/reports?tenant_id={restaurante_b}
 ```
 
 Resultado esperado:
@@ -153,11 +153,11 @@ Nunca retornar dados do outro restaurante.
 
 ## 4. Teste manipulando chamadas da API
 
-Alterar manualmente `restaurant_id` em payloads enviados pelo navegador.
+Alterar manualmente `tenant_id` em payloads enviados pelo navegador.
 
 Exemplos:
 
-- criar produto com `restaurant_id` de outro restaurante;
+- criar produto com `tenant_id` de outro restaurante;
 - atualizar pedido de outro restaurante;
 - cancelar pedido de outro restaurante;
 - listar relatórios usando query string de outro tenant;
@@ -178,28 +178,28 @@ Operações obrigatórias:
 
 ## SELECT
 
-- Usuário A tenta selecionar registros do Restaurante B.
+- Usuário A tenta selecionar registros do Tenant B / Restaurante B.
 - Esperado: zero registros ou acesso negado.
 
 ## INSERT
 
-- Usuário A tenta inserir registro com `restaurant_id` do Restaurante B.
+- Usuário A tenta inserir registro com `tenant_id` do Tenant B / Restaurante B.
 - Esperado: bloqueado por RLS/política.
 
 ## UPDATE
 
-- Usuário A tenta atualizar registro do Restaurante B.
+- Usuário A tenta atualizar registro do Tenant B / Restaurante B.
 - Esperado: bloqueado.
 
 ## DELETE
 
-- Usuário A tenta excluir registro do Restaurante B.
+- Usuário A tenta excluir registro do Tenant B / Restaurante B.
 - Esperado: bloqueado.
 
 Tabelas mínimas:
 
-- `restaurants`;
-- `restaurant_users`;
+- `tenants`;
+- `tenant_users`;
 - `tables`;
 - `categories`;
 - `products`;
@@ -346,7 +346,7 @@ Realizar verificações contra:
 - manipulação de parâmetros;
 - sessão inválida;
 - chamadas sem autenticação;
-- `restaurant_id` adulterado;
+- `tenant_id` adulterado;
 - escalonamento de privilégio;
 - enumeração de IDs;
 - upload de arquivo indevido;
@@ -359,11 +359,11 @@ Realizar verificações contra:
 
 Validar:
 
-- usuário A não faz upload no path do Restaurante B;
-- usuário A não lê documento privado do Restaurante B;
+- usuário A não faz upload no path do Tenant B / Restaurante B;
+- usuário A não lê documento privado do Tenant B / Restaurante B;
 - imagem pública só é pública quando intencional;
 - arquivos privados exigem autenticação;
-- path sempre começa por `restaurant_id` autorizado;
+- path sempre começa por `tenant_id` autorizado;
 - tipos de arquivos são validados;
 - tamanho máximo é respeitado.
 
@@ -384,7 +384,7 @@ Validar registro de eventos importantes:
 Cada log deve registrar, quando possível:
 
 - usuário;
-- restaurante/tenant;
+- tenant/restaurante;
 - operação;
 - data/hora;
 - entidade;
@@ -418,7 +418,7 @@ Mesmo sem implementar cobrança agora, validar que a arquitetura não impede:
 - [ ] permissões RBAC testadas por papel;
 - [ ] tentativa de manipular URL é bloqueada;
 - [ ] tentativa de manipular API é bloqueada;
-- [ ] tentativa de adulterar `restaurant_id` é bloqueada;
+- [ ] tentativa de adulterar `tenant_id` é bloqueada;
 - [ ] arquivos isolados por tenant;
 - [ ] service role não aparece no frontend;
 - [ ] logs críticos planejados/implementados conforme fase;
