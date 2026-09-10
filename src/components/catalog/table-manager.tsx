@@ -11,7 +11,7 @@ export function TableForm({ tenantId }: Readonly<{ tenantId: string }>) {
       <input type="hidden" name="tenantId" value={tenantId} />
       <div>
         <h2 className="text-xl font-bold">Cadastrar mesa</h2>
-        <p className="mt-1 text-sm text-slate-400">Identifique as mesas do salão para uso futuro com QR Code.</p>
+        <p className="mt-1 text-sm text-slate-400">Identifique as mesas do salão para gerar QR Code e receber pedidos.</p>
       </div>
       <label className="block text-sm font-medium text-slate-300">
         Número ou identificação

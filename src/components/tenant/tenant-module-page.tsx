@@ -19,32 +19,32 @@ const moduleGuidance: Record<TenantModuleSlug, string[]> = {
     'O vínculo produto-categoria é validado no app e protegido por RLS no banco.',
   ],
   mesas: [
-    'Mesas já podem ser cadastradas com identificação, lugares, setor e token de QR Code.',
-    'A geração visual de QR Code fica para etapa posterior.',
+    'Mesas já podem ser cadastradas com identificação, lugares, setor e QR Code visual.',
+    'O QR Code aponta para o cardápio público da mesa no domínio oficial.',
   ],
   pedidos: [
-    'Página reservada para listagem e status dos pedidos.',
-    'Ainda não há criação ou processamento de pedido nesta entrega.',
+    'Pedidos enviados pelo cardápio público já aparecem nesta listagem.',
+    'O status pode ser confirmado, enviado para cozinha, marcado como pronto, entregue ou cancelado.',
   ],
   cozinha: [
-    'Página reservada para fila da cozinha.',
-    'Ainda não há fluxo operacional de preparo nesta entrega.',
+    'A cozinha já recebe a fila de pedidos confirmados, em preparo e prontos.',
+    'Use os botões de status para avançar o preparo até a entrega.',
   ],
   caixa: [
-    'Página reservada para conferência, recebimentos e fechamento.',
-    'Nenhuma integração de pagamento foi criada nesta entrega.',
+    'Conferir pedidos não cancelados e valores antes do fechamento.',
+    'Nenhuma integração de pagamento, desconto ou emissão fiscal foi criada nesta entrega.',
   ],
   equipe: [
-    'Página reservada para usuários, papéis e permissões do restaurante.',
-    'A base tenant_users já protege vínculos por tenant_id.',
+    'Listar usuários vinculados ao restaurante e seus papéis.',
+    'Convites e alteração de papéis devem entrar em fluxo próprio com auditoria.',
   ],
   relatorios: [
-    'Página reservada para indicadores, auditoria e gestão.',
-    'Os dados reais virão dos módulos operacionais futuros.',
+    'Acompanhar pedidos de hoje, receita entregue, produtos e mesas.',
+    'Indicadores usam somente dados do tenant atual filtrados por RLS.',
   ],
   configuracoes: [
-    'Página reservada para dados cadastrais e preferências do restaurante.',
-    'Alterações avançadas devem ser validadas por role e RLS.',
+    'Visualizar dados cadastrais, status e slug público do restaurante.',
+    'Edição avançada deve ser validada por role, RLS e auditoria.',
   ],
 };
 

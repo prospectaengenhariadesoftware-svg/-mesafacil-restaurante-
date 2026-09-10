@@ -74,3 +74,22 @@ export function getNextOrderStatus(status: OrderStatus): OrderStatus {
 
   return transitions[status];
 }
+
+export function getOrderStatusActionLabel(status: OrderStatus): string | null {
+  const labels: Partial<Record<OrderStatus, string>> = {
+    received: 'Confirmar pedido',
+    confirmed: 'Enviar para cozinha',
+    preparing: 'Marcar como pronto',
+    ready: 'Marcar como entregue',
+  };
+
+  return labels[status] ?? null;
+}
+
+export function isFinalOrderStatus(status: OrderStatus): boolean {
+  return status === 'delivered' || status === 'cancelled';
+}
+
+export function getKitchenVisibleStatuses(): OrderStatus[] {
+  return ['confirmed', 'preparing', 'ready'];
+}

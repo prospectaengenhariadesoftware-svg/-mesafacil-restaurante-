@@ -4,7 +4,10 @@ import {
   calculateCartTotalCents,
   createOrderNumber,
   formatCurrencyBRL,
+  getKitchenVisibleStatuses,
   getNextOrderStatus,
+  getOrderStatusActionLabel,
+  isFinalOrderStatus,
   parsePublicOrderItems,
 } from './order';
 
@@ -41,6 +44,27 @@ describe('order domain rules', () => {
     expect(getNextOrderStatus('preparing')).toBe('ready');
     expect(getNextOrderStatus('ready')).toBe('delivered');
     expect(getNextOrderStatus('delivered')).toBe('delivered');
+  });
+
+  it('labels the next operational action for active statuses', () => {
+    expect(getOrderStatusActionLabel('received')).toBe('Confirmar pedido');
+    expect(getOrderStatusActionLabel('confirmed')).toBe('Enviar para cozinha');
+    expect(getOrderStatusActionLabel('preparing')).toBe('Marcar como pronto');
+    expect(getOrderStatusActionLabel('ready')).toBe('Marcar como entregue');
+    expect(getOrderStatusActionLabel('delivered')).toBeNull();
+    expect(getOrderStatusActionLabel('cancelled')).toBeNull();
+  });
+
+  it('knows which order statuses are final and which belong to the kitchen queue', () => {
+    expect(isFinalOrderStatus('delivered')).toBe(true);
+    expect(isFinalOrderStatus('cancelled')).toBe(true);
+    expect(isFinalOrderStatus('preparing')).toBe(false);
+    expect(getKitchenVisibleStatuses()).toEqual(['confirmed', 'preparing', 'ready']);
+  });
+
+  it('does not advance cancelled orders', () => {
+    expect(getNextOrderStatus('cancelled')).toBe('cancelled');
+    expect(getOrderStatusActionLabel('cancelled')).toBeNull();
   });
 
   it('parses public order item quantities from form fields', () => {

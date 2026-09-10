@@ -1,4 +1,5 @@
-import { formatCurrencyBRL } from '@/lib/domain/order';
+import { advanceOrderStatusAction } from '@/app/actions/orders';
+import { formatCurrencyBRL, getOrderStatusActionLabel, isFinalOrderStatus } from '@/lib/domain/order';
 import type { TenantCustomerOrder } from '@/lib/types/orders';
 
 const statusLabels: Record<TenantCustomerOrder['status'], string> = {
@@ -10,19 +11,33 @@ const statusLabels: Record<TenantCustomerOrder['status'], string> = {
   cancelled: 'Cancelado',
 };
 
-export function OrdersList({ orders }: Readonly<{ orders: TenantCustomerOrder[] }>) {
+export function OrdersList({
+  orders,
+  tenantId,
+  source = 'pedidos',
+  title = 'Pedidos recebidos',
+  description = 'Pedidos enviados pelos clientes via QR Code das mesas.',
+  emptyMessage = 'Nenhum pedido recebido ainda.',
+}: Readonly<{
+  orders: TenantCustomerOrder[];
+  tenantId: string;
+  source?: 'pedidos' | 'cozinha';
+  title?: string;
+  description?: string;
+  emptyMessage?: string;
+}>) {
   return (
     <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5">
       <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
         <div>
-          <h2 className="text-xl font-bold">Pedidos recebidos</h2>
-          <p className="mt-1 text-sm text-slate-400">Pedidos enviados pelos clientes via QR Code das mesas.</p>
+          <h2 className="text-xl font-bold">{title}</h2>
+          <p className="mt-1 text-sm text-slate-400">{description}</p>
         </div>
         <span className="rounded-full bg-emerald-400/10 px-3 py-1 text-xs font-semibold text-emerald-300">{orders.length} pedido(s)</span>
       </div>
 
       {orders.length === 0 ? (
-        <p className="mt-5 rounded-2xl border border-slate-800 bg-slate-950 p-4 text-sm text-slate-400">Nenhum pedido recebido ainda.</p>
+        <p className="mt-5 rounded-2xl border border-slate-800 bg-slate-950 p-4 text-sm text-slate-400">{emptyMessage}</p>
       ) : (
         <div className="mt-5 space-y-4">
           {orders.map((order) => (
@@ -40,6 +55,31 @@ export function OrdersList({ orders }: Readonly<{ orders: TenantCustomerOrder[] 
                   <span className="rounded-full bg-amber-400/10 px-3 py-1 text-xs font-semibold text-amber-200">{statusLabels[order.status]}</span>
                   <p className="mt-2 text-lg font-black text-emerald-300">{formatCurrencyBRL(order.total_cents)}</p>
                   <p className="text-xs text-slate-500">{new Date(order.created_at).toLocaleString('pt-BR')}</p>
+                  <div className="mt-3 flex flex-wrap gap-2 sm:justify-end">
+                    {getOrderStatusActionLabel(order.status) ? (
+                      <form action={advanceOrderStatusAction}>
+                        <input type="hidden" name="tenantId" value={tenantId} />
+                        <input type="hidden" name="orderId" value={order.id} />
+                        <input type="hidden" name="currentStatus" value={order.status} />
+                        <input type="hidden" name="source" value={source} />
+                        <button className="rounded-full bg-emerald-500 px-4 py-2 text-xs font-bold text-slate-950 transition hover:bg-emerald-400" type="submit">
+                          {getOrderStatusActionLabel(order.status)}
+                        </button>
+                      </form>
+                    ) : null}
+                    {!isFinalOrderStatus(order.status) ? (
+                      <form action={advanceOrderStatusAction}>
+                        <input type="hidden" name="tenantId" value={tenantId} />
+                        <input type="hidden" name="orderId" value={order.id} />
+                        <input type="hidden" name="currentStatus" value={order.status} />
+                        <input type="hidden" name="source" value={source} />
+                        <input type="hidden" name="mode" value="cancel" />
+                        <button className="rounded-full border border-rose-400/40 px-4 py-2 text-xs font-bold text-rose-200 transition hover:bg-rose-500/10" type="submit">
+                          Cancelar
+                        </button>
+                      </form>
+                    ) : null}
+                  </div>
                 </div>
               </div>
 

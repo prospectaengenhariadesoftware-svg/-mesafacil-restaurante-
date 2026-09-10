@@ -47,7 +47,7 @@ export default async function PedidosPage({ params }: Readonly<{ params: Promise
 
   return (
     <TenantModulePage tenantId={tenantId} module="pedidos">
-      <OrdersList orders={hydratedOrders} />
+      <OrdersList orders={hydratedOrders} tenantId={tenantId} />
     </TenantModulePage>
   );
 }

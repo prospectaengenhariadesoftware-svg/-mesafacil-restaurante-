@@ -27,27 +27,27 @@ const moduleLabels: Record<TenantModuleSlug, Omit<TenantNavigationItem, 'slug' |
   },
   cardapio: {
     label: 'Cardápio',
-    description: 'Estrutura inicial para categorias e itens do cardápio.',
+    description: 'Categorias do cardápio protegidas por tenant.',
   },
   produtos: {
     label: 'Produtos',
-    description: 'Base futura para cadastro de produtos e disponibilidade.',
+    description: 'Cadastro de produtos, preço e disponibilidade.',
   },
   mesas: {
     label: 'Mesas',
-    description: 'Base futura para mesas, QR Codes e setores.',
+    description: 'Mesas, setores e QR Codes do cardápio público.',
   },
   pedidos: {
     label: 'Pedidos',
-    description: 'Base futura para acompanhamento de pedidos.',
+    description: 'Acompanhamento dos pedidos recebidos via QR Code.',
   },
   cozinha: {
     label: 'Cozinha',
-    description: 'Base futura para fila operacional da cozinha.',
+    description: 'Fila operacional de preparo e entrega.',
   },
   caixa: {
     label: 'Caixa',
-    description: 'Base futura para fechamento e conferência de consumo.',
+    description: 'Conferência de consumo e pedidos para fechamento.',
   },
   equipe: {
     label: 'Equipe',
@@ -55,11 +55,11 @@ const moduleLabels: Record<TenantModuleSlug, Omit<TenantNavigationItem, 'slug' |
   },
   relatorios: {
     label: 'Relatórios',
-    description: 'Base futura para indicadores e auditoria gerencial.',
+    description: 'Indicadores de pedidos, receita, cardápio e mesas.',
   },
   configuracoes: {
     label: 'Configurações',
-    description: 'Dados cadastrais e preferências iniciais do tenant.',
+    description: 'Dados cadastrais, status e identificação pública do tenant.',
   },
 };
 
