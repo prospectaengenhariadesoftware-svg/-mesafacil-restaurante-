@@ -333,6 +333,80 @@ export async function createTableAction(formData: FormData) {
     is_active: validation.data.isActive,
   });
 
-  if (error) fail(path, error.message);
-  redirect(`${path}?mensagem=${encodeURIComponent('Mesa cadastrada.')}`);
+  if (error) fail(path, 'Não foi possível cadastrar a mesa. Verifique permissões, auditoria e identificação duplicada.');
+  redirect(`${path}?mensagem=${encodeURIComponent('Mesa cadastrada com sucesso.')}`);
+}
+
+export async function updateTableAction(formData: FormData) {
+  const tenantId = requireTenantId(formData);
+  const tableId = getString(formData, 'tableId');
+  const path = `/tenants/${tenantId}/mesas`;
+  await requireActiveTenant(tenantId);
+  if (!isUuid(tableId)) fail(path, 'Mesa inválida.');
+
+  const validation = validateTableInput({
+    number: getString(formData, 'number'),
+    seats: getString(formData, 'seats'),
+    sector: getString(formData, 'sector'),
+    isActive: getBoolean(formData, 'isActive'),
+  });
+  if (!validation.success) fail(path, validation.error);
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from('tenant_tables')
+    .update({
+      number: validation.data.number,
+      seats: validation.data.seats,
+      sector: validation.data.sector,
+      is_active: validation.data.isActive,
+    })
+    .eq('tenant_id', tenantId)
+    .eq('id', tableId)
+    .select('id')
+    .single();
+
+  if (error) fail(path, 'Não foi possível atualizar a mesa. Verifique permissões, auditoria e identificação duplicada.');
+  redirect(`${path}?mensagem=${encodeURIComponent('Mesa atualizada com sucesso.')}`);
+}
+
+export async function deleteTableAction(formData: FormData) {
+  const tenantId = requireTenantId(formData);
+  const tableId = getString(formData, 'tableId');
+  const path = `/tenants/${tenantId}/mesas`;
+  await requireActiveTenant(tenantId);
+  if (!isUuid(tableId)) fail(path, 'Mesa inválida.');
+  if (getString(formData, 'confirmDelete') !== 'CONFIRMAR') fail(path, 'Confirme a exclusão/inativação da mesa.');
+
+  const supabase = await createClient();
+  const { count, error: countError } = await supabase
+    .from('tenant_customer_orders')
+    .select('id', { count: 'exact', head: true })
+    .eq('tenant_id', tenantId)
+    .eq('table_id', tableId);
+
+  if (countError) fail(path, 'Não foi possível verificar pedidos vinculados à mesa.');
+
+  if ((count ?? 0) > 0) {
+    const { error } = await supabase
+      .from('tenant_tables')
+      .update({ is_active: false })
+      .eq('tenant_id', tenantId)
+      .eq('id', tableId)
+      .select('id')
+      .single();
+    if (error) fail(path, 'Não foi possível inativar a mesa com auditoria transacional.');
+    redirect(`${path}?mensagem=${encodeURIComponent('Mesa possui histórico de pedidos e foi inativada com segurança.')}`);
+  }
+
+  const { error } = await supabase
+    .from('tenant_tables')
+    .delete()
+    .eq('tenant_id', tenantId)
+    .eq('id', tableId)
+    .select('id')
+    .single();
+  if (error) fail(path, 'Não foi possível excluir a mesa com auditoria transacional.');
+
+  redirect(`${path}?mensagem=${encodeURIComponent('Mesa excluída com sucesso.')}`);
 }

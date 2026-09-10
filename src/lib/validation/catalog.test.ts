@@ -87,4 +87,12 @@ describe('catalog validation', () => {
     });
     expect(validateTableInput({ number: '', seats: '0' }).success).toBe(false);
   });
+
+  it('normalizes editable restaurant table status and rejects unsafe sectors', () => {
+    expect(validateTableInput({ number: ' Varanda   03 ', seats: 6, sector: ' Área externa ', isActive: 'false' })).toEqual({
+      success: true,
+      data: { number: 'Varanda 03', seats: 6, sector: 'Área externa', isActive: false },
+    });
+    expect(validateTableInput({ number: 'A1', seats: '4', sector: 'x'.repeat(61) }).success).toBe(false);
+  });
 });

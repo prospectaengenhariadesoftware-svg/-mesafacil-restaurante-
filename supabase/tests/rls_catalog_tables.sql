@@ -40,6 +40,11 @@ values
   ('dddddddd-3333-4ddd-8ddd-dddddddddddd', 'dddddddd-1111-4ddd-8ddd-dddddddddddd', 'dddddddd-2222-4ddd-8ddd-dddddddddddd', 'Produto B', 2000)
 on conflict (id) do nothing;
 
+insert into public.tenant_tables (id, tenant_id, number, seats, sector)
+values
+  ('dddddddd-4444-4ddd-8ddd-dddddddddddd', 'dddddddd-1111-4ddd-8ddd-dddddddddddd', 'B9', 2, 'Salão B')
+on conflict (id) do nothing;
+
 set local role authenticated;
 set local request.jwt.claim.sub = 'cccccccc-cccc-4ccc-8ccc-cccccccccccc';
 set local request.jwt.claim.role = 'authenticated';
@@ -64,6 +69,14 @@ do $$
 begin
   if exists (select 1 from public.tenant_products where id = 'dddddddd-3333-4ddd-8ddd-dddddddddddd') then
     raise exception 'RLS failure: owner A can see tenant B product';
+  end if;
+end $$;
+
+-- Owner A cannot see tenant B table.
+do $$
+begin
+  if exists (select 1 from public.tenant_tables where id = 'dddddddd-4444-4ddd-8ddd-dddddddddddd') then
+    raise exception 'RLS failure: owner A can see tenant B table';
   end if;
 end $$;
 
@@ -126,6 +139,21 @@ exception when foreign_key_violation or insufficient_privilege or with_check_opt
   null;
 end $$;
 
+-- Owner A cannot update tenant B table.
+do $$
+declare
+  changed_count integer;
+begin
+  update public.tenant_tables
+  set number = 'B9 invadida', seats = 8
+  where id = 'dddddddd-4444-4ddd-8ddd-dddddddddddd';
+
+  get diagnostics changed_count = row_count;
+  if changed_count <> 0 then
+    raise exception 'RLS failure: owner A updated tenant B table';
+  end if;
+end $$;
+
 -- Owner A cannot delete tenant B category.
 do $$
 declare
@@ -151,6 +179,20 @@ begin
   get diagnostics deleted_count = row_count;
   if deleted_count <> 0 then
     raise exception 'RLS failure: owner A deleted tenant B product';
+  end if;
+end $$;
+
+-- Owner A cannot delete tenant B table.
+do $$
+declare
+  deleted_count integer;
+begin
+  delete from public.tenant_tables
+  where id = 'dddddddd-4444-4ddd-8ddd-dddddddddddd';
+
+  get diagnostics deleted_count = row_count;
+  if deleted_count <> 0 then
+    raise exception 'RLS failure: owner A deleted tenant B table';
   end if;
 end $$;
 

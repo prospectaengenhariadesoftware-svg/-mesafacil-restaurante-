@@ -127,13 +127,15 @@ export function validateTableInput(input: Record<string, unknown>): ValidationRe
   if (number.length < 1) return { success: false, error: 'Informe o número ou identificação da mesa.' };
   if (number.length > 20) return { success: false, error: 'Identificação da mesa muito longa.' };
   if (!Number.isInteger(seats) || seats < 1 || seats > 99) return { success: false, error: 'Informe a quantidade de lugares entre 1 e 99.' };
+  const sector = optionalText(input.sector);
+  if (sector && sector.length > 60) return { success: false, error: 'Setor muito longo.' };
 
   return {
     success: true,
     data: {
       number,
       seats,
-      sector: optionalText(input.sector),
+      sector,
       isActive: input.isActive !== false && input.isActive !== 'false',
     },
   };
