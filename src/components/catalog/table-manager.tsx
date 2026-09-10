@@ -1,4 +1,8 @@
 import { createTableAction } from '@/app/actions/catalog';
+import Link from 'next/link';
+import { headers } from 'next/headers';
+import { QrCodeImage } from '@/components/qr/qr-code-svg';
+import { buildPublicMenuPath } from '@/lib/public-menu/qr';
 import type { RestaurantTable } from '@/lib/types/catalog';
 
 export function TableForm({ tenantId }: Readonly<{ tenantId: string }>) {
@@ -30,7 +34,12 @@ export function TableForm({ tenantId }: Readonly<{ tenantId: string }>) {
   );
 }
 
-export function TableList({ tables }: Readonly<{ tables: RestaurantTable[] }>) {
+export async function TableList({ tables, publicSlug }: Readonly<{ tables: RestaurantTable[]; publicSlug: string }>) {
+  const headersList = await headers();
+  const headerHost = headersList.get('x-forwarded-host') ?? headersList.get('host') ?? 'localhost:3000';
+  const headerProto = headersList.get('x-forwarded-proto') ?? (headerHost.startsWith('localhost') ? 'http' : 'https');
+  const origin = process.env.NEXT_PUBLIC_SITE_URL ?? `${headerProto}://${headerHost}`;
+
   return (
     <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5">
       <h2 className="text-xl font-bold">Mesas cadastradas</h2>
@@ -38,7 +47,10 @@ export function TableList({ tables }: Readonly<{ tables: RestaurantTable[] }>) {
         <p className="mt-3 text-sm text-slate-400">Nenhuma mesa cadastrada ainda.</p>
       ) : (
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
-          {tables.map((table) => (
+          {await Promise.all(tables.map(async (table) => {
+            const publicPath = buildPublicMenuPath(publicSlug, table.qr_token);
+            const publicUrl = new URL(publicPath, origin).toString();
+            return (
             <article key={table.id} className="rounded-xl border border-slate-800 bg-slate-950 p-4">
               <div className="flex items-start justify-between gap-3">
                 <div>
@@ -47,9 +59,19 @@ export function TableList({ tables }: Readonly<{ tables: RestaurantTable[] }>) {
                 </div>
                 <span className="rounded-full bg-emerald-400/10 px-3 py-1 text-xs font-semibold text-emerald-300">{table.is_active ? 'Ativa' : 'Inativa'}</span>
               </div>
-              <p className="mt-3 text-xs text-slate-500">Token de QR Code gerado e reservado para a etapa de QR visual.</p>
+              <div className="mt-4 grid gap-3 sm:grid-cols-[auto_1fr] sm:items-center">
+                <QrCodeImage value={publicUrl} label={`QR Mesa ${table.number}`} />
+                <div>
+                  <p className="text-sm font-semibold text-slate-200">Cardápio público da mesa</p>
+                  <Link href={publicPath} target="_blank" className="mt-2 inline-flex break-all text-sm text-emerald-300 hover:text-emerald-200">
+                    {publicPath}
+                  </Link>
+                  <p className="mt-2 text-xs text-slate-500">Use este QR para o cliente abrir o cardápio desta mesa.</p>
+                </div>
+              </div>
             </article>
-          ))}
+          );
+          }))}
         </div>
       )}
     </section>

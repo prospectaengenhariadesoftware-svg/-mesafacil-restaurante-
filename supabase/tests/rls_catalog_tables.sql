@@ -17,10 +17,10 @@ values
   ('dddddddd-dddd-4ddd-8ddd-dddddddddddd', 'Catalog B', 'catalog-b@mesafacil.test', 'active')
 on conflict (user_id) do update set status = excluded.status;
 
-insert into public.tenants (id, name, status)
+insert into public.tenants (id, name, public_slug, status)
 values
-  ('cccccccc-1111-4ccc-8ccc-cccccccccccc', 'Tenant Catalog A', 'active'),
-  ('dddddddd-1111-4ddd-8ddd-dddddddddddd', 'Tenant Catalog B', 'active')
+  ('cccccccc-1111-4ccc-8ccc-cccccccccccc', 'Tenant Catalog A', 'tenant-catalog-a-test', 'active'),
+  ('dddddddd-1111-4ddd-8ddd-dddddddddddd', 'Tenant Catalog B', 'tenant-catalog-b-test', 'active')
 on conflict (id) do nothing;
 
 insert into public.tenant_users (tenant_id, user_id, role, status)
