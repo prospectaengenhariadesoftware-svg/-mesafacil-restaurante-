@@ -66,6 +66,35 @@ begin
   end;
 end $$;
 
+-- Owner A cannot update tenant B category.
+do $$
+declare
+  changed_count integer;
+begin
+  update public.tenant_product_categories
+  set name = 'Categoria B invadida'
+  where id = 'dddddddd-2222-4ddd-8ddd-dddddddddddd';
+
+  get diagnostics changed_count = row_count;
+  if changed_count <> 0 then
+    raise exception 'RLS failure: owner A updated tenant B category';
+  end if;
+end $$;
+
+-- Owner A cannot delete tenant B category.
+do $$
+declare
+  deleted_count integer;
+begin
+  delete from public.tenant_product_categories
+  where id = 'dddddddd-2222-4ddd-8ddd-dddddddddddd';
+
+  get diagnostics deleted_count = row_count;
+  if deleted_count <> 0 then
+    raise exception 'RLS failure: owner A deleted tenant B category';
+  end if;
+end $$;
+
 -- Owner A cannot create table in tenant B.
 do $$
 begin

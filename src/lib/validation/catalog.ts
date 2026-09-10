@@ -7,6 +7,8 @@ export type ValidationResult<T> =
 export type CategoryInput = {
   name: string;
   description: string | null;
+  isActive: boolean;
+  displayOrder: number;
 };
 
 export type ProductInput = {
@@ -55,10 +57,24 @@ export function formatMoneyFromCents(cents: number): string {
 
 export function validateCategoryInput(input: Record<string, unknown>): ValidationResult<CategoryInput> {
   const name = cleanText(input.name);
+  const displayOrderRaw = typeof input.displayOrder === 'number' ? input.displayOrder : Number(cleanText(input.displayOrder ?? '0'));
+  const displayOrder = Number.isInteger(displayOrderRaw) ? displayOrderRaw : NaN;
+
   if (name.length < 2) return { success: false, error: 'Informe uma categoria com pelo menos 2 caracteres.' };
   if (name.length > 80) return { success: false, error: 'Categoria muito longa.' };
+  if (!Number.isInteger(displayOrder) || displayOrder < 0 || displayOrder > 999) {
+    return { success: false, error: 'Informe uma ordem de exibição entre 0 e 999.' };
+  }
 
-  return { success: true, data: { name, description: optionalText(input.description) } };
+  return {
+    success: true,
+    data: {
+      name,
+      description: optionalText(input.description),
+      isActive: input.isActive !== false && input.isActive !== 'false',
+      displayOrder,
+    },
+  };
 }
 
 export function validateProductInput(input: Record<string, unknown>): ValidationResult<ProductInput> {

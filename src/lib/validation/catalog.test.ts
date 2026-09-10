@@ -9,8 +9,19 @@ import {
 
 describe('catalog validation', () => {
   it('validates product categories before products', () => {
-    expect(validateCategoryInput({ name: 'Bebidas' })).toEqual({ success: true, data: { name: 'Bebidas', description: null } });
+    expect(validateCategoryInput({ name: 'Bebidas' })).toEqual({
+      success: true,
+      data: { name: 'Bebidas', description: null, isActive: true, displayOrder: 0 },
+    });
     expect(validateCategoryInput({ name: 'A' }).success).toBe(false);
+  });
+
+  it('normalizes editable category status and display order', () => {
+    expect(validateCategoryInput({ name: ' Pratos   Executivos ', description: ' Almoço ', isActive: 'false', displayOrder: '7' })).toEqual({
+      success: true,
+      data: { name: 'Pratos Executivos', description: 'Almoço', isActive: false, displayOrder: 7 },
+    });
+    expect(validateCategoryInput({ name: 'Pratos', displayOrder: '-1' }).success).toBe(false);
   });
 
   it('validates products with required category and positive price', () => {
