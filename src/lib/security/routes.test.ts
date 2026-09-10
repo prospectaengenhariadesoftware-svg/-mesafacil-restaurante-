@@ -10,6 +10,7 @@ describe('protected routes', () => {
   it('does not redirect public auth routes or authenticated users', () => {
     expect(getProtectedRouteRedirect('/login', false)).toBeNull();
     expect(getProtectedRouteRedirect('/cadastro', false)).toBeNull();
+    expect(getProtectedRouteRedirect('/pedido-confirmado', false)).toBeNull();
     expect(getProtectedRouteRedirect('/dashboard', true)).toBeNull();
   });
 });

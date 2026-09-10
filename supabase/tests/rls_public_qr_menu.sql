@@ -48,6 +48,9 @@ begin
   if payload #>> '{tenant,name}' <> 'Public Menu Tenant' then
     raise exception 'Public menu tenant payload mismatch';
   end if;
+  if payload #>> '{tenant,id}' is not null then
+    raise exception 'Public menu leaked internal tenant id';
+  end if;
   if payload #>> '{table,id}' is not null then
     raise exception 'Public menu leaked internal table id';
   end if;
@@ -56,6 +59,15 @@ begin
   end if;
   if payload #>> '{categories,0,products,0,name}' <> 'Suco natural' then
     raise exception 'Public menu product payload mismatch';
+  end if;
+  if payload #>> '{categories,0,id}' is not null then
+    raise exception 'Public menu leaked internal category id';
+  end if;
+  if payload #>> '{categories,0,products,0,id}' is not null then
+    raise exception 'Public menu leaked internal product id';
+  end if;
+  if payload #>> '{categories,0,products,0,public_code}' is null then
+    raise exception 'Public menu did not return product public code';
   end if;
 
   select public.get_public_menu_by_qr('public-menu-tenant-test', 'ffffffff-3333-4fff-8fff-ffffffffffff') into payload;

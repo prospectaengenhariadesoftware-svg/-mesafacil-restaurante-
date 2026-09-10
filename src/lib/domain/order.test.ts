@@ -5,6 +5,7 @@ import {
   createOrderNumber,
   formatCurrencyBRL,
   getNextOrderStatus,
+  parsePublicOrderItems,
 } from './order';
 
 describe('order domain rules', () => {
@@ -40,5 +41,23 @@ describe('order domain rules', () => {
     expect(getNextOrderStatus('preparing')).toBe('ready');
     expect(getNextOrderStatus('ready')).toBe('delivered');
     expect(getNextOrderStatus('delivered')).toBe('delivered');
+  });
+
+  it('parses public order item quantities from form fields', () => {
+    const items = parsePublicOrderItems({
+      'quantity:11111111-1111-4111-8111-111111111111': '2',
+      'quantity:22222222-2222-4222-8222-222222222222': '0',
+      'notes:11111111-1111-4111-8111-111111111111': 'Sem cebola',
+    });
+
+    expect(items).toEqual([
+      { productId: '11111111-1111-4111-8111-111111111111', quantity: 2, notes: 'Sem cebola' },
+    ]);
+  });
+
+  it('rejects public orders without selected products', () => {
+    expect(() => parsePublicOrderItems({
+      'quantity:11111111-1111-4111-8111-111111111111': '0',
+    })).toThrow('Selecione pelo menos um produto.');
   });
 });

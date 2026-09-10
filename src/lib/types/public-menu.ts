@@ -1,5 +1,5 @@
 export type PublicMenuProduct = {
-  id: string;
+  public_code: string;
   name: string;
   description: string | null;
   price_cents: number;
@@ -8,7 +8,6 @@ export type PublicMenuProduct = {
 };
 
 export type PublicMenuCategory = {
-  id: string;
   name: string;
   description: string | null;
   products: PublicMenuProduct[];

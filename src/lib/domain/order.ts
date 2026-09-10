@@ -14,6 +14,29 @@ export type CartItem = {
   notes?: string;
 };
 
+export type PublicOrderItemInput = {
+  productId: string;
+  quantity: number;
+  notes?: string;
+};
+
+export function parsePublicOrderItems(fields: Record<string, string>): PublicOrderItemInput[] {
+  const items: PublicOrderItemInput[] = [];
+
+  for (const [key, rawQuantity] of Object.entries(fields)) {
+    if (!key.startsWith('quantity:')) continue;
+    const productId = key.replace('quantity:', '');
+    const quantity = Number.parseInt(rawQuantity, 10);
+    if (!Number.isFinite(quantity) || quantity <= 0) continue;
+    if (quantity > 99) throw new Error('Quantidade máxima por item é 99.');
+    const rawNotes = fields[`notes:${productId}`]?.trim();
+    items.push({ productId, quantity, ...(rawNotes ? { notes: rawNotes.slice(0, 200) } : {}) });
+  }
+
+  if (items.length === 0) throw new Error('Selecione pelo menos um produto.');
+  return items;
+}
+
 export function calculateCartTotalCents(items: CartItem[]): number {
   return items.reduce((total, item) => {
     if (item.quantity <= 0) {

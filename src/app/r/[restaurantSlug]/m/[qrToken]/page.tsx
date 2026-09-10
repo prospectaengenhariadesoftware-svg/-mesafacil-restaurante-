@@ -1,11 +1,19 @@
 import { createClient } from '@/lib/supabase/server';
+import { PublicOrderForm } from '@/components/public-menu/public-order-form';
 import type { PublicMenuPayload } from '@/lib/types/public-menu';
 import { formatMoneyFromCents } from '@/lib/validation/catalog';
 import { validatePublicMenuParams } from '@/lib/public-menu/qr';
 import { notFound } from 'next/navigation';
 
-export default async function PublicQrMenuPage({ params }: Readonly<{ params: Promise<{ restaurantSlug: string; qrToken: string }> }>) {
+export default async function PublicQrMenuPage({
+  params,
+  searchParams,
+}: Readonly<{
+  params: Promise<{ restaurantSlug: string; qrToken: string }>;
+  searchParams: Promise<{ erro?: string }>;
+}>) {
   const routeParams = await params;
+  const feedback = await searchParams;
   const validation = validatePublicMenuParams(routeParams);
   if (!validation.success) notFound();
 
@@ -30,9 +38,11 @@ export default async function PublicQrMenuPage({ params }: Readonly<{ params: Pr
             Cardápio digital da mesa {menu.table.number}{menu.table.sector ? ` • ${menu.table.sector}` : ''}.
           </p>
           <div className="mt-5 rounded-2xl border border-emerald-400/20 bg-emerald-400/10 p-4 text-sm text-emerald-100">
-            Confira os produtos disponíveis. A realização do pedido será ativada na próxima etapa.
+            Confira os produtos disponíveis e envie seu pedido para a equipe do restaurante. Pagamento ainda não está ativado nesta etapa.
           </div>
         </header>
+
+        {feedback.erro ? <p className="rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-200">{feedback.erro}</p> : null}
 
         {availableProductsCount === 0 ? (
           <section className="rounded-3xl border border-slate-800 bg-slate-900 p-6 text-center">
@@ -40,9 +50,11 @@ export default async function PublicQrMenuPage({ params }: Readonly<{ params: Pr
             <p className="mt-2 text-slate-400">Este restaurante ainda não publicou produtos disponíveis para esta mesa.</p>
           </section>
         ) : (
-          <div className="space-y-5">
+          <>
+            <PublicOrderForm menu={menu} qrToken={validation.data.qrToken} />
+            <div className="space-y-5">
             {menu.categories.map((category) => (
-              <section key={category.id} className="rounded-3xl border border-slate-800 bg-slate-900/80 p-5">
+              <section key={category.name} className="rounded-3xl border border-slate-800 bg-slate-900/80 p-5">
                 <div className="border-b border-slate-800 pb-4">
                   <h2 className="text-2xl font-black">{category.name}</h2>
                   {category.description ? <p className="mt-1 text-sm text-slate-400">{category.description}</p> : null}
@@ -52,7 +64,7 @@ export default async function PublicQrMenuPage({ params }: Readonly<{ params: Pr
                 ) : (
                   <div className="mt-4 grid gap-3">
                     {category.products.map((product) => (
-                      <article key={product.id} className="rounded-2xl border border-slate-800 bg-slate-950 p-4">
+                      <article key={product.public_code} className="rounded-2xl border border-slate-800 bg-slate-950 p-4">
                         <div className="flex items-start justify-between gap-4">
                           <div>
                             <h3 className="font-bold text-slate-100">{product.name}</h3>
@@ -68,7 +80,8 @@ export default async function PublicQrMenuPage({ params }: Readonly<{ params: Pr
                 )}
               </section>
             ))}
-          </div>
+            </div>
+          </>
         )}
 
         <footer className="pb-8 text-center text-xs text-slate-500">
