@@ -177,6 +177,7 @@ export async function createProductAction(formData: FormData) {
     name: getString(formData, 'name'),
     description: getString(formData, 'description'),
     price: getString(formData, 'price'),
+    imageUrl: getString(formData, 'imageUrl'),
     isAvailable: getBoolean(formData, 'isAvailable'),
   });
   if (!validation.success) fail(path, validation.error);
@@ -188,11 +189,126 @@ export async function createProductAction(formData: FormData) {
     name: validation.data.name,
     description: validation.data.description,
     price_cents: validation.data.priceCents,
+    image_url: validation.data.imageUrl,
     is_available: validation.data.isAvailable,
   });
 
-  if (error) fail(path, error.message);
-  redirect(`${path}?mensagem=${encodeURIComponent('Produto cadastrado.')}`);
+  if (error) fail(path, 'Não foi possível cadastrar o produto. Verifique categoria, permissões, auditoria e nome duplicado.');
+
+  redirect(`${path}?mensagem=${encodeURIComponent('Produto cadastrado com sucesso.')}`);
+}
+
+export async function updateProductAction(formData: FormData) {
+  const tenantId = requireTenantId(formData);
+  const productId = getString(formData, 'productId');
+  const path = `/tenants/${tenantId}/produtos`;
+  await requireActiveTenant(tenantId);
+  if (!isUuid(productId)) fail(path, 'Produto inválido.');
+
+  const validation = validateProductInput({
+    categoryId: getString(formData, 'categoryId'),
+    name: getString(formData, 'name'),
+    description: getString(formData, 'description'),
+    price: getString(formData, 'price'),
+    imageUrl: getString(formData, 'imageUrl'),
+    isAvailable: getBoolean(formData, 'isAvailable'),
+  });
+  if (!validation.success) fail(path, validation.error);
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from('tenant_products')
+    .update({
+      category_id: validation.data.categoryId,
+      name: validation.data.name,
+      description: validation.data.description,
+      price_cents: validation.data.priceCents,
+      image_url: validation.data.imageUrl,
+      is_available: validation.data.isAvailable,
+    })
+    .eq('tenant_id', tenantId)
+    .eq('id', productId)
+    .select('id')
+    .single();
+
+  if (error) fail(path, 'Não foi possível atualizar o produto. Verifique categoria, vínculo do tenant, permissões, auditoria e nome duplicado.');
+
+  redirect(`${path}?mensagem=${encodeURIComponent('Produto atualizado com sucesso.')}`);
+}
+
+export async function duplicateProductAction(formData: FormData) {
+  const tenantId = requireTenantId(formData);
+  const productId = getString(formData, 'productId');
+  const path = `/tenants/${tenantId}/produtos`;
+  await requireActiveTenant(tenantId);
+  if (!isUuid(productId)) fail(path, 'Produto inválido.');
+
+  const supabase = await createClient();
+  const { data: product, error: loadError } = await supabase
+    .from('tenant_products')
+    .select('category_id, name, description, price_cents, image_url, is_available')
+    .eq('tenant_id', tenantId)
+    .eq('id', productId)
+    .single();
+
+  if (loadError || !product) fail(path, 'Produto não encontrado para duplicação.');
+
+  const copyName = `${product.name} (cópia ${new Date().toISOString().slice(11, 19)})`.slice(0, 120);
+  const { error } = await supabase.from('tenant_products').insert({
+    tenant_id: tenantId,
+    category_id: product.category_id,
+    name: copyName,
+    description: product.description,
+    price_cents: product.price_cents,
+    image_url: product.image_url,
+    is_available: false,
+  });
+
+  if (error) fail(path, 'Não foi possível duplicar o produto com auditoria transacional.');
+
+  redirect(`${path}?mensagem=${encodeURIComponent('Produto duplicado como indisponível para revisão.')}`);
+}
+
+export async function deleteProductAction(formData: FormData) {
+  const tenantId = requireTenantId(formData);
+  const productId = getString(formData, 'productId');
+  const path = `/tenants/${tenantId}/produtos`;
+  await requireActiveTenant(tenantId);
+  if (!isUuid(productId)) fail(path, 'Produto inválido.');
+  if (getString(formData, 'confirmDelete') !== 'CONFIRMAR') fail(path, 'Confirme a exclusão/inativação do produto.');
+
+  const supabase = await createClient();
+  const { count, error: countError } = await supabase
+    .from('tenant_customer_order_items')
+    .select('id', { count: 'exact', head: true })
+    .eq('tenant_id', tenantId)
+    .eq('product_id', productId);
+
+  if (countError) fail(path, 'Não foi possível verificar pedidos vinculados ao produto.');
+
+  if ((count ?? 0) > 0) {
+    const { error } = await supabase
+      .from('tenant_products')
+      .update({ is_available: false })
+      .eq('tenant_id', tenantId)
+      .eq('id', productId)
+      .select('id')
+      .single();
+    if (error) fail(path, 'Não foi possível inativar o produto com auditoria transacional.');
+
+    redirect(`${path}?mensagem=${encodeURIComponent('Produto possui histórico de pedidos e foi inativado com segurança.')}`);
+  }
+
+  const { error } = await supabase
+    .from('tenant_products')
+    .delete()
+    .eq('tenant_id', tenantId)
+    .eq('id', productId)
+    .select('id')
+    .single();
+  if (error) fail(path, 'Não foi possível excluir o produto com auditoria transacional.');
+
+  redirect(`${path}?mensagem=${encodeURIComponent('Produto excluído com sucesso.')}`);
 }
 
 export async function createTableAction(formData: FormData) {

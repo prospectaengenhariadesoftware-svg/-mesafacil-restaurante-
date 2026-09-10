@@ -35,6 +35,11 @@ values
   ('dddddddd-2222-4ddd-8ddd-dddddddddddd', 'dddddddd-1111-4ddd-8ddd-dddddddddddd', 'Bebidas B', null)
 on conflict (id) do nothing;
 
+insert into public.tenant_products (id, tenant_id, category_id, name, price_cents)
+values
+  ('dddddddd-3333-4ddd-8ddd-dddddddddddd', 'dddddddd-1111-4ddd-8ddd-dddddddddddd', 'dddddddd-2222-4ddd-8ddd-dddddddddddd', 'Produto B', 2000)
+on conflict (id) do nothing;
+
 set local role authenticated;
 set local request.jwt.claim.sub = 'cccccccc-cccc-4ccc-8ccc-cccccccccccc';
 set local request.jwt.claim.role = 'authenticated';
@@ -51,6 +56,14 @@ do $$
 begin
   if exists (select 1 from public.tenant_product_categories where id = 'dddddddd-2222-4ddd-8ddd-dddddddddddd') then
     raise exception 'RLS failure: owner A can see tenant B category';
+  end if;
+end $$;
+
+-- Owner A cannot see tenant B product.
+do $$
+begin
+  if exists (select 1 from public.tenant_products where id = 'dddddddd-3333-4ddd-8ddd-dddddddddddd') then
+    raise exception 'RLS failure: owner A can see tenant B product';
   end if;
 end $$;
 
@@ -81,6 +94,38 @@ begin
   end if;
 end $$;
 
+-- Owner A cannot update tenant B product.
+do $$
+declare
+  changed_count integer;
+begin
+  update public.tenant_products
+  set name = 'Produto B invadido', price_cents = 9999
+  where id = 'dddddddd-3333-4ddd-8ddd-dddddddddddd';
+
+  get diagnostics changed_count = row_count;
+  if changed_count <> 0 then
+    raise exception 'RLS failure: owner A updated tenant B product';
+  end if;
+end $$;
+
+-- Owner A cannot move own product to tenant B category.
+do $$
+declare
+  changed_count integer;
+begin
+  update public.tenant_products
+  set category_id = 'dddddddd-2222-4ddd-8ddd-dddddddddddd'
+  where name = 'Produto A';
+
+  get diagnostics changed_count = row_count;
+  if changed_count <> 0 then
+    raise exception 'RLS failure: owner A moved own product to tenant B category';
+  end if;
+exception when foreign_key_violation or insufficient_privilege or with_check_option_violation then
+  null;
+end $$;
+
 -- Owner A cannot delete tenant B category.
 do $$
 declare
@@ -92,6 +137,20 @@ begin
   get diagnostics deleted_count = row_count;
   if deleted_count <> 0 then
     raise exception 'RLS failure: owner A deleted tenant B category';
+  end if;
+end $$;
+
+-- Owner A cannot delete tenant B product.
+do $$
+declare
+  deleted_count integer;
+begin
+  delete from public.tenant_products
+  where id = 'dddddddd-3333-4ddd-8ddd-dddddddddddd';
+
+  get diagnostics deleted_count = row_count;
+  if deleted_count <> 0 then
+    raise exception 'RLS failure: owner A deleted tenant B product';
   end if;
 end $$;
 

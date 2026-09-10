@@ -16,6 +16,7 @@ export type ProductInput = {
   name: string;
   description: string | null;
   priceCents: number;
+  imageUrl: string | null;
   isAvailable: boolean;
 };
 
@@ -77,15 +78,33 @@ export function validateCategoryInput(input: Record<string, unknown>): Validatio
   };
 }
 
+function optionalUrl(value: unknown): ValidationResult<string | null> {
+  const cleaned = cleanText(value);
+  if (!cleaned) return { success: true, data: null };
+  if (cleaned.length > 500) return { success: false, error: 'URL da imagem muito longa.' };
+
+  try {
+    const url = new URL(cleaned);
+    if (url.protocol !== 'https:' && url.protocol !== 'http:') {
+      return { success: false, error: 'Informe uma URL de imagem válida iniciando com http ou https.' };
+    }
+    return { success: true, data: url.toString() };
+  } catch {
+    return { success: false, error: 'Informe uma URL de imagem válida.' };
+  }
+}
+
 export function validateProductInput(input: Record<string, unknown>): ValidationResult<ProductInput> {
   const categoryId = cleanText(input.categoryId);
   const name = cleanText(input.name);
   const priceCents = parseMoneyToCents(input.price);
+  const imageUrl = optionalUrl(input.imageUrl);
 
   if (!isUuid(categoryId)) return { success: false, error: 'Selecione uma categoria válida para o produto.' };
   if (name.length < 2) return { success: false, error: 'Informe um produto com pelo menos 2 caracteres.' };
   if (name.length > 120) return { success: false, error: 'Nome do produto muito longo.' };
   if (priceCents === null || priceCents <= 0) return { success: false, error: 'Informe um preço maior que zero.' };
+  if (imageUrl.success === false) return { success: false, error: imageUrl.error };
 
   return {
     success: true,
@@ -94,6 +113,7 @@ export function validateProductInput(input: Record<string, unknown>): Validation
       name,
       description: optionalText(input.description),
       priceCents,
+      imageUrl: imageUrl.data,
       isAvailable: input.isAvailable !== false && input.isAvailable !== 'false',
     },
   };
