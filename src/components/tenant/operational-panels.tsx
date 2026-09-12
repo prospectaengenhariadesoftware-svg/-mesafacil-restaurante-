@@ -1,9 +1,11 @@
 import Link from 'next/link';
-import { formatCurrencyBRL } from '@/lib/domain/order';
+import { closeCashPaymentAction } from '@/app/actions/cash';
+import { calculateCashSettlement, formatCurrencyBRL } from '@/lib/domain/order';
 import type { Tenant, TenantRole, TenantUserStatus } from '@/lib/types/saas';
 
 export type CashOrderSummary = {
   id: string;
+  table_id: string;
   public_order_code: string;
   table_number?: string;
   table_sector?: string | null;
@@ -70,57 +72,133 @@ export function StatCard({ label, value, hint }: Readonly<{ label: string; value
   );
 }
 
-export function CashPanel({ tenantId, orders }: Readonly<{ tenantId: string; orders: CashOrderSummary[] }>) {
-  const payableOrders = orders.filter((order) => order.status !== 'cancelled');
+export function CashPanel({
+  tenantId,
+  orders,
+  serviceFeeBasisPoints,
+}: Readonly<{
+  tenantId: string;
+  orders: CashOrderSummary[];
+  serviceFeeBasisPoints: number;
+}>) {
+  const payableOrders = orders.filter((order) => order.status === 'ready' || order.status === 'delivered');
   const totalOpenCents = payableOrders.reduce((sum, order) => sum + order.total_cents, 0);
-  const readyOrDelivered = orders.filter((order) => order.status === 'ready' || order.status === 'delivered').length;
+  const serviceFeePercent = serviceFeeBasisPoints / 100;
+  const groupedByTable = Array.from(
+    payableOrders.reduce((groups, order) => {
+      const current = groups.get(order.table_id) ?? [];
+      current.push(order);
+      groups.set(order.table_id, current);
+      return groups;
+    }, new Map<string, CashOrderSummary[]>()),
+  );
 
   return (
     <div className="space-y-5">
       <div className="grid gap-4 md:grid-cols-3">
-        <StatCard label="Comandas abertas" value={payableOrders.length} hint="Recebidas, em preparo, prontas ou entregues." />
-        <StatCard label="Total em conferência" value={formatCurrencyBRL(totalOpenCents)} hint="Soma dos pedidos não cancelados listados." />
-        <StatCard label="Prontos/entregues" value={readyOrDelivered} hint="Pedidos próximos do fechamento." />
+        <StatCard label="Contas fecháveis" value={payableOrders.length} hint="Somente pedidos prontos ou entregues e ainda não pagos." />
+        <StatCard label="Subtotal em aberto" value={formatCurrencyBRL(totalOpenCents)} hint="Soma dos pedidos aptos para recebimento." />
+        <StatCard label="Taxa de serviço" value={`${serviceFeePercent.toLocaleString('pt-BR')}%`} hint="Configurada no restaurante." />
       </div>
 
       <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5">
         <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
           <div>
-            <h2 className="text-xl font-bold">Conferência de consumo</h2>
-            <p className="mt-1 text-sm text-slate-400">Lista operacional para o caixa conferir mesa, status e valor antes de receber.</p>
+            <h2 className="text-xl font-bold">Fechamento de conta por mesa</h2>
+            <p className="mt-1 text-sm text-slate-400">Registre pagamento real de pedidos prontos/entregues. Pedidos pagos não entram de novo no fechamento.</p>
           </div>
           <Link href={`/tenants/${tenantId}/pedidos`} className="rounded-full border border-emerald-400/40 px-4 py-2 text-sm font-semibold text-emerald-200 hover:bg-emerald-500/10">
             Ver pedidos
           </Link>
         </div>
 
-        {orders.length === 0 ? (
-          <p className="mt-5 rounded-2xl border border-slate-800 bg-slate-950 p-4 text-sm text-slate-400">Nenhum pedido disponível para conferência.</p>
+        {groupedByTable.length === 0 ? (
+          <p className="mt-5 rounded-2xl border border-slate-800 bg-slate-950 p-4 text-sm text-slate-400">Nenhum pedido pronto/entregue disponível para fechamento.</p>
         ) : (
-          <div className="mt-5 space-y-3">
-            {orders.map((order) => (
-              <article key={order.id} className="rounded-xl border border-slate-800 bg-slate-950 p-4">
-                <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-wide text-emerald-300">Pedido {order.public_order_code}</p>
-                    <h3 className="mt-1 font-bold text-slate-100">Mesa {order.table_number ?? '—'}{order.table_sector ? ` • ${order.table_sector}` : ''}</h3>
-                    <p className="mt-1 text-sm text-slate-400">{order.customer_name ? `Cliente: ${order.customer_name}` : 'Cliente não identificado'}</p>
+          <div className="mt-5 space-y-4">
+            {groupedByTable.map(([tableId, tableOrders]) => {
+              const subtotalCents = tableOrders.reduce((sum, order) => sum + order.total_cents, 0);
+              const settlement = calculateCashSettlement({
+                subtotalCents,
+                serviceFeePercent,
+                discountCents: 0,
+                amountPaidCents: Math.max(1, subtotalCents + Math.round(subtotalCents * (serviceFeePercent / 100))),
+              });
+              const firstOrder = tableOrders[0];
+
+              return (
+                <article key={tableId} className="rounded-2xl border border-slate-800 bg-slate-950 p-5">
+                  <div className="flex flex-col justify-between gap-3 lg:flex-row lg:items-start">
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-wide text-emerald-300">Mesa</p>
+                      <h3 className="mt-1 text-xl font-black text-slate-100">
+                        {firstOrder?.table_number ?? '—'}{firstOrder?.table_sector ? ` • ${firstOrder.table_sector}` : ''}
+                      </h3>
+                      <p className="mt-1 text-sm text-slate-400">{tableOrders.length} pedido(s) apto(s) para fechamento.</p>
+                    </div>
+                    <div className="grid gap-2 text-sm text-slate-300 sm:grid-cols-3 lg:min-w-[430px]">
+                      <div className="rounded-xl border border-slate-800 bg-slate-900 p-3"><span className="text-slate-500">Subtotal</span><strong className="block text-slate-100">{formatCurrencyBRL(settlement.subtotalCents)}</strong></div>
+                      <div className="rounded-xl border border-slate-800 bg-slate-900 p-3"><span className="text-slate-500">Serviço</span><strong className="block text-slate-100">{formatCurrencyBRL(settlement.serviceFeeCents)}</strong></div>
+                      <div className="rounded-xl border border-emerald-400/30 bg-emerald-400/10 p-3"><span className="text-emerald-200">Total sugerido</span><strong className="block text-emerald-100">{formatCurrencyBRL(settlement.totalDueCents)}</strong></div>
+                    </div>
                   </div>
-                  <div className="text-left sm:text-right">
-                    <span className="rounded-full bg-amber-400/10 px-3 py-1 text-xs font-semibold text-amber-200">{statusLabels[order.status]}</span>
-                    <p className="mt-2 text-lg font-black text-emerald-300">{formatCurrencyBRL(order.total_cents)}</p>
-                    <p className="text-xs text-slate-500">{new Date(order.created_at).toLocaleString('pt-BR')}</p>
+
+                  <div className="mt-4 space-y-2">
+                    {tableOrders.map((order) => (
+                      <div key={order.id} className="flex flex-col justify-between gap-2 rounded-xl border border-slate-800 bg-slate-900/70 p-3 sm:flex-row sm:items-center">
+                        <div>
+                          <p className="text-sm font-bold text-slate-100">Pedido {order.public_order_code}</p>
+                          <p className="text-xs text-slate-400">{order.customer_name ? `Cliente: ${order.customer_name}` : 'Cliente não identificado'} • {new Date(order.created_at).toLocaleString('pt-BR')}</p>
+                        </div>
+                        <div className="text-left sm:text-right">
+                          <span className="rounded-full bg-amber-400/10 px-3 py-1 text-xs font-semibold text-amber-200">{statusLabels[order.status]}</span>
+                          <p className="mt-1 font-black text-emerald-300">{formatCurrencyBRL(order.total_cents)}</p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                </div>
-              </article>
-            ))}
+
+                  <form action={closeCashPaymentAction} className="mt-5 grid gap-3 rounded-2xl border border-slate-800 bg-slate-900/70 p-4 md:grid-cols-2 xl:grid-cols-6">
+                    <input type="hidden" name="tenantId" value={tenantId} />
+                    <input type="hidden" name="tableId" value={tableId} />
+                    <input type="hidden" name="subtotalCents" value={subtotalCents} />
+                    <input type="hidden" name="serviceFeePercent" value={serviceFeePercent} />
+                    {tableOrders.map((order) => <input key={order.id} type="hidden" name="orderIds" value={order.id} />)}
+
+                    <label className="text-sm font-medium text-slate-300">
+                      Forma
+                      <select name="paymentMethod" defaultValue="pix" className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-slate-100 outline-none focus:border-emerald-400">
+                        <option value="pix">Pix</option>
+                        <option value="money">Dinheiro</option>
+                        <option value="debit">Débito</option>
+                        <option value="credit">Crédito</option>
+                        <option value="other">Outro</option>
+                      </select>
+                    </label>
+                    <label className="text-sm font-medium text-slate-300">
+                      Desconto
+                      <input name="discount" defaultValue="0,00" inputMode="decimal" className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-slate-100 outline-none focus:border-emerald-400" />
+                    </label>
+                    <label className="text-sm font-medium text-slate-300">
+                      Valor pago *
+                      <input name="amountPaid" defaultValue={(settlement.totalDueCents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} inputMode="decimal" required className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-slate-100 outline-none focus:border-emerald-400" />
+                    </label>
+                    <label className="text-sm font-medium text-slate-300 xl:col-span-2">
+                      Observação
+                      <input name="notes" maxLength={300} placeholder="Ex.: pagamento no Pix do caixa" className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-slate-100 outline-none focus:border-emerald-400" />
+                    </label>
+                    <button className="rounded-full bg-emerald-400 px-5 py-3 text-sm font-black text-slate-950 hover:bg-emerald-300 xl:self-end">Fechar conta</button>
+                  </form>
+                </article>
+              );
+            })}
           </div>
         )}
       </section>
 
-      <section className="rounded-2xl border border-amber-400/20 bg-amber-400/5 p-5">
-        <h2 className="text-lg font-bold text-amber-100">Limite desta etapa</h2>
-        <p className="mt-2 text-sm leading-6 text-amber-100/80">A tela faz conferência gerencial, mas ainda não registra pagamento, sangria, desconto, forma de recebimento ou emissão fiscal.</p>
+      <section className="rounded-2xl border border-emerald-400/20 bg-emerald-400/5 p-5">
+        <h2 className="text-lg font-bold text-emerald-100">Controle implementado nesta etapa</h2>
+        <p className="mt-2 text-sm leading-6 text-emerald-100/80">O fechamento registra forma de pagamento, desconto, taxa de serviço, valor pago, troco/saldo e impede novo pagamento do mesmo pedido no banco.</p>
       </section>
     </div>
   );

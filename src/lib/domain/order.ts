@@ -76,6 +76,47 @@ export function calculateCartTotalCents(items: CartItem[]): number {
   }, 0);
 }
 
+export type CashSettlementInput = {
+  subtotalCents: number;
+  serviceFeePercent: number;
+  discountCents: number;
+  amountPaidCents: number;
+};
+
+export type CashSettlement = {
+  subtotalCents: number;
+  serviceFeeCents: number;
+  discountCents: number;
+  totalDueCents: number;
+  amountPaidCents: number;
+  changeCents: number;
+  remainingCents: number;
+  isFullyPaid: boolean;
+};
+
+export function calculateCashSettlement(input: CashSettlementInput): CashSettlement {
+  if (input.subtotalCents <= 0) throw new Error('subtotal must be greater than zero');
+  if (input.serviceFeePercent < 0 || input.serviceFeePercent > 100) throw new Error('service fee percent must be between 0 and 100');
+  if (input.discountCents < 0) throw new Error('discount cannot be negative');
+  if (input.amountPaidCents <= 0) throw new Error('amount paid must be greater than zero');
+
+  const serviceFeeCents = Math.round(input.subtotalCents * (input.serviceFeePercent / 100));
+  const totalDueCents = Math.max(0, input.subtotalCents + serviceFeeCents - input.discountCents);
+  const changeCents = Math.max(0, input.amountPaidCents - totalDueCents);
+  const remainingCents = Math.max(0, totalDueCents - input.amountPaidCents);
+
+  return {
+    subtotalCents: input.subtotalCents,
+    serviceFeeCents,
+    discountCents: input.discountCents,
+    totalDueCents,
+    amountPaidCents: input.amountPaidCents,
+    changeCents,
+    remainingCents,
+    isFullyPaid: remainingCents === 0,
+  };
+}
+
 export function formatCurrencyBRL(valueCents: number): string {
   return new Intl.NumberFormat('pt-BR', {
     style: 'currency',

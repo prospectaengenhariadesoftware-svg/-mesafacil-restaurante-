@@ -9,6 +9,7 @@ import {
   getOrderStatusActionLabel,
   isFinalOrderStatus,
   parsePublicOrderItems,
+  calculateCashSettlement,
 } from './order';
 
 describe('order domain rules', () => {
@@ -121,5 +122,37 @@ describe('order domain rules', () => {
     expect(() => parsePublicOrderItems({
       'quantity:11111111-1111-4111-8111-111111111111': '0',
     })).toThrow('Selecione pelo menos um produto.');
+  });
+
+  it('calculates cash settlement with service fee, discount, paid amount and change', () => {
+    expect(calculateCashSettlement({
+      subtotalCents: 10000,
+      serviceFeePercent: 10,
+      discountCents: 500,
+      amountPaidCents: 11000,
+    })).toEqual({
+      subtotalCents: 10000,
+      serviceFeeCents: 1000,
+      discountCents: 500,
+      totalDueCents: 10500,
+      amountPaidCents: 11000,
+      changeCents: 500,
+      remainingCents: 0,
+      isFullyPaid: true,
+    });
+  });
+
+  it('keeps remaining balance when cash payment is partial', () => {
+    expect(calculateCashSettlement({
+      subtotalCents: 8000,
+      serviceFeePercent: 0,
+      discountCents: 0,
+      amountPaidCents: 3000,
+    })).toMatchObject({
+      totalDueCents: 8000,
+      changeCents: 0,
+      remainingCents: 5000,
+      isFullyPaid: false,
+    });
   });
 });
