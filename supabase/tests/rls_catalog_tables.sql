@@ -67,6 +67,185 @@ where tenant_id = 'cccccccc-1111-4ccc-8ccc-cccccccccccc'
 insert into public.tenant_tables (tenant_id, number, seats, sector)
 values ('cccccccc-1111-4ccc-8ccc-cccccccccccc', 'A1', 4, 'Salão');
 
+
+-- Public QR/order RPCs must enforce restaurant operational settings.
+set local role postgres;
+select set_config('request.jwt.claim.sub', '', true);
+select set_config('request.jwt.claim.role', '', true);
+
+update public.tenant_tables
+set qr_token = 'aaaaaaaa-1111-4111-8111-aaaaaaaaaaaa'
+where tenant_id = 'cccccccc-1111-4ccc-8ccc-cccccccccccc'
+  and number = 'A1';
+
+update public.tenant_products
+set public_code = 'PUBORDER01'
+where tenant_id = 'cccccccc-1111-4ccc-8ccc-cccccccccccc'
+  and name = 'Produto A';
+
+insert into public.tenant_settings (tenant_id, accepts_qr_orders, operating_status)
+values ('cccccccc-1111-4ccc-8ccc-cccccccccccc', true, 'open')
+on conflict (tenant_id) do update set accepts_qr_orders = excluded.accepts_qr_orders, operating_status = excluded.operating_status;
+
+set local role anon;
+do $$
+begin
+  if public.get_public_menu_by_qr('tenant-catalog-a-test', 'aaaaaaaa-1111-4111-8111-aaaaaaaaaaaa') is null then
+    raise exception 'Open restaurant should return public menu';
+  end if;
+end $$;
+
+select public.create_public_order_by_qr(
+  'tenant-catalog-a-test',
+  'aaaaaaaa-1111-4111-8111-aaaaaaaaaaaa',
+  'Cliente Teste',
+  'Sem observação',
+  jsonb_build_array(jsonb_build_object('product_code', 'PUBORDER01', 'quantity', 1))
+);
+
+set local role postgres;
+update public.tenant_settings
+set accepts_qr_orders = false, operating_status = 'open'
+where tenant_id = 'cccccccc-1111-4ccc-8ccc-cccccccccccc';
+
+set local role anon;
+do $$
+begin
+  if public.get_public_menu_by_qr('tenant-catalog-a-test', 'aaaaaaaa-1111-4111-8111-aaaaaaaaaaaa') is not null then
+    raise exception 'QR-disabled restaurant must not return public menu';
+  end if;
+  perform public.create_public_order_by_qr(
+    'tenant-catalog-a-test',
+    'aaaaaaaa-1111-4111-8111-aaaaaaaaaaaa',
+    'Cliente Teste',
+    null,
+    jsonb_build_array(jsonb_build_object('product_code', 'PUBORDER01', 'quantity', 1))
+  );
+  raise exception 'QR-disabled restaurant must not accept public orders';
+exception when invalid_parameter_value then
+  null;
+end $$;
+
+set local role postgres;
+update public.tenant_settings
+set accepts_qr_orders = true, operating_status = 'closed'
+where tenant_id = 'cccccccc-1111-4ccc-8ccc-cccccccccccc';
+
+set local role anon;
+do $$
+begin
+  if public.get_public_menu_by_qr('tenant-catalog-a-test', 'aaaaaaaa-1111-4111-8111-aaaaaaaaaaaa') is not null then
+    raise exception 'Closed restaurant must not return public menu';
+  end if;
+  perform public.create_public_order_by_qr(
+    'tenant-catalog-a-test',
+    'aaaaaaaa-1111-4111-8111-aaaaaaaaaaaa',
+    'Cliente Teste',
+    null,
+    jsonb_build_array(jsonb_build_object('product_code', 'PUBORDER01', 'quantity', 1))
+  );
+  raise exception 'Closed restaurant must not accept public orders';
+exception when invalid_parameter_value then
+  null;
+end $$;
+
+set local role postgres;
+update public.tenant_settings
+set accepts_qr_orders = true, operating_status = 'paused'
+where tenant_id = 'cccccccc-1111-4ccc-8ccc-cccccccccccc';
+
+set local role anon;
+do $$
+begin
+  if public.get_public_menu_by_qr('tenant-catalog-a-test', 'aaaaaaaa-1111-4111-8111-aaaaaaaaaaaa') is not null then
+    raise exception 'Paused restaurant must not return public menu';
+  end if;
+  perform public.create_public_order_by_qr(
+    'tenant-catalog-a-test',
+    'aaaaaaaa-1111-4111-8111-aaaaaaaaaaaa',
+    'Cliente Teste',
+    null,
+    jsonb_build_array(jsonb_build_object('product_code', 'PUBORDER01', 'quantity', 1))
+  );
+  raise exception 'Paused restaurant must not accept public orders';
+exception when invalid_parameter_value then
+  null;
+end $$;
+
+set local role postgres;
+update public.tenant_settings
+set accepts_qr_orders = true, operating_status = 'open'
+where tenant_id = 'cccccccc-1111-4ccc-8ccc-cccccccccccc';
+
+set local role authenticated;
+set local request.jwt.claim.sub = 'cccccccc-cccc-4ccc-8ccc-cccccccccccc';
+set local request.jwt.claim.role = 'authenticated';
+
+
+-- Owner A can read settings but cannot bypass the audited RPC with direct same-tenant DML.
+do $$
+begin
+  if (select count(*) from public.tenant_settings where tenant_id = 'cccccccc-1111-4ccc-8ccc-cccccccccccc') <> 1 then
+    raise exception 'Owner A should read own tenant settings';
+  end if;
+end $$;
+
+do $$
+declare
+  changed_count integer;
+begin
+  update public.tenant_settings
+  set public_notice = 'direct owner bypass'
+  where tenant_id = 'cccccccc-1111-4ccc-8ccc-cccccccccccc';
+  get diagnostics changed_count = row_count;
+  if changed_count <> 0 then
+    raise exception 'Owner A must not update tenant_settings directly';
+  end if;
+end $$;
+
+do $$
+declare
+  deleted_count integer;
+begin
+  delete from public.tenant_settings
+  where tenant_id = 'cccccccc-1111-4ccc-8ccc-cccccccccccc';
+  get diagnostics deleted_count = row_count;
+  if deleted_count <> 0 then
+    raise exception 'Owner A must not delete tenant_settings directly';
+  end if;
+end $$;
+
+-- Missing settings row must fail closed for anonymous public menu/order.
+set local role postgres;
+delete from public.tenant_settings where tenant_id = 'cccccccc-1111-4ccc-8ccc-cccccccccccc';
+
+set local role anon;
+do $$
+begin
+  if public.get_public_menu_by_qr('tenant-catalog-a-test', 'aaaaaaaa-1111-4111-8111-aaaaaaaaaaaa') is not null then
+    raise exception 'Missing tenant_settings must not return public menu';
+  end if;
+  perform public.create_public_order_by_qr(
+    'tenant-catalog-a-test',
+    'aaaaaaaa-1111-4111-8111-aaaaaaaaaaaa',
+    'Cliente Teste',
+    null,
+    jsonb_build_array(jsonb_build_object('product_code', 'PUBORDER01', 'quantity', 1))
+  );
+  raise exception 'Missing tenant_settings must not accept public orders';
+exception when invalid_parameter_value then
+  null;
+end $$;
+
+set local role postgres;
+insert into public.tenant_settings (tenant_id, accepts_qr_orders, operating_status)
+values ('cccccccc-1111-4ccc-8ccc-cccccccccccc', true, 'open')
+on conflict (tenant_id) do update set accepts_qr_orders = excluded.accepts_qr_orders, operating_status = excluded.operating_status;
+
+set local role authenticated;
+set local request.jwt.claim.sub = 'cccccccc-cccc-4ccc-8ccc-cccccccccccc';
+set local request.jwt.claim.role = 'authenticated';
+
 -- Owner A cannot see tenant B category.
 do $$
 begin

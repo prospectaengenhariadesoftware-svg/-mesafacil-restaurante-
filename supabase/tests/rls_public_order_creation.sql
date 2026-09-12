@@ -45,6 +45,12 @@ values
   ('bbbbbbbb-6000-4000-8000-bbbbbbbbbbbb', 'bbbbbbbb-2000-4000-8000-bbbbbbbbbbbb', 'bbbbbbbb-5000-4000-8000-bbbbbbbbbbbb', 'PRODB0000001', 'Produto B', 'Outro tenant', 9900, true)
 on conflict (id) do update set is_available = excluded.is_available;
 
+insert into public.tenant_settings (tenant_id, accepts_qr_orders, operating_status)
+values
+  ('aaaaaaaa-2000-4000-8000-aaaaaaaaaaaa', true, 'open'),
+  ('bbbbbbbb-2000-4000-8000-bbbbbbbbbbbb', true, 'open')
+on conflict (tenant_id) do update set accepts_qr_orders = excluded.accepts_qr_orders, operating_status = excluded.operating_status;
+
 set local role anon;
 reset request.jwt.claim.sub;
 reset request.jwt.claim.role;

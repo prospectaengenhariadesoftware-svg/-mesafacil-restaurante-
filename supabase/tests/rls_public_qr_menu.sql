@@ -33,6 +33,10 @@ insert into public.tenant_products (id, tenant_id, category_id, name, descriptio
 values ('eeeeeeee-5555-4eee-8eee-eeeeeeeeeeee', 'eeeeeeee-1111-4eee-8eee-eeeeeeeeeeee', 'eeeeeeee-4444-4eee-8eee-eeeeeeeeeeee', 'Suco natural', 'Laranja 500ml', 1250, true)
 on conflict (id) do update set is_available = excluded.is_available;
 
+insert into public.tenant_settings (tenant_id, accepts_qr_orders, operating_status)
+values ('eeeeeeee-1111-4eee-8eee-eeeeeeeeeeee', true, 'open')
+on conflict (tenant_id) do update set accepts_qr_orders = excluded.accepts_qr_orders, operating_status = excluded.operating_status;
+
 set local role anon;
 reset request.jwt.claim.sub;
 reset request.jwt.claim.role;
