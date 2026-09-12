@@ -21,6 +21,24 @@ describe('order domain rules', () => {
     expect(total).toBe(6880);
   });
 
+
+  it('calculates cart total including selected add-ons per item', () => {
+    const total = calculateCartTotalCents([
+      {
+        productId: 'burger',
+        productName: 'Burger',
+        unitPriceCents: 2990,
+        quantity: 2,
+        selectedAddons: [
+          { publicCode: 'BACON123', name: 'Bacon extra', priceDeltaCents: 500 },
+          { publicCode: 'CHEESE12', name: 'Queijo extra', priceDeltaCents: 300 },
+        ],
+      },
+    ]);
+
+    expect(total).toBe(7580);
+  });
+
   it('rejects zero or negative item quantity', () => {
     expect(() =>
       calculateCartTotalCents([
@@ -76,6 +94,26 @@ describe('order domain rules', () => {
 
     expect(items).toEqual([
       { productId: '11111111-1111-4111-8111-111111111111', quantity: 2, notes: 'Sem cebola' },
+    ]);
+  });
+
+
+  it('parses selected add-ons from public order form fields without leaking internal ids', () => {
+    const items = parsePublicOrderItems({
+      'quantity:BURGER01': '2',
+      'addon:BURGER01:BACON001': 'on',
+      'addon:BURGER01:CHEESE01': 'true',
+      'addon:OTHER001:IGNORED1': 'on',
+      'notes:BURGER01': 'Bem passado',
+    });
+
+    expect(items).toEqual([
+      {
+        productId: 'BURGER01',
+        quantity: 2,
+        notes: 'Bem passado',
+        addonCodes: ['BACON001', 'CHEESE01'],
+      },
     ]);
   });
 

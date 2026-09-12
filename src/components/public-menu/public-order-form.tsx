@@ -42,6 +42,28 @@ export function PublicOrderForm({ menu, qrToken }: Readonly<{ menu: PublicMenuPa
                 <input name={`quantity:${product.public_code}`} type="number" min="0" max="99" defaultValue="0" inputMode="numeric" className="rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-center text-slate-100 outline-none focus:border-emerald-400" />
               </label>
             </div>
+            {product.addons.length > 0 ? (
+              <fieldset className="mt-4 rounded-xl border border-slate-800 bg-slate-900/70 p-3">
+                <legend className="px-1 text-xs font-black uppercase tracking-wide text-emerald-300">Adicionais</legend>
+                <div className="mt-2 grid gap-2">
+                  {product.addons.map((addon) => (
+                    <label key={addon.public_code} className="flex items-start gap-3 rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-sm text-slate-200">
+                      <input
+                        type="checkbox"
+                        name={`addon:${product.public_code}:${addon.public_code}`}
+                        value="on"
+                        className="mt-1 h-4 w-4 rounded border-slate-600 bg-slate-900 text-emerald-400"
+                      />
+                      <span className="flex-1">
+                        <span className="font-semibold">{addon.name}</span>
+                        {addon.description ? <span className="block text-xs text-slate-500">{addon.description}</span> : null}
+                      </span>
+                      <span className="font-black text-emerald-300">+ {formatMoneyFromCents(addon.price_delta_cents)}</span>
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+            ) : null}
             <label className="mt-3 grid gap-1 text-xs font-semibold text-slate-300">
               Observação deste item
               <input name={`notes:${product.public_code}`} maxLength={200} placeholder="Ex.: sem cebola, ponto da carne..." className="rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-slate-100 outline-none focus:border-emerald-400" />

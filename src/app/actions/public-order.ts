@@ -24,6 +24,7 @@ export async function createPublicOrderAction(formData: FormData) {
       product_code: item.productId,
       quantity: item.quantity,
       ...(item.notes ? { notes: item.notes } : {}),
+      ...(item.addonCodes?.length ? { addon_codes: item.addonCodes } : {}),
     }));
   } catch (error) {
     redirectWithError(menuPath, error instanceof Error ? error.message : 'Pedido inválido.');

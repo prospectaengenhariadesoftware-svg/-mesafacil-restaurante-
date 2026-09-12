@@ -90,7 +90,17 @@ export function OrdersList({
                       <p className="font-semibold text-slate-100">{item.quantity}× {item.product_name}</p>
                       <p className="font-bold text-slate-200">{formatCurrencyBRL(item.line_total_cents)}</p>
                     </div>
-                    <p className="mt-1 text-xs text-slate-500">Unitário: {formatCurrencyBRL(item.unit_price_cents)}</p>
+                    <p className="mt-1 text-xs text-slate-500">
+                      Unitário: {formatCurrencyBRL(item.unit_price_cents)}
+                      {item.addons_total_cents ? ` + adicionais ${formatCurrencyBRL(item.addons_total_cents)}` : ''}
+                    </p>
+                    {item.selected_addons && item.selected_addons.length > 0 ? (
+                      <ul className="mt-2 space-y-1 text-xs text-emerald-200">
+                        {item.selected_addons.map((addon) => (
+                          <li key={addon.public_code}>+ {addon.name} ({formatCurrencyBRL(addon.price_delta_cents)})</li>
+                        ))}
+                      </ul>
+                    ) : null}
                     {item.notes ? <p className="mt-1 text-xs text-slate-400">Item: {item.notes}</p> : null}
                   </div>
                 ))}

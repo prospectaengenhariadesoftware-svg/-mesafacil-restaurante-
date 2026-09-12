@@ -42,8 +42,18 @@ on conflict (id) do update set is_active = excluded.is_active;
 insert into public.tenant_products (id, tenant_id, category_id, public_code, name, description, price_cents, is_available)
 values
   ('aaaaaaaa-6000-4000-8000-aaaaaaaaaaaa', 'aaaaaaaa-2000-4000-8000-aaaaaaaaaaaa', 'aaaaaaaa-5000-4000-8000-aaaaaaaaaaaa', 'PRODA0000001', 'X-Teste', 'Lanche teste', 2500, true),
+  ('aaaaaaaa-6000-4000-8000-aaaaaaaaaaab', 'aaaaaaaa-2000-4000-8000-aaaaaaaaaaaa', 'aaaaaaaa-5000-4000-8000-aaaaaaaaaaaa', 'PRODA0000002', 'Outro produto A', 'Mesmo tenant', 3100, true),
   ('bbbbbbbb-6000-4000-8000-bbbbbbbbbbbb', 'bbbbbbbb-2000-4000-8000-bbbbbbbbbbbb', 'bbbbbbbb-5000-4000-8000-bbbbbbbbbbbb', 'PRODB0000001', 'Produto B', 'Outro tenant', 9900, true)
 on conflict (id) do update set is_available = excluded.is_available;
+
+insert into public.tenant_product_addons (id, tenant_id, product_id, public_code, name, price_delta_cents, is_available)
+values
+  ('aaaaaaaa-6100-4000-8000-aaaaaaaaaaaa', 'aaaaaaaa-2000-4000-8000-aaaaaaaaaaaa', 'aaaaaaaa-6000-4000-8000-aaaaaaaaaaaa', 'ADDONA000001', 'Bacon extra', 500, true),
+  ('aaaaaaaa-6100-4000-8000-aaaaaaaaaaab', 'aaaaaaaa-2000-4000-8000-aaaaaaaaaaaa', 'aaaaaaaa-6000-4000-8000-aaaaaaaaaaaa', 'ADDONA000002', 'Queijo extra', 300, true),
+  ('aaaaaaaa-6100-4000-8000-aaaaaaaaaaac', 'aaaaaaaa-2000-4000-8000-aaaaaaaaaaaa', 'aaaaaaaa-6000-4000-8000-aaaaaaaaaaaa', 'ADDONA000003', 'Indisponível', 700, false),
+  ('aaaaaaaa-6100-4000-8000-aaaaaaaaaaad', 'aaaaaaaa-2000-4000-8000-aaaaaaaaaaaa', 'aaaaaaaa-6000-4000-8000-aaaaaaaaaaab', 'ADDONA000004', 'Addon de outro produto A', 400, true),
+  ('bbbbbbbb-6100-4000-8000-bbbbbbbbbbbb', 'bbbbbbbb-2000-4000-8000-bbbbbbbbbbbb', 'bbbbbbbb-6000-4000-8000-bbbbbbbbbbbb', 'ADDONB000001', 'Addon B', 900, true)
+on conflict (id) do update set public_code = excluded.public_code, is_available = excluded.is_available, price_delta_cents = excluded.price_delta_cents;
 
 insert into public.tenant_settings (tenant_id, accepts_qr_orders, operating_status)
 values
@@ -62,13 +72,14 @@ declare
   created_order_id uuid;
   stored_total integer;
   stored_items integer;
+  stored_addons jsonb;
 begin
   select public.create_public_order_by_qr(
     'tenant-order-a-test',
     'aaaaaaaa-4000-4000-8000-aaaaaaaaaaaa',
     'Cliente Teste',
     'Sem cebola',
-    jsonb_build_array(jsonb_build_object('product_code', 'PRODA0000001', 'quantity', 2, 'notes', 'Ponto certo'))
+    jsonb_build_array(jsonb_build_object('product_code', 'PRODA0000001', 'quantity', 2, 'notes', 'Ponto certo', 'addon_codes', jsonb_build_array('ADDONA000001', 'ADDONA000002')))
   ) into payload;
 
   if payload #>> '{public_order_code}' is null then
@@ -77,8 +88,8 @@ begin
   if payload #>> '{order_id}' is not null then
     raise exception 'Public order leaked internal order id';
   end if;
-  if (payload #>> '{total_cents}')::integer <> 5000 then
-    raise exception 'Public order total mismatch';
+  if (payload #>> '{total_cents}')::integer <> 6600 then
+    raise exception 'Public order total mismatch with add-ons';
   end if;
 
   set local role postgres;
@@ -93,10 +104,21 @@ begin
   where order_id = created_order_id
     and product_name = 'X-Teste'
     and unit_price_cents = 2500
+    and addons_total_cents = 800
+    and line_total_cents = 6600
     and quantity = 2;
 
-  if stored_total <> 5000 or stored_items <> 1 then
-    raise exception 'Stored public order snapshot mismatch';
+  select selected_addons into stored_addons
+  from public.tenant_customer_order_items
+  where order_id = created_order_id
+    and product_name = 'X-Teste'
+  limit 1;
+
+  if stored_total <> 6600 or stored_items <> 1 then
+    raise exception 'Stored public order snapshot mismatch with add-ons';
+  end if;
+  if jsonb_array_length(stored_addons) <> 2 or stored_addons #>> '{0,name}' <> 'Bacon extra' then
+    raise exception 'Stored add-ons snapshot mismatch';
   end if;
 
   set local role anon;
@@ -111,6 +133,53 @@ begin
     raise exception 'Cross-tenant product was accepted';
   exception when others then
     if sqlerrm = 'Cross-tenant product was accepted' then
+      raise;
+    end if;
+  end;
+
+
+  begin
+    select public.create_public_order_by_qr(
+      'tenant-order-a-test',
+      'aaaaaaaa-4000-4000-8000-aaaaaaaaaaaa',
+      'Cliente Teste',
+      null,
+      jsonb_build_array(jsonb_build_object('product_code', 'PRODA0000001', 'quantity', 1, 'addon_codes', jsonb_build_array('ADDONB000001')))
+    ) into invalid_payload;
+    raise exception 'Cross-tenant add-on was accepted';
+  exception when others then
+    if sqlerrm = 'Cross-tenant add-on was accepted' then
+      raise;
+    end if;
+  end;
+
+  begin
+    select public.create_public_order_by_qr(
+      'tenant-order-a-test',
+      'aaaaaaaa-4000-4000-8000-aaaaaaaaaaaa',
+      'Cliente Teste',
+      null,
+      jsonb_build_array(jsonb_build_object('product_code', 'PRODA0000001', 'quantity', 1, 'addon_codes', jsonb_build_array('ADDONA000003')))
+    ) into invalid_payload;
+    raise exception 'Unavailable add-on was accepted';
+  exception when others then
+    if sqlerrm = 'Unavailable add-on was accepted' then
+      raise;
+    end if;
+  end;
+
+
+  begin
+    select public.create_public_order_by_qr(
+      'tenant-order-a-test',
+      'aaaaaaaa-4000-4000-8000-aaaaaaaaaaaa',
+      'Cliente Teste',
+      null,
+      jsonb_build_array(jsonb_build_object('product_code', 'PRODA0000001', 'quantity', 1, 'addon_codes', jsonb_build_array('ADDONA000004')))
+    ) into invalid_payload;
+    raise exception 'Wrong-product add-on was accepted';
+  exception when others then
+    if sqlerrm = 'Wrong-product add-on was accepted' then
       raise;
     end if;
   end;

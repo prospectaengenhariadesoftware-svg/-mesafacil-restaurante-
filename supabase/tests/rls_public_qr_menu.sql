@@ -33,6 +33,10 @@ insert into public.tenant_products (id, tenant_id, category_id, name, descriptio
 values ('eeeeeeee-5555-4eee-8eee-eeeeeeeeeeee', 'eeeeeeee-1111-4eee-8eee-eeeeeeeeeeee', 'eeeeeeee-4444-4eee-8eee-eeeeeeeeeeee', 'Suco natural', 'Laranja 500ml', 1250, true)
 on conflict (id) do update set is_available = excluded.is_available;
 
+insert into public.tenant_product_addons (id, tenant_id, product_id, public_code, name, description, price_delta_cents, is_available)
+values ('eeeeeeee-6666-4eee-8eee-eeeeeeeeeeee', 'eeeeeeee-1111-4eee-8eee-eeeeeeeeeeee', 'eeeeeeee-5555-4eee-8eee-eeeeeeeeeeee', 'ADDONEEE001', 'Gelo extra', 'Mais gelo no suco', 100, true)
+on conflict (id) do update set public_code = excluded.public_code, is_available = excluded.is_available;
+
 insert into public.tenant_settings (tenant_id, accepts_qr_orders, operating_status)
 values ('eeeeeeee-1111-4eee-8eee-eeeeeeeeeeee', true, 'open')
 on conflict (tenant_id) do update set accepts_qr_orders = excluded.accepts_qr_orders, operating_status = excluded.operating_status;
@@ -72,6 +76,12 @@ begin
   end if;
   if payload #>> '{categories,0,products,0,public_code}' is null then
     raise exception 'Public menu did not return product public code';
+  end if;
+  if payload #>> '{categories,0,products,0,addons,0,name}' <> 'Gelo extra' then
+    raise exception 'Public menu did not return add-ons';
+  end if;
+  if payload #>> '{categories,0,products,0,addons,0,id}' is not null then
+    raise exception 'Public menu leaked internal add-on id';
   end if;
 
   select public.get_public_menu_by_qr('public-menu-tenant-test', 'ffffffff-3333-4fff-8fff-ffffffffffff') into payload;

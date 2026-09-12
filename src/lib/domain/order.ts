@@ -6,18 +6,26 @@ export type OrderStatus =
   | 'delivered'
   | 'cancelled';
 
+export type CartItemAddon = {
+  publicCode: string;
+  name: string;
+  priceDeltaCents: number;
+};
+
 export type CartItem = {
   productId: string;
   productName: string;
   unitPriceCents: number;
   quantity: number;
   notes?: string;
+  selectedAddons?: CartItemAddon[];
 };
 
 export type PublicOrderItemInput = {
   productId: string;
   quantity: number;
   notes?: string;
+  addonCodes?: string[];
 };
 
 export function parsePublicOrderItems(fields: Record<string, string>): PublicOrderItemInput[] {
@@ -30,7 +38,17 @@ export function parsePublicOrderItems(fields: Record<string, string>): PublicOrd
     if (!Number.isFinite(quantity) || quantity <= 0) continue;
     if (quantity > 99) throw new Error('Quantidade máxima por item é 99.');
     const rawNotes = fields[`notes:${productId}`]?.trim();
-    items.push({ productId, quantity, ...(rawNotes ? { notes: rawNotes.slice(0, 200) } : {}) });
+    const addonCodes = Object.entries(fields)
+      .filter(([addonKey, value]) => addonKey.startsWith(`addon:${productId}:`) && ['on', 'true', '1'].includes(value))
+      .map(([addonKey]) => addonKey.replace(`addon:${productId}:`, ''))
+      .filter((code, index, allCodes) => code.length > 0 && allCodes.indexOf(code) === index)
+      .slice(0, 20);
+    items.push({
+      productId,
+      quantity,
+      ...(rawNotes ? { notes: rawNotes.slice(0, 200) } : {}),
+      ...(addonCodes.length > 0 ? { addonCodes } : {}),
+    });
   }
 
   if (items.length === 0) throw new Error('Selecione pelo menos um produto.');
@@ -47,7 +65,14 @@ export function calculateCartTotalCents(items: CartItem[]): number {
       throw new Error('unit price cannot be negative');
     }
 
-    return total + item.unitPriceCents * item.quantity;
+    const addonsTotalCents = (item.selectedAddons ?? []).reduce((addonTotal, addon) => {
+      if (addon.priceDeltaCents < 0) {
+        throw new Error('add-on price cannot be negative');
+      }
+      return addonTotal + addon.priceDeltaCents;
+    }, 0);
+
+    return total + (item.unitPriceCents + addonsTotalCents) * item.quantity;
   }, 0);
 }
 
