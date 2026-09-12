@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { closeCashPaymentAction } from '@/app/actions/cash';
 import { calculateCashSettlement, formatCurrencyBRL } from '@/lib/domain/order';
+import type { OperationalReportSummary } from '@/lib/domain/reports';
 import type { Tenant, TenantRole, TenantUserStatus } from '@/lib/types/saas';
 
 export type CashOrderSummary = {
@@ -29,18 +30,7 @@ export type TeamMemberSummary = {
   } | null;
 };
 
-export type ReportSummary = {
-  ordersToday: number;
-  revenueTodayCents: number;
-  openOrders: number;
-  deliveredOrders: number;
-  cancelledOrders: number;
-  categories: number;
-  products: number;
-  availableProducts: number;
-  tables: number;
-  activeTables: number;
-};
+export type ReportSummary = OperationalReportSummary;
 
 const statusLabels: Record<CashOrderSummary['status'], string> = {
   received: 'Recebido',
@@ -251,24 +241,69 @@ export function ReportsPanel({ summary }: Readonly<{ summary: ReportSummary }>) 
     <div className="space-y-5">
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <StatCard label="Pedidos hoje" value={summary.ordersToday} hint="Criados a partir de 00:00." />
-        <StatCard label="Receita hoje" value={formatCurrencyBRL(summary.revenueTodayCents)} hint="Somente pedidos entregues de hoje." />
-        <StatCard label="Pedidos abertos" value={summary.openOrders} hint="Recebidos, confirmados, em preparo ou prontos." />
-        <StatCard label="Cancelados hoje" value={summary.cancelledOrders} hint="Acompanhar falhas de operação." />
+        <StatCard label="Recebido no caixa" value={formatCurrencyBRL(summary.netReceivedTodayCents)} hint="Pagamentos fechados hoje, descontando troco." />
+        <StatCard label="Ticket médio" value={formatCurrencyBRL(Math.round(summary.averageTicketCents))} hint="Média por fechamento de caixa." />
+        <StatCard label="Cancelamentos" value={`${summary.cancelledOrders} (${summary.cancellationRatePercent.toFixed(1)}%)`} hint="Pedidos cancelados sobre pedidos do dia." />
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Categorias" value={summary.categories} />
+        <StatCard label="Pedidos abertos" value={summary.openOrders} hint="Recebidos, confirmados, em preparo ou prontos." />
+        <StatCard label="Pedidos entregues" value={summary.deliveredOrders} />
         <StatCard label="Produtos disponíveis" value={`${summary.availableProducts}/${summary.products}`} hint={`${productAvailability}% do cadastro.`} />
         <StatCard label="Mesas ativas" value={`${summary.activeTables}/${summary.tables}`} hint={`${tableActivation}% das mesas.`} />
-        <StatCard label="Pedidos entregues hoje" value={summary.deliveredOrders} />
+      </div>
+
+      <div className="grid gap-5 xl:grid-cols-2">
+        <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5">
+          <h2 className="text-xl font-bold">Produtos mais vendidos hoje</h2>
+          {summary.topProducts.length === 0 ? (
+            <p className="mt-4 rounded-xl border border-slate-800 bg-slate-950 p-4 text-sm text-slate-400">Ainda não há itens vendidos no período.</p>
+          ) : (
+            <div className="mt-4 space-y-3">
+              {summary.topProducts.map((product, index) => (
+                <article key={product.productId} className="flex items-center justify-between gap-3 rounded-xl border border-slate-800 bg-slate-950 p-4">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-emerald-300">#{index + 1}</p>
+                    <h3 className="font-bold text-slate-100">{product.productName}</h3>
+                    <p className="text-sm text-slate-400">{product.quantity} unidade(s)</p>
+                  </div>
+                  <strong className="text-right text-emerald-300">{formatCurrencyBRL(product.revenueCents)}</strong>
+                </article>
+              ))}
+            </div>
+          )}
+        </section>
+
+        <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5">
+          <h2 className="text-xl font-bold">Formas de pagamento hoje</h2>
+          {summary.paymentBreakdown.length === 0 ? (
+            <p className="mt-4 rounded-xl border border-slate-800 bg-slate-950 p-4 text-sm text-slate-400">Nenhum pagamento fechado hoje.</p>
+          ) : (
+            <div className="mt-4 space-y-3">
+              {summary.paymentBreakdown.map((payment) => (
+                <article key={payment.paymentMethod} className="rounded-xl border border-slate-800 bg-slate-950 p-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <h3 className="font-bold uppercase text-slate-100">{payment.paymentMethod}</h3>
+                    <span className="rounded-full bg-emerald-400/10 px-3 py-1 text-xs font-semibold text-emerald-300">{payment.count} fechamento(s)</span>
+                  </div>
+                  <dl className="mt-3 grid gap-3 text-sm text-slate-400 sm:grid-cols-3">
+                    <div><dt>Total devido</dt><dd className="font-bold text-slate-100">{formatCurrencyBRL(payment.totalDueCents)}</dd></div>
+                    <div><dt>Pago</dt><dd className="font-bold text-slate-100">{formatCurrencyBRL(payment.amountPaidCents)}</dd></div>
+                    <div><dt>Troco</dt><dd className="font-bold text-slate-100">{formatCurrencyBRL(payment.changeCents)}</dd></div>
+                  </dl>
+                </article>
+              ))}
+            </div>
+          )}
+        </section>
       </div>
 
       <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5">
         <h2 className="text-xl font-bold">Leitura gerencial</h2>
         <ul className="mt-3 space-y-2 text-sm text-slate-300">
           <li className="flex gap-2"><span className="text-emerald-300">•</span><span>Use pedidos abertos para decidir reforço na cozinha/atendimento.</span></li>
-          <li className="flex gap-2"><span className="text-emerald-300">•</span><span>Produtos indisponíveis impactam diretamente o cardápio público por QR Code.</span></li>
-          <li className="flex gap-2"><span className="text-emerald-300">•</span><span>Mesas inativas não devem ser usadas para atendimento ao cliente.</span></li>
+          <li className="flex gap-2"><span className="text-emerald-300">•</span><span>Compare produtos mais vendidos com disponibilidade para evitar ruptura operacional.</span></li>
+          <li className="flex gap-2"><span className="text-emerald-300">•</span><span>Receita financeira vem do caixa fechado, não apenas de pedido entregue.</span></li>
         </ul>
       </section>
     </div>

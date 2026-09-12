@@ -35,16 +35,16 @@ const moduleGuidance: Record<TenantModuleSlug, string[]> = {
     'Use os botões de status para avançar o preparo até a entrega.',
   ],
   caixa: [
-    'Conferir pedidos não cancelados e valores antes do fechamento.',
-    'Nenhuma integração de pagamento, desconto ou emissão fiscal foi criada nesta entrega.',
+    'Fechar contas de pedidos prontos/entregues por mesa.',
+    'Registrar forma de pagamento, desconto, taxa de serviço, valor pago e troco; fiscal/NFC-e continua fora do escopo.',
   ],
   equipe: [
     'Listar usuários vinculados ao restaurante e seus papéis.',
     'Convites e alteração de papéis devem entrar em fluxo próprio com auditoria.',
   ],
   relatorios: [
-    'Acompanhar pedidos de hoje, receita entregue, produtos e mesas.',
-    'Indicadores usam somente dados do tenant atual filtrados por RLS.',
+    'Acompanhar pedidos do dia, recebimentos de caixa, ticket médio, cancelamentos e produtos mais vendidos.',
+    'Indicadores usam somente dados do tenant atual filtrados por RLS e consultas tenant-scoped.',
   ],
   configuracoes: [
     'Visualizar dados cadastrais, status e slug público do restaurante.',

@@ -52,7 +52,7 @@ const moduleLabels: Record<TenantModuleSlug, Omit<TenantNavigationItem, 'slug' |
   },
   caixa: {
     label: 'Caixa',
-    description: 'Conferência de consumo e pedidos para fechamento.',
+    description: 'Fechamento de contas e registro de pagamentos por mesa.',
   },
   equipe: {
     label: 'Equipe',
