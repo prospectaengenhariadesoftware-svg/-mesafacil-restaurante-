@@ -81,13 +81,13 @@ export default async function AdicionaisPage({
   const supabase = await createClient();
   const productsQuery = supabase
     .from('tenant_products')
-    .select('*, tenant_product_categories(*)')
+    .select('*, tenant_product_categories:tenant_product_categories!tenant_products_category_id_fkey(*)')
     .eq('tenant_id', tenantId)
     .order('name', { ascending: true });
 
   let addonsQuery = supabase
     .from('tenant_product_addons')
-    .select('*, tenant_products(*)', { count: 'exact' })
+    .select('*, tenant_products:tenant_products!tenant_product_addons_product_id_fkey(*)', { count: 'exact' })
     .eq('tenant_id', tenantId);
 
   if (filters.q) {

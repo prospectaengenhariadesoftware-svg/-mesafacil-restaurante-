@@ -88,7 +88,7 @@ export default async function ProdutosPage({
 
   let productsQuery = supabase
     .from('tenant_products')
-    .select('*, tenant_product_categories(*)', { count: 'exact' })
+    .select('*, tenant_product_categories:tenant_product_categories!tenant_products_category_id_fkey(*)', { count: 'exact' })
     .eq('tenant_id', tenantId);
 
   if (filters.q) {
