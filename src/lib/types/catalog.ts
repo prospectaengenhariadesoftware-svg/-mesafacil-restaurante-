@@ -23,6 +23,20 @@ export type Product = {
   tenant_product_categories?: ProductCategory | null;
 };
 
+export type ProductAddon = {
+  id: string;
+  tenant_id: string;
+  product_id: string;
+  name: string;
+  description: string | null;
+  price_delta_cents: number;
+  is_available: boolean;
+  display_order: number;
+  created_at: string;
+  updated_at: string;
+  tenant_products?: Product | null;
+};
+
 export type RestaurantTable = {
   id: string;
   tenant_id: string;

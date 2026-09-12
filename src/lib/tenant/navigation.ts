@@ -2,6 +2,7 @@ export const tenantModuleSlugs = [
   'visao-geral',
   'cardapio',
   'produtos',
+  'adicionais',
   'mesas',
   'pedidos',
   'cozinha',
@@ -32,6 +33,10 @@ const moduleLabels: Record<TenantModuleSlug, Omit<TenantNavigationItem, 'slug' |
   produtos: {
     label: 'Produtos',
     description: 'Cadastro de produtos, preço e disponibilidade.',
+  },
+  adicionais: {
+    label: 'Adicionais',
+    description: 'Complementos e acréscimos vinculados aos produtos.',
   },
   mesas: {
     label: 'Mesas',

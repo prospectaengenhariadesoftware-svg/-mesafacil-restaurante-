@@ -3,7 +3,7 @@
 import { redirect } from 'next/navigation';
 import { requireActiveTenant } from '@/lib/auth/context';
 import { createClient } from '@/lib/supabase/server';
-import { validateCategoryInput, validateProductInput, validateTableInput } from '@/lib/validation/catalog';
+import { validateCategoryInput, validateProductAddonInput, validateProductInput, validateTableInput } from '@/lib/validation/catalog';
 import { isUuid } from '@/lib/validation/auth';
 
 function getString(formData: FormData, key: string): string {
@@ -409,4 +409,93 @@ export async function deleteTableAction(formData: FormData) {
   if (error) fail(path, 'Não foi possível excluir a mesa com auditoria transacional.');
 
   redirect(`${path}?mensagem=${encodeURIComponent('Mesa excluída com sucesso.')}`);
+}
+
+
+export async function createProductAddonAction(formData: FormData) {
+  const tenantId = requireTenantId(formData);
+  const path = `/tenants/${tenantId}/adicionais`;
+  await requireActiveTenant(tenantId);
+
+  const validation = validateProductAddonInput({
+    productId: getString(formData, 'productId'),
+    name: getString(formData, 'name'),
+    description: getString(formData, 'description'),
+    priceDelta: getString(formData, 'priceDelta'),
+    isAvailable: getBoolean(formData, 'isAvailable'),
+    displayOrder: getString(formData, 'displayOrder'),
+  });
+  if (!validation.success) fail(path, validation.error);
+
+  const supabase = await createClient();
+  const { error } = await supabase.from('tenant_product_addons').insert({
+    tenant_id: tenantId,
+    product_id: validation.data.productId,
+    name: validation.data.name,
+    description: validation.data.description,
+    price_delta_cents: validation.data.priceDeltaCents,
+    is_available: validation.data.isAvailable,
+    display_order: validation.data.displayOrder,
+  });
+
+  if (error) fail(path, 'Não foi possível cadastrar o adicional. Verifique produto, permissões e nome duplicado neste produto.');
+  redirect(`${path}?mensagem=${encodeURIComponent('Adicional cadastrado com sucesso.')}`);
+}
+
+export async function updateProductAddonAction(formData: FormData) {
+  const tenantId = requireTenantId(formData);
+  const addonId = getString(formData, 'addonId');
+  const path = `/tenants/${tenantId}/adicionais`;
+  await requireActiveTenant(tenantId);
+  if (!isUuid(addonId)) fail(path, 'Adicional inválido.');
+
+  const validation = validateProductAddonInput({
+    productId: getString(formData, 'productId'),
+    name: getString(formData, 'name'),
+    description: getString(formData, 'description'),
+    priceDelta: getString(formData, 'priceDelta'),
+    isAvailable: getBoolean(formData, 'isAvailable'),
+    displayOrder: getString(formData, 'displayOrder'),
+  });
+  if (!validation.success) fail(path, validation.error);
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from('tenant_product_addons')
+    .update({
+      product_id: validation.data.productId,
+      name: validation.data.name,
+      description: validation.data.description,
+      price_delta_cents: validation.data.priceDeltaCents,
+      is_available: validation.data.isAvailable,
+      display_order: validation.data.displayOrder,
+    })
+    .eq('tenant_id', tenantId)
+    .eq('id', addonId)
+    .select('id')
+    .single();
+
+  if (error) fail(path, 'Não foi possível atualizar o adicional. Verifique produto, vínculo do tenant, permissões e nome duplicado.');
+  redirect(`${path}?mensagem=${encodeURIComponent('Adicional atualizado com sucesso.')}`);
+}
+
+export async function deleteProductAddonAction(formData: FormData) {
+  const tenantId = requireTenantId(formData);
+  const addonId = getString(formData, 'addonId');
+  const path = `/tenants/${tenantId}/adicionais`;
+  await requireActiveTenant(tenantId);
+  if (!isUuid(addonId)) fail(path, 'Adicional inválido.');
+  if (getString(formData, 'confirmDelete') !== 'CONFIRMAR') fail(path, 'Confirme a exclusão/inativação do adicional.');
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from('tenant_product_addons')
+    .delete()
+    .eq('tenant_id', tenantId)
+    .eq('id', addonId)
+    .select('id')
+    .single();
+
+  if (error) fail(path, 'Não foi possível excluir o adicional com auditoria transacional.');
+  redirect(`${path}?mensagem=${encodeURIComponent('Adicional excluído com sucesso.')}`);
 }

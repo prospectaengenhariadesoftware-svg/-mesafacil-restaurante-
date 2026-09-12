@@ -18,6 +18,10 @@ const moduleGuidance: Record<TenantModuleSlug, string[]> = {
     'Produtos já podem ser cadastrados com categoria, descrição, preço e disponibilidade.',
     'O vínculo produto-categoria é validado no app e protegido por RLS no banco.',
   ],
+  adicionais: [
+    'Complementos/adicionais podem ser cadastrados por produto, com valor incremental e disponibilidade.',
+    'O vínculo adicional-produto é validado no app e protegido por RLS no banco.',
+  ],
   mesas: [
     'Mesas já podem ser cadastradas com identificação, lugares, setor e QR Code visual.',
     'O QR Code aponta para o cardápio público da mesa no domínio oficial.',

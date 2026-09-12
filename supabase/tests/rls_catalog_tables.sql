@@ -40,6 +40,11 @@ values
   ('dddddddd-3333-4ddd-8ddd-dddddddddddd', 'dddddddd-1111-4ddd-8ddd-dddddddddddd', 'dddddddd-2222-4ddd-8ddd-dddddddddddd', 'Produto B', 2000)
 on conflict (id) do nothing;
 
+insert into public.tenant_product_addons (id, tenant_id, product_id, name, price_delta_cents)
+values
+  ('dddddddd-5555-4ddd-8ddd-dddddddddddd', 'dddddddd-1111-4ddd-8ddd-dddddddddddd', 'dddddddd-3333-4ddd-8ddd-dddddddddddd', 'Adicional B', 300)
+on conflict (id) do nothing;
+
 insert into public.tenant_tables (id, tenant_id, number, seats, sector)
 values
   ('dddddddd-4444-4ddd-8ddd-dddddddddddd', 'dddddddd-1111-4ddd-8ddd-dddddddddddd', 'B9', 2, 'Salão B')
@@ -52,6 +57,12 @@ set local request.jwt.claim.role = 'authenticated';
 -- Owner A can create inside tenant A.
 insert into public.tenant_products (tenant_id, category_id, name, price_cents)
 values ('cccccccc-1111-4ccc-8ccc-cccccccccccc', 'cccccccc-2222-4ccc-8ccc-cccccccccccc', 'Produto A', 1000);
+
+insert into public.tenant_product_addons (tenant_id, product_id, name, price_delta_cents)
+select 'cccccccc-1111-4ccc-8ccc-cccccccccccc', id, 'Adicional A', 250
+from public.tenant_products
+where tenant_id = 'cccccccc-1111-4ccc-8ccc-cccccccccccc'
+  and name = 'Produto A';
 
 insert into public.tenant_tables (tenant_id, number, seats, sector)
 values ('cccccccc-1111-4ccc-8ccc-cccccccccccc', 'A1', 4, 'Salão');
@@ -72,6 +83,14 @@ begin
   end if;
 end $$;
 
+-- Owner A cannot see tenant B add-on.
+do $$
+begin
+  if exists (select 1 from public.tenant_product_addons where id = 'dddddddd-5555-4ddd-8ddd-dddddddddddd') then
+    raise exception 'RLS failure: owner A can see tenant B add-on';
+  end if;
+end $$;
+
 -- Owner A cannot see tenant B table.
 do $$
 begin
@@ -87,6 +106,18 @@ begin
     insert into public.tenant_products (tenant_id, category_id, name, price_cents)
     values ('cccccccc-1111-4ccc-8ccc-cccccccccccc', 'dddddddd-2222-4ddd-8ddd-dddddddddddd', 'Cross Product', 1000);
     raise exception 'RLS failure: cross-tenant category accepted';
+  exception when insufficient_privilege or foreign_key_violation or check_violation or with_check_option_violation then
+    null;
+  end;
+end $$;
+
+-- Owner A cannot create add-on in tenant A using tenant B product.
+do $$
+begin
+  begin
+    insert into public.tenant_product_addons (tenant_id, product_id, name, price_delta_cents)
+    values ('cccccccc-1111-4ccc-8ccc-cccccccccccc', 'dddddddd-3333-4ddd-8ddd-dddddddddddd', 'Cross Addon', 100);
+    raise exception 'RLS failure: cross-tenant product accepted for add-on';
   exception when insufficient_privilege or foreign_key_violation or check_violation or with_check_option_violation then
     null;
   end;
@@ -139,6 +170,38 @@ exception when foreign_key_violation or insufficient_privilege or with_check_opt
   null;
 end $$;
 
+-- Owner A cannot update tenant B add-on.
+do $$
+declare
+  changed_count integer;
+begin
+  update public.tenant_product_addons
+  set name = 'Adicional B invadido', price_delta_cents = 999
+  where id = 'dddddddd-5555-4ddd-8ddd-dddddddddddd';
+
+  get diagnostics changed_count = row_count;
+  if changed_count <> 0 then
+    raise exception 'RLS failure: owner A updated tenant B add-on';
+  end if;
+end $$;
+
+-- Owner A cannot move own add-on to tenant B product.
+do $$
+declare
+  changed_count integer;
+begin
+  update public.tenant_product_addons
+  set product_id = 'dddddddd-3333-4ddd-8ddd-dddddddddddd'
+  where name = 'Adicional A';
+
+  get diagnostics changed_count = row_count;
+  if changed_count <> 0 then
+    raise exception 'RLS failure: owner A moved own add-on to tenant B product';
+  end if;
+exception when foreign_key_violation or insufficient_privilege or with_check_option_violation then
+  null;
+end $$;
+
 -- Owner A cannot update tenant B table.
 do $$
 declare
@@ -179,6 +242,20 @@ begin
   get diagnostics deleted_count = row_count;
   if deleted_count <> 0 then
     raise exception 'RLS failure: owner A deleted tenant B product';
+  end if;
+end $$;
+
+-- Owner A cannot delete tenant B add-on.
+do $$
+declare
+  deleted_count integer;
+begin
+  delete from public.tenant_product_addons
+  where id = 'dddddddd-5555-4ddd-8ddd-dddddddddddd';
+
+  get diagnostics deleted_count = row_count;
+  if deleted_count <> 0 then
+    raise exception 'RLS failure: owner A deleted tenant B add-on';
   end if;
 end $$;
 

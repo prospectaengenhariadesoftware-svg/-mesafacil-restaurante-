@@ -4,6 +4,7 @@ import {
   parseMoneyToCents,
   validateCategoryInput,
   validateProductInput,
+  validateProductAddonInput,
   validateTableInput,
 } from './catalog';
 
@@ -72,6 +73,31 @@ describe('catalog validation', () => {
       price: '29,90',
       imageUrl: 'javascript:alert(1)',
     }).success).toBe(false);
+  });
+
+  it('validates product add-ons with product, positive price delta and display order', () => {
+    expect(validateProductAddonInput({
+      productId: '11111111-1111-4111-8111-111111111111',
+      name: ' Bacon   extra ',
+      description: 'Fatia crocante',
+      priceDelta: '4,50',
+      isAvailable: 'false',
+      displayOrder: '2',
+    })).toEqual({
+      success: true,
+      data: {
+        productId: '11111111-1111-4111-8111-111111111111',
+        name: 'Bacon extra',
+        description: 'Fatia crocante',
+        priceDeltaCents: 450,
+        isAvailable: false,
+        displayOrder: 2,
+      },
+    });
+
+    expect(validateProductAddonInput({ productId: '', name: 'Bacon', priceDelta: '1,00' }).success).toBe(false);
+    expect(validateProductAddonInput({ productId: '11111111-1111-4111-8111-111111111111', name: 'B', priceDelta: '-1,00' }).success).toBe(false);
+    expect(validateProductAddonInput({ productId: '11111111-1111-4111-8111-111111111111', name: 'Bacon', priceDelta: '1001,00' }).success).toBe(false);
   });
 
   it('parses and formats Brazilian money values safely', () => {

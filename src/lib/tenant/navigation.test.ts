@@ -7,6 +7,7 @@ describe('tenant module navigation', () => {
       'visao-geral',
       'cardapio',
       'produtos',
+      'adicionais',
       'mesas',
       'pedidos',
       'cozinha',
@@ -20,7 +21,7 @@ describe('tenant module navigation', () => {
   it('builds tenant-scoped hrefs and never uses a global operational route', () => {
     const nav = getTenantNavigation('11111111-1111-4111-8111-111111111111');
 
-    expect(nav).toHaveLength(10);
+    expect(nav).toHaveLength(11);
     expect(nav.every((item) => item.href.startsWith('/tenants/11111111-1111-4111-8111-111111111111'))).toBe(true);
     expect(nav.some((item) => item.href === '/admin/kitchen')).toBe(false);
   });

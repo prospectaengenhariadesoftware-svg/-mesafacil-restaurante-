@@ -20,6 +20,15 @@ export type ProductInput = {
   isAvailable: boolean;
 };
 
+export type ProductAddonInput = {
+  productId: string;
+  name: string;
+  description: string | null;
+  priceDeltaCents: number;
+  isAvailable: boolean;
+  displayOrder: number;
+};
+
 export type TableInput = {
   number: string;
   seats: number;
@@ -115,6 +124,36 @@ export function validateProductInput(input: Record<string, unknown>): Validation
       priceCents,
       imageUrl: imageUrl.data,
       isAvailable: input.isAvailable !== false && input.isAvailable !== 'false',
+    },
+  };
+}
+
+export function validateProductAddonInput(input: Record<string, unknown>): ValidationResult<ProductAddonInput> {
+  const productId = cleanText(input.productId);
+  const name = cleanText(input.name);
+  const priceDeltaCents = parseMoneyToCents(input.priceDelta);
+  const displayOrderRaw = typeof input.displayOrder === 'number' ? input.displayOrder : Number(cleanText(input.displayOrder ?? '0'));
+  const displayOrder = Number.isInteger(displayOrderRaw) ? displayOrderRaw : NaN;
+
+  if (!isUuid(productId)) return { success: false, error: 'Selecione um produto válido para o adicional.' };
+  if (name.length < 2) return { success: false, error: 'Informe um adicional com pelo menos 2 caracteres.' };
+  if (name.length > 80) return { success: false, error: 'Nome do adicional muito longo.' };
+  if (priceDeltaCents === null || priceDeltaCents < 0 || priceDeltaCents > 100000) {
+    return { success: false, error: 'Informe um valor adicional entre R$ 0,00 e R$ 1.000,00.' };
+  }
+  if (!Number.isInteger(displayOrder) || displayOrder < 0 || displayOrder > 999) {
+    return { success: false, error: 'Informe uma ordem de exibição entre 0 e 999.' };
+  }
+
+  return {
+    success: true,
+    data: {
+      productId,
+      name,
+      description: optionalText(input.description),
+      priceDeltaCents,
+      isAvailable: input.isAvailable !== false && input.isAvailable !== 'false',
+      displayOrder,
     },
   };
 }
