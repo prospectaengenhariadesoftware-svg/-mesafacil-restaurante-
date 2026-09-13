@@ -7,7 +7,11 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:sql": "bash scripts/run-supabase-tests.sh",
+    "test:sql:linked": "ALLOW_LINKED_SUPABASE_TESTS=1 SUPABASE_TEST_TARGET=linked bash scripts/run-supabase-tests.sh",
+    "test:all": "npm test && npm run lint && npm run build && npm run test:sql",
+    "test:all:linked": "npm test && npm run lint && npm run build && npm run test:sql:linked"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
