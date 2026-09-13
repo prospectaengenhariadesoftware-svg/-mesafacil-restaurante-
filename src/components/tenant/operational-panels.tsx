@@ -52,12 +52,21 @@ const roleLabels: Record<TenantRole, string> = {
   cashier: 'Caixa',
 };
 
+const statusStyles: Record<CashOrderSummary['status'], string> = {
+  received: 'bg-sky-50 text-sky-700 border-sky-100',
+  confirmed: 'bg-indigo-50 text-indigo-700 border-indigo-100',
+  preparing: 'bg-amber-50 text-amber-700 border-amber-100',
+  ready: 'bg-red-50 text-red-700 border-red-100',
+  delivered: 'bg-green-50 text-green-700 border-green-100',
+  cancelled: 'bg-stone-100 text-stone-600 border-stone-200',
+};
+
 export function StatCard({ label, value, hint }: Readonly<{ label: string; value: string | number; hint?: string }>) {
   return (
-    <article className="rounded-2xl border border-stone-200 bg-stone-50 p-5">
-      <p className="text-xs font-semibold uppercase tracking-wide text-stone-400">{label}</p>
-      <p className="mt-2 text-2xl font-black text-stone-950">{value}</p>
-      {hint ? <p className="mt-1 text-sm text-stone-500">{hint}</p> : null}
+    <article className="rounded-[1.5rem] border border-stone-200 bg-white p-5 shadow-sm shadow-stone-200/70">
+      <p className="text-xs font-black uppercase tracking-[0.18em] text-stone-400">{label}</p>
+      <p className="mt-3 text-3xl font-black tracking-tight text-stone-950">{value}</p>
+      {hint ? <p className="mt-2 text-sm leading-6 text-stone-500">{hint}</p> : null}
     </article>
   );
 }
@@ -91,21 +100,21 @@ export function CashPanel({
         <StatCard label="Taxa de serviço" value={`${serviceFeePercent.toLocaleString('pt-BR')}%`} hint="Configurada no restaurante." />
       </div>
 
-      <section className="rounded-2xl border border-stone-200 bg-white p-5">
-        <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+      <section className="overflow-hidden rounded-[1.75rem] border border-stone-200 bg-white shadow-sm shadow-stone-200/70">
+        <div className="flex flex-col justify-between gap-3 border-b border-stone-100 bg-gradient-to-r from-white to-red-50 px-5 py-5 sm:flex-row sm:items-center">
           <div>
-            <h2 className="text-xl font-bold">Fechamento de conta por mesa</h2>
+            <h2 className="text-2xl font-black tracking-tight">Fechamento de conta por mesa</h2>
             <p className="mt-1 text-sm text-stone-500">Registre pagamento real de pedidos prontos/entregues. Pedidos pagos não entram de novo no fechamento.</p>
           </div>
-          <Link href={`/tenants/${tenantId}/pedidos`} className="rounded-full border border-red-200 px-4 py-2 text-sm font-semibold text-red-600 hover:bg-red-50">
+          <Link href={`/tenants/${tenantId}/pedidos`} className="inline-flex min-h-11 items-center justify-center rounded-full border border-red-200 bg-white px-5 py-2 text-sm font-black text-red-600 shadow-sm hover:bg-red-50">
             Ver pedidos
           </Link>
         </div>
 
         {groupedByTable.length === 0 ? (
-          <p className="mt-5 rounded-2xl border border-stone-200 bg-stone-50 p-4 text-sm text-stone-500">Nenhum pedido pronto/entregue disponível para fechamento.</p>
+          <p className="m-5 rounded-2xl border border-stone-200 bg-stone-50 p-4 text-sm text-stone-500">Nenhum pedido pronto/entregue disponível para fechamento.</p>
         ) : (
-          <div className="mt-5 space-y-4">
+          <div className="space-y-4 p-5">
             {groupedByTable.map(([tableId, tableOrders]) => {
               const subtotalCents = tableOrders.reduce((sum, order) => sum + order.total_cents, 0);
               const settlement = calculateCashSettlement({
@@ -117,38 +126,38 @@ export function CashPanel({
               const firstOrder = tableOrders[0];
 
               return (
-                <article key={tableId} className="rounded-2xl border border-stone-200 bg-stone-50 p-5">
+                <article key={tableId} className="rounded-[1.5rem] border border-stone-200 bg-stone-50 p-4 shadow-sm sm:p-5">
                   <div className="flex flex-col justify-between gap-3 lg:flex-row lg:items-start">
                     <div>
                       <p className="text-xs font-semibold uppercase tracking-wide text-red-600">Mesa</p>
-                      <h3 className="mt-1 text-xl font-black text-stone-950">
+                      <h3 className="mt-1 text-3xl font-black tracking-tight text-stone-950">
                         {firstOrder?.table_number ?? '—'}{firstOrder?.table_sector ? ` • ${firstOrder.table_sector}` : ''}
                       </h3>
                       <p className="mt-1 text-sm text-stone-500">{tableOrders.length} pedido(s) apto(s) para fechamento.</p>
                     </div>
-                    <div className="grid gap-2 text-sm text-stone-600 sm:grid-cols-3 lg:min-w-[430px]">
-                      <div className="rounded-xl border border-stone-200 bg-white p-3"><span className="text-stone-400">Subtotal</span><strong className="block text-stone-950">{formatCurrencyBRL(settlement.subtotalCents)}</strong></div>
-                      <div className="rounded-xl border border-stone-200 bg-white p-3"><span className="text-stone-400">Serviço</span><strong className="block text-stone-950">{formatCurrencyBRL(settlement.serviceFeeCents)}</strong></div>
-                      <div className="rounded-xl border border-red-200 bg-red-50 p-3"><span className="text-red-600">Total sugerido</span><strong className="block text-red-700">{formatCurrencyBRL(settlement.totalDueCents)}</strong></div>
+                    <div className="grid gap-2 text-sm text-stone-600 sm:grid-cols-3 lg:min-w-[470px]">
+                      <div className="rounded-2xl border border-stone-200 bg-white p-3"><span className="text-stone-400">Subtotal</span><strong className="block text-lg text-stone-950">{formatCurrencyBRL(settlement.subtotalCents)}</strong></div>
+                      <div className="rounded-2xl border border-stone-200 bg-white p-3"><span className="text-stone-400">Serviço</span><strong className="block text-lg text-stone-950">{formatCurrencyBRL(settlement.serviceFeeCents)}</strong></div>
+                      <div className="rounded-2xl border border-red-200 bg-red-50 p-3"><span className="text-red-600">Total sugerido</span><strong className="block text-xl text-red-700">{formatCurrencyBRL(settlement.totalDueCents)}</strong></div>
                     </div>
                   </div>
 
                   <div className="mt-4 space-y-2">
                     {tableOrders.map((order) => (
-                      <div key={order.id} className="flex flex-col justify-between gap-2 rounded-xl border border-stone-200 bg-white p-3 sm:flex-row sm:items-center">
+                      <div key={order.id} className="flex flex-col justify-between gap-2 rounded-2xl border border-stone-200 bg-white p-3 sm:flex-row sm:items-center">
                         <div>
                           <p className="text-sm font-bold text-stone-950">Pedido {order.public_order_code}</p>
                           <p className="text-xs text-stone-500">{order.customer_name ? `Cliente: ${order.customer_name}` : 'Cliente não identificado'} • {new Date(order.created_at).toLocaleString('pt-BR')}</p>
                         </div>
                         <div className="text-left sm:text-right">
-                          <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">{statusLabels[order.status]}</span>
+                          <span className={`inline-flex rounded-full border px-3 py-1 text-xs font-black ${statusStyles[order.status]}`}>{statusLabels[order.status]}</span>
                           <p className="mt-1 font-black text-red-600">{formatCurrencyBRL(order.total_cents)}</p>
                         </div>
                       </div>
                     ))}
                   </div>
 
-                  <form action={closeCashPaymentAction} className="mt-5 grid gap-3 rounded-2xl border border-stone-200 bg-white p-4 md:grid-cols-2 xl:grid-cols-6">
+                  <form action={closeCashPaymentAction} className="mt-5 grid gap-3 rounded-[1.25rem] border border-stone-200 bg-white p-4 md:grid-cols-2 xl:grid-cols-6">
                     <input type="hidden" name="tenantId" value={tenantId} />
                     <input type="hidden" name="tableId" value={tableId} />
                     <input type="hidden" name="subtotalCents" value={subtotalCents} />
@@ -177,7 +186,7 @@ export function CashPanel({
                       Observação
                       <input name="notes" maxLength={300} placeholder="Ex.: pagamento no Pix do caixa" className="mt-2 w-full rounded-xl border border-stone-300 bg-stone-50 px-3 py-2 text-stone-950 outline-none focus:border-red-500" />
                     </label>
-                    <button className="rounded-full bg-red-500 px-5 py-3 text-sm font-black text-white hover:bg-red-600 xl:self-end">Fechar conta</button>
+                    <button className="min-h-12 rounded-full bg-red-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-red-100 hover:bg-red-700 xl:self-end">Fechar conta</button>
                   </form>
                 </article>
               );
@@ -186,7 +195,7 @@ export function CashPanel({
         )}
       </section>
 
-      <section className="rounded-2xl border border-red-100 bg-red-50 p-5">
+      <section className="rounded-[1.5rem] border border-red-100 bg-red-50 p-5">
         <h2 className="text-lg font-bold text-red-700">Controle implementado nesta etapa</h2>
         <p className="mt-2 text-sm leading-6 text-red-700/80">O fechamento registra forma de pagamento, desconto, taxa de serviço, valor pago, troco/saldo e impede novo pagamento do mesmo pedido no banco.</p>
       </section>
