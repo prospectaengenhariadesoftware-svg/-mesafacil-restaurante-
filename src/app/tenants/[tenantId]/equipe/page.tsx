@@ -123,13 +123,13 @@ export default async function EquipePage({
 
   return (
     <TenantModulePage tenantId={tenantId} module="equipe">
-      <div className="grid gap-5 xl:grid-cols-[0.8fr_1.6fr]">
-        <TeamMemberForm tenantId={tenantId} />
-        <TeamManager tenantId={tenantId} members={hydratedMembers} filters={filters} total={total} pageSize={PAGE_SIZE} />
-      </div>
       {loadError ? <p className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">{loadError}</p> : null}
       {feedback.mensagem ? <p className="rounded-xl border border-green-200 bg-green-50 p-3 text-sm text-green-700">{feedback.mensagem}</p> : null}
       {feedback.erro ? <p className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">{feedback.erro}</p> : null}
+      <div className="space-y-5">
+        <TeamMemberForm tenantId={tenantId} />
+        <TeamManager tenantId={tenantId} members={hydratedMembers} filters={filters} total={total} pageSize={PAGE_SIZE} />
+      </div>
     </TenantModulePage>
   );
 }
