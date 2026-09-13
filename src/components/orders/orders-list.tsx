@@ -1,4 +1,5 @@
 import { advanceOrderStatusAction } from '@/app/actions/orders';
+import { OrderRealtimeRefresh } from '@/components/orders/order-realtime-refresh';
 import { formatCurrencyBRL, getOrderStatusActionLabel, isFinalOrderStatus } from '@/lib/domain/order';
 import type { TenantCustomerOrder } from '@/lib/types/orders';
 
@@ -33,7 +34,10 @@ export function OrdersList({
           <h2 className="text-xl font-bold">{title}</h2>
           <p className="mt-1 text-sm text-slate-400">{description}</p>
         </div>
-        <span className="rounded-full bg-emerald-400/10 px-3 py-1 text-xs font-semibold text-emerald-300">{orders.length} pedido(s)</span>
+        <div className="flex flex-wrap items-center gap-2">
+          <OrderRealtimeRefresh tenantId={tenantId} source={source} />
+          <span className="rounded-full bg-emerald-400/10 px-3 py-1 text-xs font-semibold text-emerald-300">{orders.length} pedido(s)</span>
+        </div>
       </div>
 
       {orders.length === 0 ? (
