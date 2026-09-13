@@ -8,6 +8,7 @@ import { validateCategoryInput, validateProductAddonInput, validateProductInput,
 import { isUuid } from '@/lib/validation/auth';
 import { removeProductImageIfOwned, uploadProductImage } from '@/lib/storage/product-images';
 import { validateOptionalProductImageFile } from '@/lib/validation/product-image';
+import { decideNextProductImageUrl } from '@/lib/catalog/product-image-decision';
 
 function getString(formData: FormData, key: string): string {
   const value = formData.get(key);
@@ -252,16 +253,18 @@ export async function updateProductAction(formData: FormData) {
     .single();
   if (currentProductError || !currentProduct) fail(path, 'Produto não encontrado para atualização.');
 
-  let nextImageUrl: string | null = currentProduct.image_url;
   let uploadedImageUrl: string | null = null;
   if (imageFile.data) {
     const upload = await uploadProductImage({ supabase, tenantId, productId, file: imageFile.data });
     if (!upload.success) fail(path, upload.error);
-    nextImageUrl = upload.publicUrl;
     uploadedImageUrl = upload.publicUrl;
-  } else if (removeImage) {
-    nextImageUrl = null;
   }
+
+  const nextImageUrl = decideNextProductImageUrl({
+    currentImageUrl: currentProduct.image_url,
+    uploadedImageUrl,
+    removeImage,
+  });
 
   const { error } = await supabase
     .from('tenant_products')
