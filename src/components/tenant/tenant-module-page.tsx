@@ -70,14 +70,14 @@ export async function TenantModulePage({
   return (
     <AppShell tenantId={tenantId}>
       <section className="space-y-6">
-        <div className="rounded-3xl border border-slate-800 bg-slate-900 p-6">
-          <p className="text-sm font-semibold text-emerald-300">{tenant?.name}</p>
+        <div className="rounded-3xl border border-stone-200 bg-white p-6">
+          <p className="text-sm font-semibold text-red-600">{tenant?.name}</p>
           <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <h1 className="text-3xl font-black">{currentModule.label}</h1>
-              <p className="mt-2 max-w-3xl text-slate-300">{currentModule.description}</p>
+              <p className="mt-2 max-w-3xl text-stone-600">{currentModule.description}</p>
             </div>
-            <span className="rounded-full border border-slate-700 px-3 py-1 text-xs font-semibold text-slate-300">
+            <span className="rounded-full border border-stone-300 px-3 py-1 text-xs font-semibold text-stone-600">
               Papel: {membership.role}
             </span>
           </div>
@@ -86,29 +86,29 @@ export async function TenantModulePage({
         {children ? <div className="space-y-5">{children}</div> : null}
 
         <div className="grid gap-4 md:grid-cols-2">
-          <article className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5">
-            <h2 className="text-lg font-bold text-slate-100">Estado atual</h2>
-            <p className="mt-2 text-sm leading-6 text-slate-300">
+          <article className="rounded-2xl border border-stone-200 bg-white p-5">
+            <h2 className="text-lg font-bold text-stone-950">Estado atual</h2>
+            <p className="mt-2 text-sm leading-6 text-stone-600">
               Página protegida por tenant. Quando houver formulário neste módulo, os cadastros são gravados com tenant_id e respeitam as policies RLS do Supabase.
             </p>
           </article>
-          <article className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5">
-            <h2 className="text-lg font-bold text-slate-100">Segurança SaaS</h2>
-            <p className="mt-2 break-all font-mono text-xs text-slate-400">tenant_id: {tenantId}</p>
-            <p className="mt-2 text-sm leading-6 text-slate-300">A autorização depende do vínculo em tenant_users e das policies RLS do Supabase.</p>
+          <article className="rounded-2xl border border-stone-200 bg-white p-5">
+            <h2 className="text-lg font-bold text-stone-950">Segurança SaaS</h2>
+            <p className="mt-2 break-all font-mono text-xs text-stone-500">tenant_id: {tenantId}</p>
+            <p className="mt-2 text-sm leading-6 text-stone-600">A autorização depende do vínculo em tenant_users e das policies RLS do Supabase.</p>
           </article>
         </div>
 
-        <article className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5">
-          <h2 className="text-lg font-bold text-slate-100">Próximos passos deste módulo</h2>
-          <ul className="mt-3 space-y-2 text-sm text-slate-300">
+        <article className="rounded-2xl border border-stone-200 bg-white p-5">
+          <h2 className="text-lg font-bold text-stone-950">Próximos passos deste módulo</h2>
+          <ul className="mt-3 space-y-2 text-sm text-stone-600">
             {moduleGuidance[module].map((item) => (
-              <li key={item} className="flex gap-2"><span className="text-emerald-300">•</span><span>{item}</span></li>
+              <li key={item} className="flex gap-2"><span className="text-red-600">•</span><span>{item}</span></li>
             ))}
           </ul>
         </article>
 
-        <Link href={`/tenants/${tenantId}`} className="inline-flex rounded-full border border-slate-700 px-4 py-2 text-sm font-semibold text-slate-200 hover:border-emerald-300 hover:text-emerald-300">
+        <Link href={`/tenants/${tenantId}`} className="inline-flex rounded-full border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-800 hover:border-red-500 hover:text-red-600">
           Voltar para visão geral
         </Link>
       </section>

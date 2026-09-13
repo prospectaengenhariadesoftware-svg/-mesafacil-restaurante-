@@ -19,14 +19,14 @@ type TableFilters = {
 
 export function TableForm({ tenantId }: Readonly<{ tenantId: string }>) {
   return (
-    <form action={createTableAction} className="space-y-4 rounded-2xl border border-slate-800 bg-slate-900/70 p-5">
+    <form action={createTableAction} className="space-y-4 rounded-2xl border border-stone-200 bg-white p-5">
       <input type="hidden" name="tenantId" value={tenantId} />
       <div>
         <h2 className="text-xl font-bold">Cadastrar mesa</h2>
-        <p className="mt-1 text-sm text-slate-400">Identifique as mesas do salão para gerar QR Code e receber pedidos.</p>
+        <p className="mt-1 text-sm text-stone-500">Identifique as mesas do salão para gerar QR Code e receber pedidos.</p>
       </div>
       <TableFields />
-      <button type="submit" className="rounded-full bg-emerald-400 px-5 py-3 text-sm font-bold text-slate-950 hover:bg-emerald-300">Salvar mesa</button>
+      <button type="submit" className="rounded-full bg-red-500 px-5 py-3 text-sm font-bold text-white hover:bg-red-600">Salvar mesa</button>
     </form>
   );
 }
@@ -34,20 +34,20 @@ export function TableForm({ tenantId }: Readonly<{ tenantId: string }>) {
 function TableFields({ table }: Readonly<{ table?: RestaurantTable }>) {
   return (
     <>
-      <label className="block text-sm font-medium text-slate-300">
+      <label className="block text-sm font-medium text-stone-600">
         Número ou identificação
-        <input name="number" required maxLength={20} defaultValue={table?.number} placeholder="Ex.: 01, A1, Varanda 3" className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-slate-100 outline-none focus:border-emerald-400" />
+        <input name="number" required maxLength={20} defaultValue={table?.number} placeholder="Ex.: 01, A1, Varanda 3" className="mt-2 w-full rounded-xl border border-stone-300 bg-stone-50 px-4 py-3 text-stone-950 outline-none focus:border-red-500" />
       </label>
-      <label className="block text-sm font-medium text-slate-300">
+      <label className="block text-sm font-medium text-stone-600">
         Lugares
-        <input name="seats" required type="number" min={1} max={99} defaultValue={table?.seats ?? 4} className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-slate-100 outline-none focus:border-emerald-400" />
+        <input name="seats" required type="number" min={1} max={99} defaultValue={table?.seats ?? 4} className="mt-2 w-full rounded-xl border border-stone-300 bg-stone-50 px-4 py-3 text-stone-950 outline-none focus:border-red-500" />
       </label>
-      <label className="block text-sm font-medium text-slate-300">
+      <label className="block text-sm font-medium text-stone-600">
         Setor
-        <input name="sector" maxLength={60} defaultValue={table?.sector ?? ''} placeholder="Ex.: Salão, Varanda, Área externa" className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-slate-100 outline-none focus:border-emerald-400" />
+        <input name="sector" maxLength={60} defaultValue={table?.sector ?? ''} placeholder="Ex.: Salão, Varanda, Área externa" className="mt-2 w-full rounded-xl border border-stone-300 bg-stone-50 px-4 py-3 text-stone-950 outline-none focus:border-red-500" />
       </label>
-      <label className="flex items-center gap-2 text-sm text-slate-300">
-        <input name="isActive" type="checkbox" defaultChecked={table?.is_active ?? true} className="size-4 accent-emerald-400" />
+      <label className="flex items-center gap-2 text-sm text-stone-600">
+        <input name="isActive" type="checkbox" defaultChecked={table?.is_active ?? true} className="size-4 accent-red-500" />
         Mesa ativa
       </label>
     </>
@@ -88,77 +88,77 @@ export async function TableList({
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
   return (
-    <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5">
+    <section className="rounded-2xl border border-stone-200 bg-white p-5">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <h2 className="text-xl font-bold">Mesas cadastradas</h2>
-          <p className="mt-1 text-sm text-slate-400">{total} mesa(s) encontradas no banco deste tenant.</p>
+          <p className="mt-1 text-sm text-stone-500">{total} mesa(s) encontradas no banco deste tenant.</p>
         </div>
-        <Link href={buildQuery(tenantId, filters, { q: '', status: 'all', sort: 'number', dir: 'asc', page: 1 })} className="text-sm font-semibold text-emerald-300 hover:text-emerald-200">Limpar filtros</Link>
+        <Link href={buildQuery(tenantId, filters, { q: '', status: 'all', sort: 'number', dir: 'asc', page: 1 })} className="text-sm font-semibold text-red-600 hover:text-red-600">Limpar filtros</Link>
       </div>
 
       <form className="mt-4 grid gap-3 md:grid-cols-[1.2fr_0.8fr_0.8fr_0.8fr_auto]" action={`/tenants/${tenantId}/mesas`}>
-        <input name="q" defaultValue={filters.q} placeholder="Buscar número ou setor" className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100 outline-none focus:border-emerald-400" />
-        <select name="status" defaultValue={filters.status} className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100 outline-none focus:border-emerald-400">
+        <input name="q" defaultValue={filters.q} placeholder="Buscar número ou setor" className="rounded-xl border border-stone-300 bg-stone-50 px-3 py-2 text-sm text-stone-950 outline-none focus:border-red-500" />
+        <select name="status" defaultValue={filters.status} className="rounded-xl border border-stone-300 bg-stone-50 px-3 py-2 text-sm text-stone-950 outline-none focus:border-red-500">
           <option value="all">Todos os status</option>
           <option value="active">Ativas</option>
           <option value="inactive">Inativas</option>
         </select>
-        <select name="sort" defaultValue={filters.sort} className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100 outline-none focus:border-emerald-400">
+        <select name="sort" defaultValue={filters.sort} className="rounded-xl border border-stone-300 bg-stone-50 px-3 py-2 text-sm text-stone-950 outline-none focus:border-red-500">
           <option value="number">Ordenar por número</option>
           <option value="seats">Ordenar por lugares</option>
           <option value="created_at">Ordenar por data</option>
         </select>
-        <select name="dir" defaultValue={filters.dir} className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100 outline-none focus:border-emerald-400">
+        <select name="dir" defaultValue={filters.dir} className="rounded-xl border border-stone-300 bg-stone-50 px-3 py-2 text-sm text-stone-950 outline-none focus:border-red-500">
           <option value="asc">Crescente</option>
           <option value="desc">Decrescente</option>
         </select>
-        <button className="rounded-xl bg-slate-100 px-4 py-2 text-sm font-bold text-slate-950 hover:bg-white">Filtrar</button>
+        <button className="rounded-xl bg-red-500 px-4 py-2 text-sm font-bold text-white hover:bg-red-600">Filtrar</button>
       </form>
 
       {tables.length === 0 ? (
-        <p className="mt-4 rounded-xl border border-slate-800 bg-slate-950 p-4 text-sm text-slate-400">Nenhuma mesa encontrada para os filtros atuais.</p>
+        <p className="mt-4 rounded-xl border border-stone-200 bg-stone-50 p-4 text-sm text-stone-500">Nenhuma mesa encontrada para os filtros atuais.</p>
       ) : (
         <div className="mt-4 grid gap-4">
           {await Promise.all(tables.map(async (table) => {
             const publicPath = buildPublicMenuPath(publicSlug, table.qr_token);
             const publicUrl = new URL(publicPath, origin).toString();
             return (
-              <article key={table.id} className="rounded-xl border border-slate-800 bg-slate-950 p-4">
+              <article key={table.id} className="rounded-xl border border-stone-200 bg-stone-50 p-4">
                 <div className="grid gap-4 xl:grid-cols-[1fr_260px]">
                   <div>
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <h3 className="font-semibold text-slate-100">Mesa {table.number}</h3>
-                        <p className="mt-1 text-sm text-slate-400">{table.seats} lugares{table.sector ? ` • ${table.sector}` : ''}</p>
+                        <h3 className="font-semibold text-stone-950">Mesa {table.number}</h3>
+                        <p className="mt-1 text-sm text-stone-500">{table.seats} lugares{table.sector ? ` • ${table.sector}` : ''}</p>
                       </div>
-                      <span className={`rounded-full px-3 py-1 text-xs font-semibold ${table.is_active ? 'bg-emerald-400/10 text-emerald-300' : 'bg-slate-700 text-slate-300'}`}>{table.is_active ? 'Ativa' : 'Inativa'}</span>
+                      <span className={`rounded-full px-3 py-1 text-xs font-semibold ${table.is_active ? 'bg-red-50 text-red-600' : 'bg-stone-100 text-stone-600'}`}>{table.is_active ? 'Ativa' : 'Inativa'}</span>
                     </div>
                     <div className="mt-4 grid gap-3 sm:grid-cols-[auto_1fr] sm:items-center">
                       <QrCodeImage value={publicUrl} label={`QR Mesa ${table.number}`} />
                       <div>
-                        <p className="text-sm font-semibold text-slate-200">Cardápio público da mesa</p>
-                        <Link href={publicPath} target="_blank" className="mt-2 inline-flex break-all text-sm text-emerald-300 hover:text-emerald-200">
+                        <p className="text-sm font-semibold text-stone-800">Cardápio público da mesa</p>
+                        <Link href={publicPath} target="_blank" className="mt-2 inline-flex break-all text-sm text-red-600 hover:text-red-600">
                           {publicPath}
                         </Link>
-                        <p className="mt-2 text-xs text-slate-500">Use este QR para o cliente abrir o cardápio desta mesa.</p>
+                        <p className="mt-2 text-xs text-stone-400">Use este QR para o cliente abrir o cardápio desta mesa.</p>
                       </div>
                     </div>
                   </div>
 
-                  <div className="space-y-3 rounded-xl border border-slate-800 bg-slate-900/70 p-3">
+                  <div className="space-y-3 rounded-xl border border-stone-200 bg-white p-3">
                     <form action={updateTableAction} className="space-y-3">
                       <input type="hidden" name="tenantId" value={tenantId} />
                       <input type="hidden" name="tableId" value={table.id} />
                       <TableFields table={table} />
-                      <button className="w-full rounded-full bg-emerald-400 px-4 py-2 text-sm font-bold text-slate-950 hover:bg-emerald-300">Salvar alterações</button>
+                      <button className="w-full rounded-full bg-red-500 px-4 py-2 text-sm font-bold text-white hover:bg-red-600">Salvar alterações</button>
                     </form>
-                    <form action={deleteTableAction} className="space-y-2 border-t border-slate-800 pt-3">
+                    <form action={deleteTableAction} className="space-y-2 border-t border-stone-200 pt-3">
                       <input type="hidden" name="tenantId" value={tenantId} />
                       <input type="hidden" name="tableId" value={table.id} />
-                      <input name="confirmDelete" placeholder="Digite CONFIRMAR" className="w-full rounded-xl border border-red-900/60 bg-slate-950 px-3 py-2 text-sm text-slate-100 outline-none focus:border-red-400" />
-                      <button className="w-full rounded-full border border-red-500/40 px-4 py-2 text-sm font-bold text-red-200 hover:bg-red-500/10">Excluir ou inativar</button>
-                      <p className="text-xs text-slate-500">Com pedidos vinculados, a mesa será inativada para preservar histórico.</p>
+                      <input name="confirmDelete" placeholder="Digite CONFIRMAR" className="w-full rounded-xl border border-red-900/60 bg-stone-50 px-3 py-2 text-sm text-stone-950 outline-none focus:border-red-400" />
+                      <button className="w-full rounded-full border border-red-200 px-4 py-2 text-sm font-bold text-red-700 hover:bg-red-50">Excluir ou inativar</button>
+                      <p className="text-xs text-stone-400">Com pedidos vinculados, a mesa será inativada para preservar histórico.</p>
                     </form>
                   </div>
                 </div>
@@ -168,11 +168,11 @@ export async function TableList({
         </div>
       )}
 
-      <div className="mt-5 flex flex-wrap items-center justify-between gap-3 text-sm text-slate-400">
+      <div className="mt-5 flex flex-wrap items-center justify-between gap-3 text-sm text-stone-500">
         <span>Página {filters.page} de {totalPages}</span>
         <div className="flex gap-2">
-          <Link aria-disabled={filters.page <= 1} href={buildQuery(tenantId, filters, { page: Math.max(1, filters.page - 1) })} className={`rounded-full border border-slate-700 px-4 py-2 ${filters.page <= 1 ? 'pointer-events-none opacity-40' : 'hover:border-emerald-400 hover:text-emerald-200'}`}>Anterior</Link>
-          <Link aria-disabled={filters.page >= totalPages} href={buildQuery(tenantId, filters, { page: Math.min(totalPages, filters.page + 1) })} className={`rounded-full border border-slate-700 px-4 py-2 ${filters.page >= totalPages ? 'pointer-events-none opacity-40' : 'hover:border-emerald-400 hover:text-emerald-200'}`}>Próxima</Link>
+          <Link aria-disabled={filters.page <= 1} href={buildQuery(tenantId, filters, { page: Math.max(1, filters.page - 1) })} className={`rounded-full border border-stone-300 px-4 py-2 ${filters.page <= 1 ? 'pointer-events-none opacity-40' : 'hover:border-red-500 hover:text-red-600'}`}>Anterior</Link>
+          <Link aria-disabled={filters.page >= totalPages} href={buildQuery(tenantId, filters, { page: Math.min(totalPages, filters.page + 1) })} className={`rounded-full border border-stone-300 px-4 py-2 ${filters.page >= totalPages ? 'pointer-events-none opacity-40' : 'hover:border-red-500 hover:text-red-600'}`}>Próxima</Link>
         </div>
       </div>
     </section>

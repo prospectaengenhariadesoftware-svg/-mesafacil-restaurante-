@@ -56,7 +56,7 @@ export function OrderRealtimeRefresh({ tenantId, source }: Readonly<{ tenantId: 
   const label = isActive ? 'Tempo real ativo' : status === 'connecting' ? 'Conectando atualizações' : 'Reconectando atualizações';
 
   return (
-    <span className={`rounded-full px-3 py-1 text-xs font-semibold ${isActive ? 'bg-sky-400/10 text-sky-200' : 'bg-amber-400/10 text-amber-200'}`}>
+    <span className={`rounded-full px-3 py-1 text-xs font-semibold ${isActive ? 'bg-sky-50 text-sky-700' : 'bg-amber-50 text-amber-700'}`}>
       {label}
     </span>
   );

@@ -10,10 +10,10 @@ export default async function NovoRestaurantePage({ searchParams }: Readonly<{ s
 
   return (
     <AppShell>
-      <section className="mx-auto max-w-2xl rounded-3xl border border-slate-800 bg-slate-900 p-6">
-        <p className="text-sm font-semibold text-emerald-300">Onboarding SaaS</p>
+      <section className="mx-auto max-w-2xl rounded-3xl border border-stone-200 bg-white p-6">
+        <p className="text-sm font-semibold text-red-600">Onboarding SaaS</p>
         <h1 className="mt-2 text-3xl font-black">Criar primeiro restaurante</h1>
-        <p className="mt-3 text-slate-300">Este fluxo cria o tenant e vincula o usuário autenticado como owner em `tenant_users`.</p>
+        <p className="mt-3 text-stone-600">Este fluxo cria o tenant e vincula o usuário autenticado como owner em `tenant_users`.</p>
         <div className="mt-8">
           <Feedback message={erro} />
           <form action={createTenantAction} className="space-y-4">

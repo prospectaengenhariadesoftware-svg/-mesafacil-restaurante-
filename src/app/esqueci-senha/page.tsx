@@ -11,7 +11,7 @@ export default async function EsqueciSenhaPage({ searchParams }: Readonly<{ sear
     <AuthCard
       title="Recuperar senha"
       description="Informe o e-mail cadastrado para receber o link seguro de redefinição."
-      footer={<Link className="text-emerald-300" href="/login">Voltar ao login</Link>}
+      footer={<Link className="text-red-600" href="/login">Voltar ao login</Link>}
     >
       <Feedback message={erro} />
       <Feedback message={mensagem} type="success" />

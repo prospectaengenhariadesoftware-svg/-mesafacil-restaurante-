@@ -12,7 +12,7 @@ export default async function LoginPage({ searchParams }: Readonly<{ searchParam
     <AuthCard
       title="Entrar"
       description="Acesse a área segura do MesaFácil. Rotas internas exigem autenticação e vínculo com tenant."
-      footer={<><span>Não tem conta? </span><Link className="text-emerald-300" href="/cadastro">Criar cadastro</Link></>}
+      footer={<><span>Não tem conta? </span><Link className="text-red-600" href="/cadastro">Criar cadastro</Link></>}
     >
       <Feedback message={erro} />
       <Feedback message={mensagem} type="success" />
@@ -20,7 +20,7 @@ export default async function LoginPage({ searchParams }: Readonly<{ searchParam
         <input type="hidden" name="next" value={next} />
         <Field label="E-mail" name="email" type="email" autoComplete="email" />
         <Field label="Senha" name="password" type="password" autoComplete="current-password" />
-        <div className="text-right text-sm"><Link className="text-emerald-300" href="/esqueci-senha">Esqueci minha senha</Link></div>
+        <div className="text-right text-sm"><Link className="text-red-600" href="/esqueci-senha">Esqueci minha senha</Link></div>
         <SubmitButton>Entrar com segurança</SubmitButton>
       </form>
     </AuthCard>

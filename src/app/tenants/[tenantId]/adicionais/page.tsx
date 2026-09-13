@@ -120,9 +120,9 @@ export default async function AdicionaisPage({
 
   return (
     <TenantModulePage tenantId={tenantId} module="adicionais">
-      {loadError ? <p className="rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-200">{loadError}</p> : null}
-      {feedback.mensagem ? <p className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm text-emerald-200">{feedback.mensagem}</p> : null}
-      {feedback.erro ? <p className="rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-200">{feedback.erro}</p> : null}
+      {loadError ? <p className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">{loadError}</p> : null}
+      {feedback.mensagem ? <p className="rounded-xl border border-green-200 bg-green-50 p-3 text-sm text-green-700">{feedback.mensagem}</p> : null}
+      {feedback.erro ? <p className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">{feedback.erro}</p> : null}
       <div className="grid gap-5 xl:grid-cols-[0.8fr_1.4fr]">
         <ProductAddonForm tenantId={tenantId} products={productsList} />
         <ProductAddonList

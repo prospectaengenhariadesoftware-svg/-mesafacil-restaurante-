@@ -25,16 +25,16 @@ export default async function TenantHomePage({ params }: Readonly<{ params: Prom
   return (
     <AppShell tenantId={tenantId}>
       <section className="space-y-6">
-        <div className="rounded-3xl border border-slate-800 bg-slate-900 p-6">
-          <p className="text-sm font-semibold text-emerald-300">Página inicial do restaurante</p>
+        <div className="rounded-3xl border border-stone-200 bg-white p-6">
+          <p className="text-sm font-semibold text-red-600">Página inicial do restaurante</p>
           <h1 className="mt-2 text-3xl font-black">{tenant?.name}</h1>
-          <p className="mt-3 max-w-3xl text-slate-300">
+          <p className="mt-3 max-w-3xl text-stone-600">
             Painel central do MesaFácil com acesso às operações do restaurante, sempre filtrado pelo tenant atual.
           </p>
           <dl className="mt-6 grid gap-4 text-sm sm:grid-cols-3">
-            <div><dt className="text-slate-500">Tenant ID</dt><dd className="break-all font-mono text-xs">{tenantId}</dd></div>
-            <div><dt className="text-slate-500">Seu papel</dt><dd className="font-semibold">{membership.role}</dd></div>
-            <div><dt className="text-slate-500">Status</dt><dd className="font-semibold">{tenant?.status}</dd></div>
+            <div><dt className="text-stone-400">Tenant ID</dt><dd className="break-all font-mono text-xs">{tenantId}</dd></div>
+            <div><dt className="text-stone-400">Seu papel</dt><dd className="font-semibold">{membership.role}</dd></div>
+            <div><dt className="text-stone-400">Status</dt><dd className="font-semibold">{tenant?.status}</dd></div>
           </dl>
         </div>
 
@@ -47,10 +47,10 @@ export default async function TenantHomePage({ params }: Readonly<{ params: Prom
 
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {modules.map((item) => (
-            <Link key={item.slug} href={item.href} className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5 transition hover:border-emerald-400 hover:bg-slate-900">
-              <h2 className="text-lg font-bold text-slate-100">{item.label}</h2>
-              <p className="mt-2 text-sm leading-6 text-slate-300">{item.description}</p>
-              <span className="mt-4 inline-flex text-sm font-semibold text-emerald-300">Abrir módulo →</span>
+            <Link key={item.slug} href={item.href} className="rounded-2xl border border-stone-200 bg-white p-5 transition hover:border-red-500 hover:bg-white">
+              <h2 className="text-lg font-bold text-stone-950">{item.label}</h2>
+              <p className="mt-2 text-sm leading-6 text-stone-600">{item.description}</p>
+              <span className="mt-4 inline-flex text-sm font-semibold text-red-600">Abrir módulo →</span>
             </Link>
           ))}
         </div>
