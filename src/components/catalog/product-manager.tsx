@@ -55,7 +55,7 @@ export function ProductForm({ tenantId, categories }: Readonly<{ tenantId: strin
   const activeCategories = categories.filter((category) => category.is_active);
 
   return (
-    <form action={createProductAction} className="space-y-4 rounded-2xl border border-slate-800 bg-slate-900/70 p-5">
+    <form action={createProductAction} encType="multipart/form-data" className="space-y-4 rounded-2xl border border-slate-800 bg-slate-900/70 p-5">
       <input type="hidden" name="tenantId" value={tenantId} />
       <div>
         <h2 className="text-xl font-bold">Cadastrar produto</h2>
@@ -78,7 +78,12 @@ export function ProductForm({ tenantId, categories }: Readonly<{ tenantId: strin
         <input name="price" required inputMode="decimal" placeholder="Ex.: 12,50" className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-slate-100 outline-none focus:border-emerald-400" />
       </label>
       <label className="block text-sm font-medium text-slate-300">
-        URL da imagem
+        Imagem do produto
+        <input name="imageFile" type="file" accept="image/png,image/jpeg,image/webp" className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm text-slate-100 file:mr-4 file:rounded-full file:border-0 file:bg-emerald-400 file:px-4 file:py-2 file:text-sm file:font-bold file:text-slate-950 hover:file:bg-emerald-300" />
+        <span className="mt-1 block text-xs text-slate-500">PNG, JPEG ou WEBP até 2 MB. Se enviar arquivo, ele substitui a URL manual.</span>
+      </label>
+      <label className="block text-sm font-medium text-slate-300">
+        URL manual da imagem
         <input name="imageUrl" type="url" placeholder="https://..." className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-slate-100 outline-none focus:border-emerald-400" />
       </label>
       <label className="flex items-center gap-2 text-sm text-slate-300">
@@ -169,7 +174,12 @@ export function ProductList({ tenantId, products, categories, filters, total, pa
                   </div>
                   <p className="mt-1 text-xs text-emerald-300">Categoria: {product.tenant_product_categories?.name ?? 'Sem categoria visível'}</p>
                   {product.description ? <p className="mt-2 text-sm text-slate-400">{product.description}</p> : null}
-                  {product.image_url ? <p className="mt-2 break-all text-xs text-slate-500">Imagem: {product.image_url}</p> : null}
+                  {product.image_url ? (
+                    <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center">
+                      <span aria-label={`Imagem de ${product.name}`} role="img" className="h-20 w-20 shrink-0 rounded-xl border border-slate-800 bg-cover bg-center" style={{ backgroundImage: `url(${product.image_url})` }} />
+                      <p className="break-all text-xs text-slate-500">Imagem: {product.image_url}</p>
+                    </div>
+                  ) : null}
                   <p className="mt-2 text-xs text-slate-500">Atualizado em {new Date(product.updated_at).toLocaleString('pt-BR')}</p>
                 </div>
                 <form action={duplicateProductAction}>
@@ -181,7 +191,7 @@ export function ProductList({ tenantId, products, categories, filters, total, pa
 
               <details className="mt-4 rounded-xl border border-slate-800 bg-slate-900 p-4">
                 <summary className="cursor-pointer text-sm font-semibold text-emerald-200">Editar produto</summary>
-                <form action={updateProductAction} className="mt-4 grid gap-3 md:grid-cols-2">
+                <form action={updateProductAction} encType="multipart/form-data" className="mt-4 grid gap-3 md:grid-cols-2">
                   <input type="hidden" name="tenantId" value={tenantId} />
                   <input type="hidden" name="productId" value={product.id} />
                   <label className="text-sm font-medium text-slate-300">
@@ -197,9 +207,20 @@ export function ProductList({ tenantId, products, categories, filters, total, pa
                     <input name="price" required inputMode="decimal" defaultValue={moneyInputFromCents(product.price_cents)} className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-slate-100 outline-none focus:border-emerald-400" />
                   </label>
                   <label className="text-sm font-medium text-slate-300">
-                    URL da imagem
+                    Nova imagem do produto
+                    <input name="imageFile" type="file" accept="image/png,image/jpeg,image/webp" className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm text-slate-100 file:mr-4 file:rounded-full file:border-0 file:bg-emerald-400 file:px-4 file:py-2 file:text-sm file:font-bold file:text-slate-950 hover:file:bg-emerald-300" />
+                    <span className="mt-1 block text-xs text-slate-500">PNG, JPEG ou WEBP até 2 MB.</span>
+                  </label>
+                  <label className="text-sm font-medium text-slate-300">
+                    URL manual da imagem
                     <input name="imageUrl" type="url" defaultValue={product.image_url ?? ''} className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-slate-100 outline-none focus:border-emerald-400" />
                   </label>
+                  {product.image_url ? (
+                    <label className="flex items-center gap-2 text-sm text-slate-300 md:col-span-2">
+                      <input name="removeImage" type="checkbox" className="size-4 accent-red-400" />
+                      Remover imagem atual ao salvar
+                    </label>
+                  ) : null}
                   <label className="text-sm font-medium text-slate-300 md:col-span-2">
                     Descrição
                     <textarea name="description" rows={2} defaultValue={product.description ?? ''} className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-slate-100 outline-none focus:border-emerald-400" />

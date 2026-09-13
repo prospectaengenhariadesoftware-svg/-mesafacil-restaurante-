@@ -1,10 +1,13 @@
 'use server';
 
+import { randomUUID } from 'node:crypto';
 import { redirect } from 'next/navigation';
 import { requireActiveTenant } from '@/lib/auth/context';
 import { createClient } from '@/lib/supabase/server';
 import { validateCategoryInput, validateProductAddonInput, validateProductInput, validateTableInput } from '@/lib/validation/catalog';
 import { isUuid } from '@/lib/validation/auth';
+import { removeProductImageIfOwned, uploadProductImage } from '@/lib/storage/product-images';
+import { validateOptionalProductImageFile } from '@/lib/validation/product-image';
 
 function getString(formData: FormData, key: string): string {
   const value = formData.get(key);
@@ -172,28 +175,48 @@ export async function createProductAction(formData: FormData) {
   const path = `/tenants/${tenantId}/produtos`;
   await requireActiveTenant(tenantId);
 
+  const imageFile = validateOptionalProductImageFile(formData.get('imageFile'));
+  if (!imageFile.success) fail(path, imageFile.error);
+
   const validation = validateProductInput({
     categoryId: getString(formData, 'categoryId'),
     name: getString(formData, 'name'),
     description: getString(formData, 'description'),
     price: getString(formData, 'price'),
-    imageUrl: getString(formData, 'imageUrl'),
+    imageUrl: imageFile.data ? '' : getString(formData, 'imageUrl'),
     isAvailable: getBoolean(formData, 'isAvailable'),
   });
   if (!validation.success) fail(path, validation.error);
 
   const supabase = await createClient();
-  const { error } = await supabase.from('tenant_products').insert({
-    tenant_id: tenantId,
-    category_id: validation.data.categoryId,
-    name: validation.data.name,
-    description: validation.data.description,
-    price_cents: validation.data.priceCents,
-    image_url: validation.data.imageUrl,
-    is_available: validation.data.isAvailable,
-  });
+  const productId = randomUUID();
+  let uploadedImageUrl: string | null = null;
 
-  if (error) fail(path, 'Não foi possível cadastrar o produto. Verifique categoria, permissões, auditoria e nome duplicado.');
+  if (imageFile.data) {
+    const upload = await uploadProductImage({ supabase, tenantId, productId, file: imageFile.data });
+    if (!upload.success) fail(path, upload.error);
+    uploadedImageUrl = upload.publicUrl;
+  }
+
+  const { error } = await supabase
+    .from('tenant_products')
+    .insert({
+      id: productId,
+      tenant_id: tenantId,
+      category_id: validation.data.categoryId,
+      name: validation.data.name,
+      description: validation.data.description,
+      price_cents: validation.data.priceCents,
+      image_url: uploadedImageUrl ?? validation.data.imageUrl,
+      is_available: validation.data.isAvailable,
+    })
+    .select('id')
+    .single();
+
+  if (error) {
+    if (uploadedImageUrl) await removeProductImageIfOwned(supabase, uploadedImageUrl, tenantId);
+    fail(path, 'Não foi possível cadastrar o produto. Verifique categoria, permissões, auditoria e nome duplicado.');
+  }
 
   redirect(`${path}?mensagem=${encodeURIComponent('Produto cadastrado com sucesso.')}`);
 }
@@ -205,17 +228,41 @@ export async function updateProductAction(formData: FormData) {
   await requireActiveTenant(tenantId);
   if (!isUuid(productId)) fail(path, 'Produto inválido.');
 
+  const imageFile = validateOptionalProductImageFile(formData.get('imageFile'));
+  if (!imageFile.success) fail(path, imageFile.error);
+  const removeImage = getBoolean(formData, 'removeImage');
+  if (imageFile.data && removeImage) fail(path, 'Escolha enviar uma nova imagem ou remover a atual, não ambos.');
+
   const validation = validateProductInput({
     categoryId: getString(formData, 'categoryId'),
     name: getString(formData, 'name'),
     description: getString(formData, 'description'),
     price: getString(formData, 'price'),
-    imageUrl: getString(formData, 'imageUrl'),
+    imageUrl: imageFile.data || removeImage ? '' : getString(formData, 'imageUrl'),
     isAvailable: getBoolean(formData, 'isAvailable'),
   });
   if (!validation.success) fail(path, validation.error);
 
   const supabase = await createClient();
+  const { data: currentProduct, error: currentProductError } = await supabase
+    .from('tenant_products')
+    .select('image_url')
+    .eq('tenant_id', tenantId)
+    .eq('id', productId)
+    .single();
+  if (currentProductError || !currentProduct) fail(path, 'Produto não encontrado para atualização.');
+
+  let nextImageUrl = validation.data.imageUrl;
+  let uploadedImageUrl: string | null = null;
+  if (imageFile.data) {
+    const upload = await uploadProductImage({ supabase, tenantId, productId, file: imageFile.data });
+    if (!upload.success) fail(path, upload.error);
+    nextImageUrl = upload.publicUrl;
+    uploadedImageUrl = upload.publicUrl;
+  } else if (removeImage) {
+    nextImageUrl = null;
+  }
+
   const { error } = await supabase
     .from('tenant_products')
     .update({
@@ -223,7 +270,7 @@ export async function updateProductAction(formData: FormData) {
       name: validation.data.name,
       description: validation.data.description,
       price_cents: validation.data.priceCents,
-      image_url: validation.data.imageUrl,
+      image_url: nextImageUrl,
       is_available: validation.data.isAvailable,
     })
     .eq('tenant_id', tenantId)
@@ -231,7 +278,14 @@ export async function updateProductAction(formData: FormData) {
     .select('id')
     .single();
 
-  if (error) fail(path, 'Não foi possível atualizar o produto. Verifique categoria, vínculo do tenant, permissões, auditoria e nome duplicado.');
+  if (error) {
+    if (uploadedImageUrl) await removeProductImageIfOwned(supabase, uploadedImageUrl, tenantId);
+    fail(path, 'Não foi possível atualizar o produto. Verifique categoria, vínculo do tenant, permissões, auditoria e nome duplicado.');
+  }
+
+  if ((uploadedImageUrl || removeImage) && currentProduct.image_url) {
+    await removeProductImageIfOwned(supabase, currentProduct.image_url, tenantId);
+  }
 
   redirect(`${path}?mensagem=${encodeURIComponent('Produto atualizado com sucesso.')}`);
 }

@@ -66,9 +66,14 @@ export default async function PublicQrMenuPage({
                     {category.products.map((product) => (
                       <article key={product.public_code} className="rounded-2xl border border-slate-800 bg-slate-950 p-4">
                         <div className="flex items-start justify-between gap-4">
-                          <div>
+                          <div className="flex gap-3">
+                            {product.image_url ? (
+                              <span aria-label={`Imagem de ${product.name}`} role="img" className="h-24 w-24 shrink-0 rounded-2xl border border-slate-800 bg-cover bg-center" style={{ backgroundImage: `url(${product.image_url})` }} />
+                            ) : null}
+                            <div>
                             <h3 className="font-bold text-slate-100">{product.name}</h3>
                             {product.description ? <p className="mt-1 text-sm leading-6 text-slate-400">{product.description}</p> : null}
+                            </div>
                           </div>
                           <p className="shrink-0 rounded-full bg-emerald-400 px-3 py-1 text-sm font-black text-slate-950">
                             {formatMoneyFromCents(product.price_cents)}
