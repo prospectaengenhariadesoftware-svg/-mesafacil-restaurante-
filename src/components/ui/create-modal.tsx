@@ -109,7 +109,7 @@ export function CreateModal({
                 type="button"
                 onClick={closeModal}
                 className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl border border-stone-200 bg-stone-50 text-xl font-black text-stone-500 hover:bg-red-50 hover:text-red-600"
-                aria-label="Fechar cadastro"
+                aria-label="Fechar modal"
               >
                 ×
               </button>

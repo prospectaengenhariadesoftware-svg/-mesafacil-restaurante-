@@ -183,7 +183,7 @@ export async function createProductAction(formData: FormData) {
     name: getString(formData, 'name'),
     description: getString(formData, 'description'),
     price: getString(formData, 'price'),
-    imageUrl: imageFile.data ? '' : getString(formData, 'imageUrl'),
+    imageUrl: '',
     isAvailable: getBoolean(formData, 'isAvailable'),
   });
   if (!validation.success) fail(path, validation.error);
@@ -238,7 +238,7 @@ export async function updateProductAction(formData: FormData) {
     name: getString(formData, 'name'),
     description: getString(formData, 'description'),
     price: getString(formData, 'price'),
-    imageUrl: imageFile.data || removeImage ? '' : getString(formData, 'imageUrl'),
+    imageUrl: '',
     isAvailable: getBoolean(formData, 'isAvailable'),
   });
   if (!validation.success) fail(path, validation.error);
@@ -252,7 +252,7 @@ export async function updateProductAction(formData: FormData) {
     .single();
   if (currentProductError || !currentProduct) fail(path, 'Produto não encontrado para atualização.');
 
-  let nextImageUrl = validation.data.imageUrl;
+  let nextImageUrl: string | null = currentProduct.image_url;
   let uploadedImageUrl: string | null = null;
   if (imageFile.data) {
     const upload = await uploadProductImage({ supabase, tenantId, productId, file: imageFile.data });

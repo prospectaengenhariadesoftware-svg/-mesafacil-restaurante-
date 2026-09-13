@@ -66,7 +66,7 @@ export function ProductForm({ tenantId, categories }: Readonly<{ tenantId: strin
         triggerLabel="+ Novo produto"
         eyebrow="Cadastro"
         title="Novo produto"
-        description="Criação real no banco com categoria do mesmo tenant, validação no servidor e auditoria."
+        description="Envie a foto do prato pelo computador ou celular. O MesaFácil salva a imagem e gera o link automaticamente."
       >
         <form action={createProductAction} encType="multipart/form-data">
           <input type="hidden" name="tenantId" value={tenantId} />
@@ -84,17 +84,13 @@ export function ProductForm({ tenantId, categories }: Readonly<{ tenantId: strin
               <input name="price" required inputMode="decimal" placeholder="Ex.: 12,50" className="mt-2 w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-stone-950 outline-none focus:border-red-500" />
             </label>
             <label className="block text-sm font-bold text-stone-700">
-              Imagem do produto
+              Foto do prato
               <input name="imageFile" type="file" accept="image/png,image/jpeg,image/webp" className="mt-2 w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm text-stone-950 file:mr-4 file:rounded-full file:border-0 file:bg-red-600 file:px-4 file:py-2 file:text-sm file:font-bold file:text-white hover:file:bg-red-700" />
-              <span className="mt-1 block text-xs text-stone-400">PNG, JPEG ou WEBP até 2 MB.</span>
+              <span className="mt-1 block text-xs text-stone-500">Escolha uma imagem do celular/computador. O sistema gera o link automaticamente. PNG, JPEG ou WEBP até 2 MB.</span>
             </label>
             <label className="block text-sm font-bold text-stone-700 md:col-span-2">
               Descrição
               <textarea name="description" rows={3} placeholder="Ex.: Laranja 500ml" className="mt-2 w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-stone-950 outline-none focus:border-red-500" />
-            </label>
-            <label className="block text-sm font-bold text-stone-700 md:col-span-2">
-              URL manual da imagem
-              <input name="imageUrl" type="url" placeholder="https://..." className="mt-2 w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-stone-950 outline-none focus:border-red-500" />
             </label>
             <label className="flex items-center gap-2 text-sm font-bold text-stone-700">
               <input name="isAvailable" type="checkbox" defaultChecked className="size-4 accent-red-500" />
@@ -203,51 +199,62 @@ export function ProductList({ tenantId, products, categories, filters, total, pa
                 </form>
               </div>
 
-              <details className="mx-4 mb-4 rounded-2xl border border-stone-200 bg-stone-50 p-4">
-                <summary className="cursor-pointer text-sm font-semibold text-red-600">Editar produto</summary>
-                <form action={updateProductAction} encType="multipart/form-data" className="mt-4 grid gap-3 md:grid-cols-2">
-                  <input type="hidden" name="tenantId" value={tenantId} />
-                  <input type="hidden" name="productId" value={product.id} />
-                  <label className="text-sm font-medium text-stone-600">
-                    Categoria *
-                    <CategorySelect categories={categories} defaultValue={product.category_id} />
-                  </label>
-                  <label className="text-sm font-medium text-stone-600">
-                    Nome *
-                    <input name="name" required minLength={2} maxLength={120} defaultValue={product.name} className="mt-2 w-full rounded-xl border border-stone-300 bg-stone-50 px-4 py-3 text-stone-950 outline-none focus:border-red-500" />
-                  </label>
-                  <label className="text-sm font-medium text-stone-600">
-                    Preço *
-                    <input name="price" required inputMode="decimal" defaultValue={moneyInputFromCents(product.price_cents)} className="mt-2 w-full rounded-xl border border-stone-300 bg-stone-50 px-4 py-3 text-stone-950 outline-none focus:border-red-500" />
-                  </label>
-                  <label className="text-sm font-medium text-stone-600">
-                    Nova imagem do produto
-                    <input name="imageFile" type="file" accept="image/png,image/jpeg,image/webp" className="mt-2 w-full rounded-xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm text-stone-950 file:mr-4 file:rounded-full file:border-0 file:bg-red-500 file:px-4 file:py-2 file:text-sm file:font-bold file:text-white hover:file:bg-red-600" />
-                    <span className="mt-1 block text-xs text-stone-400">PNG, JPEG ou WEBP até 2 MB.</span>
-                  </label>
-                  <label className="text-sm font-medium text-stone-600">
-                    URL manual da imagem
-                    <input name="imageUrl" type="url" defaultValue={product.image_url ?? ''} className="mt-2 w-full rounded-xl border border-stone-300 bg-stone-50 px-4 py-3 text-stone-950 outline-none focus:border-red-500" />
-                  </label>
-                  {product.image_url ? (
-                    <label className="flex items-center gap-2 text-sm text-stone-600 md:col-span-2">
-                      <input name="removeImage" type="checkbox" className="size-4 accent-red-400" />
-                      Remover imagem atual ao salvar
-                    </label>
-                  ) : null}
-                  <label className="text-sm font-medium text-stone-600 md:col-span-2">
-                    Descrição
-                    <textarea name="description" rows={2} defaultValue={product.description ?? ''} className="mt-2 w-full rounded-xl border border-stone-300 bg-stone-50 px-4 py-3 text-stone-950 outline-none focus:border-red-500" />
-                  </label>
-                  <label className="flex items-center gap-2 text-sm text-stone-600">
-                    <input name="isAvailable" type="checkbox" defaultChecked={product.is_available} className="size-4 accent-red-500" />
-                    Produto disponível
-                  </label>
-                  <div className="flex justify-start md:justify-end">
-                    <button type="submit" className="rounded-full bg-red-500 px-4 py-2 text-sm font-bold text-white hover:bg-red-600">Salvar alterações</button>
-                  </div>
-                </form>
-              </details>
+              <div className="mx-4 mb-4">
+                <CreateModal
+                  triggerLabel="Editar prato"
+                  eyebrow="Edição"
+                  title={`Editar ${product.name}`}
+                  description="Altere os dados do prato. Para trocar a foto, envie uma nova imagem; o sistema gera o link automaticamente."
+                >
+                  <form action={updateProductAction} encType="multipart/form-data">
+                    <input type="hidden" name="tenantId" value={tenantId} />
+                    <input type="hidden" name="productId" value={product.id} />
+                    <div className="mt-5 grid gap-4 md:grid-cols-2">
+                      <label className="text-sm font-bold text-stone-700">
+                        Categoria *
+                        <CategorySelect categories={categories} defaultValue={product.category_id} />
+                      </label>
+                      <label className="text-sm font-bold text-stone-700">
+                        Nome *
+                        <input name="name" required minLength={2} maxLength={120} defaultValue={product.name} className="mt-2 w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-stone-950 outline-none focus:border-red-500" />
+                      </label>
+                      <label className="text-sm font-bold text-stone-700">
+                        Preço *
+                        <input name="price" required inputMode="decimal" defaultValue={moneyInputFromCents(product.price_cents)} className="mt-2 w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-stone-950 outline-none focus:border-red-500" />
+                      </label>
+                      <label className="text-sm font-bold text-stone-700">
+                        Trocar foto do prato
+                        <input name="imageFile" type="file" accept="image/png,image/jpeg,image/webp" className="mt-2 w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm text-stone-950 file:mr-4 file:rounded-full file:border-0 file:bg-red-600 file:px-4 file:py-2 file:text-sm file:font-bold file:text-white hover:file:bg-red-700" />
+                        <span className="mt-1 block text-xs text-stone-500">Envie uma nova imagem apenas se quiser substituir a atual. PNG, JPEG ou WEBP até 2 MB.</span>
+                      </label>
+                      {product.image_url ? (
+                        <div className="rounded-2xl border border-stone-200 bg-stone-50 p-3 md:col-span-2">
+                          <p className="text-sm font-bold text-stone-700">Imagem atual</p>
+                          <div className="mt-2 grid gap-3 sm:grid-cols-[120px_1fr] sm:items-center">
+                            <span aria-label={`Imagem atual de ${product.name}`} role="img" className="block aspect-square rounded-2xl bg-stone-100 bg-cover bg-center" style={{ backgroundImage: `url(${product.image_url})` }} />
+                            <label className="flex items-center gap-2 text-sm font-bold text-stone-700">
+                              <input name="removeImage" type="checkbox" className="size-4 accent-red-500" />
+                              Remover imagem atual ao salvar
+                            </label>
+                          </div>
+                        </div>
+                      ) : null}
+                      <label className="text-sm font-bold text-stone-700 md:col-span-2">
+                        Descrição
+                        <textarea name="description" rows={3} defaultValue={product.description ?? ''} className="mt-2 w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-stone-950 outline-none focus:border-red-500" />
+                      </label>
+                      <label className="flex items-center gap-2 text-sm font-bold text-stone-700">
+                        <input name="isAvailable" type="checkbox" defaultChecked={product.is_available} className="size-4 accent-red-500" />
+                        Produto disponível
+                      </label>
+                    </div>
+                    <div className="mt-6 flex flex-col gap-3 border-t border-stone-100 pt-4 sm:flex-row sm:items-center sm:justify-between">
+                      <p className="text-sm text-stone-500">A imagem técnica fica salva automaticamente no sistema.</p>
+                      <button type="submit" className="min-h-12 rounded-full bg-red-600 px-6 py-3 text-sm font-black text-white hover:bg-red-700">Salvar alterações</button>
+                    </div>
+                  </form>
+                </CreateModal>
+              </div>
 
               <details className="mx-4 mb-4 rounded-2xl border border-red-200 bg-red-50 p-4">
                 <summary className="cursor-pointer text-sm font-semibold text-red-700">Excluir ou inativar</summary>
