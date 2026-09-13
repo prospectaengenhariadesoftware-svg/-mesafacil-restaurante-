@@ -99,7 +99,7 @@ export default async function MesasPage({
 
   return (
     <TenantModulePage tenantId={tenantId} module="mesas">
-      <div className="grid gap-5 xl:grid-cols-[0.8fr_1.6fr]">
+      <div className="space-y-5">
         <TableForm tenantId={tenantId} />
         <TableList
           tenantId={tenantId}

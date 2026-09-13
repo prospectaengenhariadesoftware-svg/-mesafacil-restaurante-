@@ -75,7 +75,7 @@ export default async function CardapioPage({
 
   return (
     <TenantModulePage tenantId={tenantId} module="cardapio">
-      <div className="grid gap-5 xl:grid-cols-[0.85fr_1.5fr]">
+      <div className="space-y-5">
         <CategoryForm tenantId={tenantId} />
         <CategoryList tenantId={tenantId} categories={categories} filters={filters} total={count ?? 0} pageSize={PAGE_SIZE} />
       </div>

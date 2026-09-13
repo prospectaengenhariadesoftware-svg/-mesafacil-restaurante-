@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { createProductAction, deleteProductAction, duplicateProductAction, updateProductAction } from '@/app/actions/catalog';
 import { formatMoneyFromCents } from '@/lib/validation/catalog';
 import type { Product, ProductCategory } from '@/lib/types/catalog';
+import { CreateModal } from '@/components/ui/create-modal';
 
 type ProductFilters = {
   q: string;
@@ -61,22 +62,14 @@ export function ProductForm({ tenantId, categories }: Readonly<{ tenantId: strin
         <h2 className="text-xl font-black tracking-tight">Cadastre sem sair da lista</h2>
         <p className="mt-1 text-sm text-stone-500">Use o botão para abrir o pop-up de cadastro.</p>
       </div>
-      <a href="#novo-produto" className="inline-flex min-h-12 items-center justify-center rounded-full bg-red-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-red-100 transition hover:bg-red-700">
-        + Novo produto
-      </a>
-
-      <div id="novo-produto" role="dialog" aria-modal="true" aria-labelledby="novo-produto-titulo" className="pointer-events-none fixed inset-0 z-[80] grid place-items-end bg-stone-950/0 p-0 opacity-0 backdrop-blur-none transition target:pointer-events-auto target:bg-stone-950/40 target:opacity-100 target:backdrop-blur-sm sm:place-items-center sm:p-4">
-        <form action={createProductAction} encType="multipart/form-data" className="max-h-[92vh] w-full overflow-y-auto rounded-t-[2rem] border border-stone-200 bg-white p-5 shadow-2xl sm:max-w-2xl sm:rounded-[2rem] sm:p-6">
+      <CreateModal
+        triggerLabel="+ Novo produto"
+        eyebrow="Cadastro"
+        title="Novo produto"
+        description="Criação real no banco com categoria do mesmo tenant, validação no servidor e auditoria."
+      >
+        <form action={createProductAction} encType="multipart/form-data">
           <input type="hidden" name="tenantId" value={tenantId} />
-          <div className="flex items-start justify-between gap-4 border-b border-stone-100 pb-4">
-            <div>
-              <p className="text-sm font-black text-red-600">Cadastro</p>
-              <h2 id="novo-produto-titulo" className="mt-1 text-2xl font-black tracking-tight">Novo produto</h2>
-              <p className="mt-2 text-sm leading-6 text-stone-500">Criação real no banco com categoria do mesmo tenant, validação no servidor e auditoria.</p>
-            </div>
-            <a href="#" className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl border border-stone-200 bg-stone-50 text-xl font-black text-stone-500 hover:bg-red-50 hover:text-red-600" aria-label="Fechar cadastro">×</a>
-          </div>
-
           <div className="mt-5 grid gap-4 md:grid-cols-2">
             <label className="block text-sm font-bold text-stone-700">
               Categoria *
@@ -108,13 +101,12 @@ export function ProductForm({ tenantId, categories }: Readonly<{ tenantId: strin
               Produto disponível
             </label>
           </div>
-
           <div className="mt-6 flex flex-col gap-3 border-t border-stone-100 pt-4 sm:flex-row sm:items-center sm:justify-between">
             {activeCategories.length === 0 ? <p className="text-sm text-amber-700">Cadastre ou reative uma categoria antes de cadastrar produtos.</p> : <p className="text-sm text-stone-500">Ao salvar, o produto aparece nos cards abaixo.</p>}
             <button disabled={activeCategories.length === 0} type="submit" className="min-h-12 rounded-full bg-red-600 px-6 py-3 text-sm font-black text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-stone-200 disabled:text-stone-500">Salvar produto</button>
           </div>
         </form>
-      </div>
+      </CreateModal>
     </div>
   );
 }
