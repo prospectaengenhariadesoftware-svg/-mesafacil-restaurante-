@@ -85,7 +85,7 @@ export function ProductForm({ tenantId, categories }: Readonly<{ tenantId: strin
             </label>
             <label className="block text-sm font-bold text-stone-700">
               Foto do prato
-              <input name="imageFile" type="file" accept="image/png,image/jpeg,image/webp" className="mt-2 w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm text-stone-950 file:mr-4 file:rounded-xl file:border-0 file:bg-red-600 file:px-4 file:py-2 file:text-sm file:font-bold file:text-white hover:file:bg-red-700" />
+              <input name="imageFile" type="file" accept="image/png,image/jpeg,image/webp" className="mt-2 w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm text-stone-950 file:mr-4 file:rounded-full file:border-0 file:bg-red-600 file:px-4 file:py-2 file:text-sm file:font-bold file:text-white hover:file:bg-red-700" />
               <span className="mt-1 block text-xs text-stone-500">Escolha uma imagem do celular/computador. O sistema gera o link automaticamente. PNG, JPEG ou WEBP até 2 MB.</span>
             </label>
             <label className="block text-sm font-bold text-stone-700 md:col-span-2">
@@ -99,7 +99,7 @@ export function ProductForm({ tenantId, categories }: Readonly<{ tenantId: strin
           </div>
           <div className="mt-6 flex flex-col gap-3 border-t border-stone-100 pt-4 sm:flex-row sm:items-center sm:justify-between">
             {activeCategories.length === 0 ? <p className="text-sm text-amber-700">Cadastre ou reative uma categoria antes de cadastrar produtos.</p> : <p className="text-sm text-stone-500">Ao salvar, o produto aparece nos cards abaixo.</p>}
-            <button disabled={activeCategories.length === 0} type="submit" className="min-h-12 rounded-xl bg-red-600 px-6 py-3 text-sm font-black text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-stone-200 disabled:text-stone-500">Salvar produto</button>
+            <button disabled={activeCategories.length === 0} type="submit" className="min-h-12 rounded-full bg-red-600 px-6 py-3 text-sm font-black text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-stone-200 disabled:text-stone-500">Salvar produto</button>
           </div>
         </form>
       </CreateModal>
@@ -145,8 +145,8 @@ export function ProductFiltersBar({ tenantId, categories, filters }: Readonly<{ 
         </select>
       </label>
       <div className="flex items-end gap-2">
-        <button type="submit" className="rounded-xl bg-red-500 px-4 py-2 text-sm font-bold text-white hover:bg-red-600">Filtrar</button>
-        <Link href={`/tenants/${tenantId}/produtos`} className="rounded-xl border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-600 hover:border-red-300">Limpar</Link>
+        <button type="submit" className="rounded-full bg-red-500 px-4 py-2 text-sm font-bold text-white hover:bg-red-600">Filtrar</button>
+        <Link href={`/tenants/${tenantId}/produtos`} className="rounded-full border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-600 hover:border-red-300">Limpar</Link>
       </div>
     </form>
   );
@@ -195,7 +195,7 @@ export function ProductList({ tenantId, products, categories, filters, total, pa
                 <form action={duplicateProductAction} className="mt-1">
                   <input type="hidden" name="tenantId" value={tenantId} />
                   <input type="hidden" name="productId" value={product.id} />
-                  <button type="submit" className="w-full rounded-xl border border-red-200 px-4 py-2 text-sm font-black text-red-600 hover:bg-red-50">Duplicar</button>
+                  <button type="submit" className="w-full rounded-full border border-red-200 px-4 py-2 text-sm font-black text-red-600 hover:bg-red-50">Duplicar</button>
                 </form>
               </div>
 
@@ -224,7 +224,7 @@ export function ProductList({ tenantId, products, categories, filters, total, pa
                       </label>
                       <label className="text-sm font-bold text-stone-700">
                         Trocar foto do prato
-                        <input name="imageFile" type="file" accept="image/png,image/jpeg,image/webp" className="mt-2 w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm text-stone-950 file:mr-4 file:rounded-xl file:border-0 file:bg-red-600 file:px-4 file:py-2 file:text-sm file:font-bold file:text-white hover:file:bg-red-700" />
+                        <input name="imageFile" type="file" accept="image/png,image/jpeg,image/webp" className="mt-2 w-full rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm text-stone-950 file:mr-4 file:rounded-full file:border-0 file:bg-red-600 file:px-4 file:py-2 file:text-sm file:font-bold file:text-white hover:file:bg-red-700" />
                         <span className="mt-1 block text-xs text-stone-500">Envie uma nova imagem apenas se quiser substituir a atual. PNG, JPEG ou WEBP até 2 MB.</span>
                       </label>
                       {product.image_url ? (
@@ -250,7 +250,7 @@ export function ProductList({ tenantId, products, categories, filters, total, pa
                     </div>
                     <div className="mt-6 flex flex-col gap-3 border-t border-stone-100 pt-4 sm:flex-row sm:items-center sm:justify-between">
                       <p className="text-sm text-stone-500">A imagem técnica fica salva automaticamente no sistema.</p>
-                      <button type="submit" className="min-h-12 rounded-xl bg-red-600 px-6 py-3 text-sm font-black text-white hover:bg-red-700">Salvar alterações</button>
+                      <button type="submit" className="min-h-12 rounded-full bg-red-600 px-6 py-3 text-sm font-black text-white hover:bg-red-700">Salvar alterações</button>
                     </div>
                   </form>
                 </CreateModal>
@@ -266,7 +266,7 @@ export function ProductList({ tenantId, products, categories, filters, total, pa
                     Digite CONFIRMAR
                     <input name="confirmDelete" required pattern="CONFIRMAR" className="mt-2 w-full max-w-xs rounded-xl border border-red-500/30 bg-stone-50 px-4 py-2 text-stone-950 outline-none focus:border-red-300" />
                   </label>
-                  <button type="submit" className="rounded-xl border border-red-200 px-4 py-2 text-sm font-bold text-red-700 hover:bg-red-50">Confirmar exclusão/inativação</button>
+                  <button type="submit" className="rounded-full border border-red-200 px-4 py-2 text-sm font-bold text-red-700 hover:bg-red-50">Confirmar exclusão/inativação</button>
                 </form>
               </details>
             </article>
@@ -277,8 +277,8 @@ export function ProductList({ tenantId, products, categories, filters, total, pa
       <div className="flex flex-col justify-between gap-3 border-t border-stone-200 pt-4 sm:flex-row sm:items-center">
         <p className="text-sm text-stone-500">Mostrando até {pageSize} registros por página.</p>
         <div className="flex gap-2">
-          <Link aria-disabled={filters.page <= 1} href={buildProductHref(tenantId, filters, { page: Math.max(1, filters.page - 1) })} className="rounded-xl border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-600 aria-disabled:pointer-events-none aria-disabled:opacity-40">Anterior</Link>
-          <Link aria-disabled={filters.page >= totalPages} href={buildProductHref(tenantId, filters, { page: Math.min(totalPages, filters.page + 1) })} className="rounded-xl border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-600 aria-disabled:pointer-events-none aria-disabled:opacity-40">Próxima</Link>
+          <Link aria-disabled={filters.page <= 1} href={buildProductHref(tenantId, filters, { page: Math.max(1, filters.page - 1) })} className="rounded-full border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-600 aria-disabled:pointer-events-none aria-disabled:opacity-40">Anterior</Link>
+          <Link aria-disabled={filters.page >= totalPages} href={buildProductHref(tenantId, filters, { page: Math.min(totalPages, filters.page + 1) })} className="rounded-full border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-600 aria-disabled:pointer-events-none aria-disabled:opacity-40">Próxima</Link>
         </div>
       </div>
     </section>

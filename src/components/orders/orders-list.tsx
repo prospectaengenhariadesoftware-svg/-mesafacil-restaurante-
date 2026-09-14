@@ -115,8 +115,8 @@ export function OrdersList({
   const preparingCount = countByStatus(orders, 'preparing');
 
   return (
-    <section className="mf-surface overflow-hidden">
-      <div className="border-b border-gray-100 bg-white p-5 sm:p-6">
+    <section className="overflow-hidden rounded-[2rem] border border-stone-200 bg-white shadow-sm shadow-stone-200/70">
+      <div className="border-b border-stone-100 bg-gradient-to-br from-white via-red-50 to-stone-50 p-5 sm:p-6">
         <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-start">
           <div>
             <p className="text-xs font-black uppercase tracking-[0.22em] text-red-700">Operação</p>
@@ -125,27 +125,27 @@ export function OrdersList({
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <OrderRealtimeRefresh tenantId={tenantId} source={source} />
-            <span className="mf-chip mf-status-red">{orders.length} pedido(s)</span>
+            <span className="rounded-full border border-red-100 bg-white px-4 py-2 text-xs font-black text-red-700 shadow-sm">{orders.length} pedido(s)</span>
           </div>
         </div>
 
         <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          <div className="mf-card p-4">
+          <div className="rounded-3xl border border-stone-200 bg-white p-4 shadow-sm">
             <p className="text-xs font-bold uppercase tracking-[0.16em] text-stone-500">Ativos</p>
             <p className="mt-2 text-3xl font-black text-stone-950">{activeCount}</p>
             <p className="mt-1 text-xs text-stone-500">Pedidos ainda em andamento.</p>
           </div>
-          <div className="rounded-2xl border border-sky-100 bg-sky-50 p-4">
+          <div className="rounded-3xl border border-sky-100 bg-sky-50 p-4">
             <p className="text-xs font-bold uppercase tracking-[0.16em] text-sky-800">Novos</p>
             <p className="mt-2 text-3xl font-black text-sky-950">{receivedCount}</p>
             <p className="mt-1 text-xs text-sky-800">Aguardando confirmação.</p>
           </div>
-          <div className="rounded-2xl border border-amber-100 bg-amber-50 p-4">
+          <div className="rounded-3xl border border-amber-100 bg-amber-50 p-4">
             <p className="text-xs font-bold uppercase tracking-[0.16em] text-amber-900">Preparo</p>
             <p className="mt-2 text-3xl font-black text-amber-950">{preparingCount}</p>
             <p className="mt-1 text-xs text-amber-900">Em produção na cozinha.</p>
           </div>
-          <div className="rounded-2xl border border-red-100 bg-red-50 p-4">
+          <div className="rounded-3xl border border-red-100 bg-red-50 p-4">
             <p className="text-xs font-bold uppercase tracking-[0.16em] text-red-800">Em aberto</p>
             <p className="mt-2 text-2xl font-black text-red-900">{formatCurrencyBRL(openTotal)}</p>
             <p className="mt-1 text-xs text-red-800">Total ativo para operação/caixa.</p>
@@ -161,7 +161,7 @@ export function OrdersList({
             const nextLabel = getOrderStatusActionLabel(order.status);
             const tableLabel = `Mesa ${order.table_number ?? '—'}${order.table_sector ? ` • ${order.table_sector}` : ''}`;
             return (
-              <article key={order.id} className="flex min-h-full flex-col rounded-2xl border border-gray-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg hover:shadow-gray-200/80 sm:p-5">
+              <article key={order.id} className="flex min-h-full flex-col rounded-[1.75rem] border border-stone-200 bg-stone-50 p-4 shadow-sm transition hover:-translate-y-0.5 hover:bg-white hover:shadow-lg hover:shadow-stone-200/80 sm:p-5">
                 <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
@@ -175,7 +175,7 @@ export function OrdersList({
                     {order.customer_note ? <p className="mt-2 rounded-2xl border border-amber-100 bg-amber-50 p-3 text-sm leading-6 text-amber-900">Obs.: {order.customer_note}</p> : null}
                   </div>
                   <div className="shrink-0 text-left sm:text-right">
-                    <span className={`inline-flex items-center rounded-xl border px-3 py-1.5 text-xs font-black ${statusStyles[order.status]}`}>{statusLabels[order.status]}</span>
+                    <span className={`inline-flex items-center rounded-full border px-3 py-1.5 text-xs font-black ${statusStyles[order.status]}`}>{statusLabels[order.status]}</span>
                     <p className="mt-3 text-2xl font-black text-red-700">{formatCurrencyBRL(order.total_cents)}</p>
                     <p className="mt-1 text-xs font-semibold text-stone-500">{formatOrderDate(order.created_at)}</p>
                   </div>
@@ -183,7 +183,7 @@ export function OrdersList({
 
                 <div className="mt-4 grid gap-2 border-t border-stone-200 pt-4">
                   {order.items.map((item) => (
-                    <div key={item.id} className="rounded-2xl border border-gray-200 bg-gray-50 p-4 text-sm">
+                    <div key={item.id} className="rounded-3xl border border-stone-200 bg-white p-4 text-sm shadow-sm">
                       <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-start">
                         <div className="min-w-0">
                           <p className="break-words text-base font-black text-stone-950">{item.quantity}× {item.product_name}</p>
@@ -197,7 +197,7 @@ export function OrdersList({
                       {item.selected_addons && item.selected_addons.length > 0 ? (
                         <ul className="mt-3 flex flex-wrap gap-2 text-xs font-bold text-red-800">
                           {item.selected_addons.map((addon) => (
-                            <li key={addon.public_code} className="rounded-xl border border-red-100 bg-red-50 px-3 py-1">
+                            <li key={addon.public_code} className="rounded-full border border-red-100 bg-red-50 px-3 py-1">
                               + {addon.name} ({formatCurrencyBRL(addon.price_delta_cents)})
                             </li>
                           ))}
@@ -214,7 +214,7 @@ export function OrdersList({
                       tenantId={tenantId}
                       order={order}
                       source={source}
-                      className="mf-btn-primary w-full sm:w-auto"
+                      className="min-h-12 w-full rounded-2xl bg-red-600 px-5 py-3 text-sm font-black text-white shadow-sm shadow-red-100 transition hover:bg-red-700 sm:w-auto"
                     >
                       {nextLabel}
                     </OrderActionForm>
@@ -225,7 +225,7 @@ export function OrdersList({
                       order={order}
                       source={source}
                       mode="cancel"
-                      className="min-h-11 w-full rounded-xl border border-rose-200 bg-white px-5 py-3 text-sm font-black text-rose-800 transition hover:bg-rose-50 sm:w-auto"
+                      className="min-h-12 w-full rounded-2xl border border-rose-200 bg-white px-5 py-3 text-sm font-black text-rose-800 transition hover:bg-rose-50 sm:w-auto"
                     >
                       Cancelar
                     </OrderActionForm>

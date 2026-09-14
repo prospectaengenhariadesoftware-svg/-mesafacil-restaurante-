@@ -358,7 +358,7 @@ export default async function TenantHomePage({ params }: Readonly<{ params: Prom
   const countByStatus = (status: RecentOrder['status']) => orders.filter((order) => order.status === status).length;
 
   return (
-    <AppShell tenantId={tenantId} activeModule="visao-geral">
+    <AppShell tenantId={tenantId}>
       <div className="-mx-4 -my-6 min-h-screen bg-[#f7f8fb] px-4 py-5 sm:-mx-5 sm:-my-8 sm:px-5 sm:py-7 lg:-mx-6 lg:px-6">
         <section className="overflow-hidden rounded-[2rem] border border-white bg-slate-950 shadow-[0_24px_70px_rgba(127,29,29,0.18)]">
           <div className="relative min-h-[250px] bg-[radial-gradient(circle_at_80%_25%,rgba(251,191,36,0.25),transparent_22%),linear-gradient(100deg,rgba(69,10,10,0.96)_0%,rgba(153,27,27,0.92)_50%,rgba(15,23,42,0.7)_100%)] p-5 text-white sm:p-7 lg:p-9">
