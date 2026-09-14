@@ -71,6 +71,41 @@ export function StatCard({ label, value, hint }: Readonly<{ label: string; value
   );
 }
 
+function formatCashDate(value: string): string {
+  return new Date(value).toLocaleString('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
+function openTableMinutes(orders: CashOrderSummary[]): number {
+  if (orders.length === 0) return 0;
+  const oldest = Math.min(...orders.map((order) => new Date(order.created_at).getTime()).filter(Number.isFinite));
+  if (!Number.isFinite(oldest)) return 0;
+  return Math.max(0, Math.floor((Date.now() - oldest) / 60000));
+}
+
+function CashSettlementTiles({ settlement }: Readonly<{ settlement: ReturnType<typeof calculateCashSettlement> }>) {
+  return (
+    <div className="grid w-full gap-2 text-sm text-stone-600 sm:grid-cols-3 lg:max-w-[520px]">
+      <div className="rounded-2xl border border-stone-200 bg-white p-3">
+        <span className="text-xs font-bold uppercase tracking-[0.14em] text-stone-500">Subtotal</span>
+        <strong className="block text-lg text-stone-950">{formatCurrencyBRL(settlement.subtotalCents)}</strong>
+      </div>
+      <div className="rounded-2xl border border-stone-200 bg-white p-3">
+        <span className="text-xs font-bold uppercase tracking-[0.14em] text-stone-500">Serviço</span>
+        <strong className="block text-lg text-stone-950">{formatCurrencyBRL(settlement.serviceFeeCents)}</strong>
+      </div>
+      <div className="rounded-2xl border border-red-200 bg-red-50 p-3 shadow-sm">
+        <span className="text-xs font-black uppercase tracking-[0.14em] text-red-800">Total sugerido</span>
+        <strong className="block text-xl text-red-900">{formatCurrencyBRL(settlement.totalDueCents)}</strong>
+      </div>
+    </div>
+  );
+}
+
 export function CashPanel({
   tenantId,
   orders,
@@ -90,31 +125,55 @@ export function CashPanel({
       groups.set(order.table_id, current);
       return groups;
     }, new Map<string, CashOrderSummary[]>()),
-  );
+  ).sort(([, leftOrders], [, rightOrders]) => {
+    const leftOldest = Math.min(...leftOrders.map((order) => new Date(order.created_at).getTime()));
+    const rightOldest = Math.min(...rightOrders.map((order) => new Date(order.created_at).getTime()));
+    return leftOldest - rightOldest;
+  });
+  const openTables = groupedByTable.length;
+  const deliveredOrders = payableOrders.filter((order) => order.status === 'delivered').length;
 
   return (
     <div className="space-y-5">
-      <div className="grid gap-4 md:grid-cols-3">
-        <StatCard label="Contas fecháveis" value={payableOrders.length} hint="Somente pedidos prontos ou entregues e ainda não pagos." />
-        <StatCard label="Subtotal em aberto" value={formatCurrencyBRL(totalOpenCents)} hint="Soma dos pedidos aptos para recebimento." />
-        <StatCard label="Taxa de serviço" value={`${serviceFeePercent.toLocaleString('pt-BR')}%`} hint="Configurada no restaurante." />
-      </div>
+      <section className="overflow-hidden rounded-[2rem] border border-red-100 bg-white shadow-sm shadow-stone-200/70">
+        <div className="bg-gradient-to-br from-red-700 via-red-600 to-red-800 p-5 text-white sm:p-6">
+          <p className="text-xs font-black uppercase tracking-[0.24em] text-white">Caixa operacional</p>
+          <div className="mt-3 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <h2 className="text-2xl font-black tracking-tight sm:text-3xl">Fechamento de contas</h2>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-white">Mesas com pedidos prontos ou entregues, ainda não pagos. Registre pagamento real com método, desconto, valor pago e observação.</p>
+            </div>
+            <Link href={`/tenants/${tenantId}/pedidos`} className="inline-flex min-h-12 items-center justify-center rounded-full border border-white/30 bg-white px-5 py-3 text-sm font-black text-red-700 shadow-sm transition hover:bg-red-50">
+              Ver pedidos
+            </Link>
+          </div>
+        </div>
+
+        <div className="grid gap-3 p-4 sm:grid-cols-2 xl:grid-cols-4 sm:p-5">
+          <StatCard label="Mesas abertas" value={openTables} hint="Mesas com pedidos aptos para pagamento." />
+          <StatCard label="Pedidos fecháveis" value={payableOrders.length} hint={`${deliveredOrders} já entregue(s), restante pronto.`} />
+          <StatCard label="Subtotal em aberto" value={formatCurrencyBRL(totalOpenCents)} hint="Soma dos pedidos ainda não pagos." />
+          <StatCard label="Taxa de serviço" value={`${serviceFeePercent.toLocaleString('pt-BR')}%`} hint="Configurada no restaurante." />
+        </div>
+      </section>
 
       <section className="overflow-hidden rounded-[1.75rem] border border-stone-200 bg-white shadow-sm shadow-stone-200/70">
         <div className="flex flex-col justify-between gap-3 border-b border-stone-100 bg-gradient-to-r from-white to-red-50 px-5 py-5 sm:flex-row sm:items-center">
           <div>
-            <h2 className="text-2xl font-black tracking-tight">Fechamento de conta por mesa</h2>
-            <p className="mt-1 text-sm text-stone-500">Registre pagamento real de pedidos prontos/entregues. Pedidos pagos não entram de novo no fechamento.</p>
+            <h2 className="text-2xl font-black tracking-tight text-stone-950">Contas por mesa</h2>
+            <p className="mt-1 text-sm leading-6 text-stone-600">Cada card agrupa os pedidos da mesa para o fechamento financeiro.</p>
           </div>
-          <Link href={`/tenants/${tenantId}/pedidos`} className="inline-flex min-h-11 items-center justify-center rounded-full border border-red-200 bg-white px-5 py-2 text-sm font-black text-red-600 shadow-sm hover:bg-red-50">
-            Ver pedidos
-          </Link>
+          <span className="inline-flex min-h-10 items-center rounded-full border border-red-100 bg-white px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-red-700">{openTables} mesa(s)</span>
         </div>
 
         {groupedByTable.length === 0 ? (
-          <p className="m-5 rounded-2xl border border-stone-200 bg-stone-50 p-4 text-sm text-stone-500">Nenhum pedido pronto/entregue disponível para fechamento.</p>
+          <div className="m-5 rounded-[1.5rem] border border-dashed border-stone-300 bg-stone-50 p-8 text-center">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-3xl bg-white text-2xl shadow-sm">💳</div>
+            <p className="mt-4 text-base font-black text-stone-950">Nenhuma conta aberta para fechar</p>
+            <p className="mt-1 text-sm leading-6 text-stone-500">Pedidos precisam estar prontos ou entregues e ainda não pagos para aparecer no caixa.</p>
+          </div>
         ) : (
-          <div className="space-y-4 p-5">
+          <div className="grid gap-4 p-4 xl:grid-cols-2 sm:p-5">
             {groupedByTable.map(([tableId, tableOrders]) => {
               const subtotalCents = tableOrders.reduce((sum, order) => sum + order.total_cents, 0);
               const settlement = calculateCashSettlement({
@@ -124,49 +183,49 @@ export function CashPanel({
                 amountPaidCents: Math.max(1, subtotalCents + Math.round(subtotalCents * (serviceFeePercent / 100))),
               });
               const firstOrder = tableOrders[0];
+              const defaultAmountPaid = (settlement.totalDueCents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
               return (
-                <article key={tableId} className="rounded-[1.5rem] border border-stone-200 bg-stone-50 p-4 shadow-sm sm:p-5">
-                  <div className="flex flex-col justify-between gap-3 lg:flex-row lg:items-start">
-                    <div>
-                      <p className="text-xs font-semibold uppercase tracking-wide text-red-600">Mesa</p>
-                      <h3 className="mt-1 text-3xl font-black tracking-tight text-stone-950">
+                <article key={tableId} className="flex min-h-full flex-col rounded-[1.75rem] border border-stone-200 bg-stone-50 p-4 shadow-sm transition hover:-translate-y-0.5 hover:bg-white hover:shadow-lg hover:shadow-stone-200/80 sm:p-5">
+                  <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-start">
+                    <div className="min-w-0">
+                      <p className="text-xs font-black uppercase tracking-[0.18em] text-red-700">Mesa</p>
+                      <h3 className="mt-1 break-words text-3xl font-black tracking-tight text-stone-950">
                         {firstOrder?.table_number ?? '—'}{firstOrder?.table_sector ? ` • ${firstOrder.table_sector}` : ''}
                       </h3>
-                      <p className="mt-1 text-sm text-stone-500">{tableOrders.length} pedido(s) apto(s) para fechamento.</p>
+                      <div className="mt-3 flex flex-wrap gap-2 text-xs font-black text-stone-700">
+                        <span className="rounded-full border border-stone-200 bg-white px-3 py-1">{tableOrders.length} pedido(s)</span>
+                        <span className="rounded-full border border-amber-100 bg-amber-50 px-3 py-1 text-amber-900">Aberta há {openTableMinutes(tableOrders)} min</span>
+                      </div>
                     </div>
-                    <div className="grid gap-2 text-sm text-stone-600 sm:grid-cols-3 lg:min-w-[470px]">
-                      <div className="rounded-2xl border border-stone-200 bg-white p-3"><span className="text-stone-400">Subtotal</span><strong className="block text-lg text-stone-950">{formatCurrencyBRL(settlement.subtotalCents)}</strong></div>
-                      <div className="rounded-2xl border border-stone-200 bg-white p-3"><span className="text-stone-400">Serviço</span><strong className="block text-lg text-stone-950">{formatCurrencyBRL(settlement.serviceFeeCents)}</strong></div>
-                      <div className="rounded-2xl border border-red-200 bg-red-50 p-3"><span className="text-red-600">Total sugerido</span><strong className="block text-xl text-red-700">{formatCurrencyBRL(settlement.totalDueCents)}</strong></div>
-                    </div>
+                    <CashSettlementTiles settlement={settlement} />
                   </div>
 
                   <div className="mt-4 space-y-2">
                     {tableOrders.map((order) => (
-                      <div key={order.id} className="flex flex-col justify-between gap-2 rounded-2xl border border-stone-200 bg-white p-3 sm:flex-row sm:items-center">
-                        <div>
-                          <p className="text-sm font-bold text-stone-950">Pedido {order.public_order_code}</p>
-                          <p className="text-xs text-stone-500">{order.customer_name ? `Cliente: ${order.customer_name}` : 'Cliente não identificado'} • {new Date(order.created_at).toLocaleString('pt-BR')}</p>
+                      <div key={order.id} className="flex flex-col justify-between gap-3 rounded-2xl border border-stone-200 bg-white p-3 sm:flex-row sm:items-center">
+                        <div className="min-w-0">
+                          <p className="break-words text-sm font-black text-stone-950">Pedido {order.public_order_code}</p>
+                          <p className="mt-1 text-xs leading-5 text-stone-600">{order.customer_name ? `Cliente: ${order.customer_name}` : 'Cliente não identificado'} • {formatCashDate(order.created_at)}</p>
                         </div>
-                        <div className="text-left sm:text-right">
+                        <div className="shrink-0 text-left sm:text-right">
                           <span className={`inline-flex rounded-full border px-3 py-1 text-xs font-black ${statusStyles[order.status]}`}>{statusLabels[order.status]}</span>
-                          <p className="mt-1 font-black text-red-600">{formatCurrencyBRL(order.total_cents)}</p>
+                          <p className="mt-1 font-black text-red-700">{formatCurrencyBRL(order.total_cents)}</p>
                         </div>
                       </div>
                     ))}
                   </div>
 
-                  <form action={closeCashPaymentAction} className="mt-5 grid gap-3 rounded-[1.25rem] border border-stone-200 bg-white p-4 md:grid-cols-2 xl:grid-cols-6">
+                  <form action={closeCashPaymentAction} className="mt-auto grid gap-3 rounded-[1.5rem] border border-stone-200 bg-white p-4 md:grid-cols-2 xl:grid-cols-6">
                     <input type="hidden" name="tenantId" value={tenantId} />
                     <input type="hidden" name="tableId" value={tableId} />
                     <input type="hidden" name="subtotalCents" value={subtotalCents} />
                     <input type="hidden" name="serviceFeePercent" value={serviceFeePercent} />
                     {tableOrders.map((order) => <input key={order.id} type="hidden" name="orderIds" value={order.id} />)}
 
-                    <label className="text-sm font-medium text-stone-600">
+                    <label className="text-sm font-bold text-stone-700">
                       Forma
-                      <select name="paymentMethod" defaultValue="pix" className="mt-2 w-full rounded-xl border border-stone-300 bg-stone-50 px-3 py-2 text-stone-950 outline-none focus:border-red-500">
+                      <select name="paymentMethod" defaultValue="pix" className="mt-2 min-h-12 w-full rounded-2xl border border-stone-300 bg-stone-50 px-3 py-2 text-stone-950 outline-none transition focus:border-red-500 focus:bg-white">
                         <option value="pix">Pix</option>
                         <option value="money">Dinheiro</option>
                         <option value="debit">Débito</option>
@@ -174,19 +233,19 @@ export function CashPanel({
                         <option value="other">Outro</option>
                       </select>
                     </label>
-                    <label className="text-sm font-medium text-stone-600">
+                    <label className="text-sm font-bold text-stone-700">
                       Desconto
-                      <input name="discount" defaultValue="0,00" inputMode="decimal" className="mt-2 w-full rounded-xl border border-stone-300 bg-stone-50 px-3 py-2 text-stone-950 outline-none focus:border-red-500" />
+                      <input name="discount" defaultValue="0,00" inputMode="decimal" className="mt-2 min-h-12 w-full rounded-2xl border border-stone-300 bg-stone-50 px-3 py-2 text-stone-950 outline-none transition focus:border-red-500 focus:bg-white" />
                     </label>
-                    <label className="text-sm font-medium text-stone-600">
+                    <label className="text-sm font-bold text-stone-700">
                       Valor pago *
-                      <input name="amountPaid" defaultValue={(settlement.totalDueCents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} inputMode="decimal" required className="mt-2 w-full rounded-xl border border-stone-300 bg-stone-50 px-3 py-2 text-stone-950 outline-none focus:border-red-500" />
+                      <input name="amountPaid" defaultValue={defaultAmountPaid} inputMode="decimal" required className="mt-2 min-h-12 w-full rounded-2xl border border-stone-300 bg-stone-50 px-3 py-2 text-stone-950 outline-none transition focus:border-red-500 focus:bg-white" />
                     </label>
-                    <label className="text-sm font-medium text-stone-600 xl:col-span-2">
+                    <label className="text-sm font-bold text-stone-700 xl:col-span-2">
                       Observação
-                      <input name="notes" maxLength={300} placeholder="Ex.: pagamento no Pix do caixa" className="mt-2 w-full rounded-xl border border-stone-300 bg-stone-50 px-3 py-2 text-stone-950 outline-none focus:border-red-500" />
+                      <input name="notes" maxLength={300} placeholder="Ex.: pagamento no Pix do caixa" className="mt-2 min-h-12 w-full rounded-2xl border border-stone-300 bg-stone-50 px-3 py-2 text-stone-950 outline-none transition focus:border-red-500 focus:bg-white" />
                     </label>
-                    <button className="min-h-12 rounded-full bg-red-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-red-100 hover:bg-red-700 xl:self-end">Fechar conta</button>
+                    <button className="min-h-12 rounded-2xl bg-red-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-red-100 transition hover:bg-red-700 xl:self-end">Fechar conta</button>
                   </form>
                 </article>
               );
@@ -196,8 +255,8 @@ export function CashPanel({
       </section>
 
       <section className="rounded-[1.5rem] border border-red-100 bg-red-50 p-5">
-        <h2 className="text-lg font-bold text-red-700">Controle implementado nesta etapa</h2>
-        <p className="mt-2 text-sm leading-6 text-red-700/80">O fechamento registra forma de pagamento, desconto, taxa de serviço, valor pago, troco/saldo e impede novo pagamento do mesmo pedido no banco.</p>
+        <h2 className="text-lg font-black text-red-800">Controle implementado nesta etapa</h2>
+        <p className="mt-2 text-sm leading-6 text-red-800">O fechamento registra forma de pagamento, desconto, taxa de serviço, valor pago, troco/saldo e impede novo pagamento do mesmo pedido no banco.</p>
       </section>
     </div>
   );
