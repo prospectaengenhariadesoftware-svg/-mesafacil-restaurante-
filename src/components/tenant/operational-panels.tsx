@@ -301,63 +301,187 @@ export function TeamPanel({ members }: Readonly<{ members: TeamMemberSummary[] }
   );
 }
 
+const paymentMethodLabels: Record<string, string> = {
+  pix: 'Pix',
+  money: 'Dinheiro',
+  debit: 'Débito',
+  credit: 'Crédito',
+  other: 'Outro',
+};
+
+function percentLabel(value: number): string {
+  const safeValue = Number.isFinite(value) ? value : 0;
+  return `${safeValue.toFixed(1).replace('.', ',')}%`;
+}
+
+function ProgressBar({ value, colorClass }: Readonly<{ value: number; colorClass: string }>) {
+  const safeValue = Number.isFinite(value) ? Math.max(0, Math.min(100, Math.round(value))) : 0;
+  return (
+    <div
+      className="mt-3 h-2 overflow-hidden rounded-full bg-stone-200"
+      role="progressbar"
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-valuenow={safeValue}
+      aria-label={`${safeValue}%`}
+    >
+      <div className={`h-full rounded-full ${colorClass}`} style={{ width: `${safeValue}%` }} />
+    </div>
+  );
+}
+
 export function ReportsPanel({ summary }: Readonly<{ summary: ReportSummary }>) {
   const productAvailability = summary.products > 0 ? Math.round((summary.availableProducts / summary.products) * 100) : 0;
   const tableActivation = summary.tables > 0 ? Math.round((summary.activeTables / summary.tables) * 100) : 0;
+  const revenuePerOrderCents = summary.ordersToday > 0 ? summary.netReceivedTodayCents / summary.ordersToday : 0;
+  const cancellationRateLabel = percentLabel(summary.cancellationRatePercent);
 
   return (
     <div className="space-y-5">
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Pedidos hoje" value={summary.ordersToday} hint="Criados a partir de 00:00." />
-        <StatCard label="Recebido no caixa" value={formatCurrencyBRL(summary.netReceivedTodayCents)} hint="Pagamentos fechados hoje, descontando troco." />
-        <StatCard label="Ticket médio" value={formatCurrencyBRL(Math.round(summary.averageTicketCents))} hint="Média por fechamento de caixa." />
-        <StatCard label="Cancelamentos" value={`${summary.cancelledOrders} (${summary.cancellationRatePercent.toFixed(1)}%)`} hint="Pedidos cancelados sobre pedidos do dia." />
-      </div>
+      <section className="overflow-hidden rounded-[2rem] border border-red-100 bg-white shadow-sm shadow-stone-200/70">
+        <div className="bg-gradient-to-br from-red-700 via-red-600 to-red-800 p-5 text-white sm:p-6">
+          <p className="text-xs font-black uppercase tracking-[0.24em] text-white">Relatórios gerenciais</p>
+          <div className="mt-3 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <h2 className="text-2xl font-black tracking-tight sm:text-3xl">Resumo do dia</h2>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-white">Acompanhe operação, recebimento no caixa, ticket médio, cancelamentos e itens mais vendidos com base nos dados fechados hoje.</p>
+            </div>
+            <div className="grid grid-cols-2 gap-2 text-center sm:grid-cols-3">
+              <div className="rounded-3xl border border-white/25 bg-white/15 p-3 backdrop-blur">
+                <p className="text-2xl font-black">{summary.ordersToday}</p>
+                <p className="text-xs font-bold">pedidos</p>
+              </div>
+              <div className="rounded-3xl border border-white/25 bg-white/15 p-3 backdrop-blur">
+                <p className="text-2xl font-black">{formatCurrencyBRL(summary.netReceivedTodayCents)}</p>
+                <p className="text-xs font-bold">recebido</p>
+              </div>
+              <div className="col-span-2 rounded-3xl border border-white/25 bg-white/15 p-3 backdrop-blur sm:col-span-1">
+                <p className="text-2xl font-black">{cancellationRateLabel}</p>
+                <p className="text-xs font-bold">cancelamento</p>
+              </div>
+            </div>
+          </div>
+        </div>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Pedidos abertos" value={summary.openOrders} hint="Recebidos, confirmados, em preparo ou prontos." />
-        <StatCard label="Pedidos entregues" value={summary.deliveredOrders} />
-        <StatCard label="Produtos disponíveis" value={`${summary.availableProducts}/${summary.products}`} hint={`${productAvailability}% do cadastro.`} />
-        <StatCard label="Mesas ativas" value={`${summary.activeTables}/${summary.tables}`} hint={`${tableActivation}% das mesas.`} />
-      </div>
+        <div className="grid gap-3 p-4 sm:grid-cols-2 xl:grid-cols-4 sm:p-5">
+          <StatCard label="Pedidos hoje" value={summary.ordersToday} hint="Criados a partir de 00:00." />
+          <StatCard label="Recebido no caixa" value={formatCurrencyBRL(summary.netReceivedTodayCents)} hint="Pagamentos fechados hoje, descontando troco." />
+          <StatCard label="Ticket médio" value={formatCurrencyBRL(Math.round(summary.averageTicketCents))} hint="Média por fechamento de caixa." />
+          <StatCard label="Receita por pedido" value={formatCurrencyBRL(Math.round(revenuePerOrderCents))} hint="Recebido líquido dividido por pedidos do dia." />
+        </div>
+      </section>
+
+      <section className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
+        <article className="rounded-[1.75rem] border border-stone-200 bg-white p-5 shadow-sm shadow-stone-200/70">
+          <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.18em] text-red-700">Saúde operacional</p>
+              <h2 className="mt-1 text-2xl font-black tracking-tight text-stone-950">Fila e cancelamentos</h2>
+              <p className="mt-2 text-sm leading-6 text-stone-600">Use estes números para decidir reforço de atendimento, cozinha e revisão de gargalos.</p>
+            </div>
+            <span className="rounded-full border border-red-100 bg-red-50 px-4 py-2 text-xs font-black text-red-800">{summary.openOrders} aberto(s)</span>
+          </div>
+          <div className="mt-5 grid gap-3 sm:grid-cols-3">
+            <div className="rounded-3xl border border-amber-100 bg-amber-50 p-4">
+              <p className="text-xs font-black uppercase tracking-[0.16em] text-amber-900">Pedidos abertos</p>
+              <p className="mt-2 text-3xl font-black text-amber-950">{summary.openOrders}</p>
+              <p className="mt-1 text-xs leading-5 text-amber-900">Recebidos, confirmados, em preparo ou prontos.</p>
+            </div>
+            <div className="rounded-3xl border border-green-100 bg-green-50 p-4">
+              <p className="text-xs font-black uppercase tracking-[0.16em] text-green-800">Entregues</p>
+              <p className="mt-2 text-3xl font-black text-green-950">{summary.deliveredOrders}</p>
+              <p className="mt-1 text-xs leading-5 text-green-800">Pedidos concluídos na operação.</p>
+            </div>
+            <div className="rounded-3xl border border-rose-100 bg-rose-50 p-4">
+              <p className="text-xs font-black uppercase tracking-[0.16em] text-rose-800">Cancelados</p>
+              <p className="mt-2 text-3xl font-black text-rose-950">{summary.cancelledOrders}</p>
+              <p className="mt-1 text-xs leading-5 text-rose-800">{cancellationRateLabel} dos pedidos do dia.</p>
+            </div>
+          </div>
+        </article>
+
+        <article className="rounded-[1.75rem] border border-stone-200 bg-white p-5 shadow-sm shadow-stone-200/70">
+          <p className="text-xs font-black uppercase tracking-[0.18em] text-red-700">Cadastro operacional</p>
+          <h2 className="mt-1 text-2xl font-black tracking-tight text-stone-950">Prontidão do restaurante</h2>
+          <div className="mt-5 space-y-4">
+            <div className="rounded-3xl border border-stone-200 bg-stone-50 p-4">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="font-black text-stone-950">Produtos disponíveis</p>
+                  <p className="text-sm text-stone-600">{summary.availableProducts}/{summary.products} itens ativos no cardápio.</p>
+                </div>
+                <span className="text-2xl font-black text-red-700">{productAvailability}%</span>
+              </div>
+              <ProgressBar value={productAvailability} colorClass="bg-red-600" />
+            </div>
+            <div className="rounded-3xl border border-stone-200 bg-stone-50 p-4">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="font-black text-stone-950">Mesas ativas</p>
+                  <p className="text-sm text-stone-600">{summary.activeTables}/{summary.tables} mesas prontas para QR.</p>
+                </div>
+                <span className="text-2xl font-black text-red-700">{tableActivation}%</span>
+              </div>
+              <ProgressBar value={tableActivation} colorClass="bg-red-600" />
+            </div>
+          </div>
+        </article>
+      </section>
 
       <div className="grid gap-5 xl:grid-cols-2">
-        <section className="rounded-2xl border border-stone-200 bg-white p-5">
-          <h2 className="text-xl font-bold">Produtos mais vendidos hoje</h2>
+        <section className="rounded-[1.75rem] border border-stone-200 bg-white p-5 shadow-sm shadow-stone-200/70">
+          <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.18em] text-red-700">Vendas</p>
+              <h2 className="mt-1 text-2xl font-black tracking-tight text-stone-950">Produtos mais vendidos hoje</h2>
+            </div>
+            <span className="rounded-full border border-stone-200 bg-stone-50 px-4 py-2 text-xs font-black text-stone-700">Top {summary.topProducts.length}</span>
+          </div>
           {summary.topProducts.length === 0 ? (
-            <p className="mt-4 rounded-xl border border-stone-200 bg-stone-50 p-4 text-sm text-stone-500">Ainda não há itens vendidos no período.</p>
+            <p className="mt-5 rounded-2xl border border-stone-200 bg-stone-50 p-4 text-sm text-stone-500">Ainda não há itens vendidos no período.</p>
           ) : (
-            <div className="mt-4 space-y-3">
+            <div className="mt-5 space-y-3">
               {summary.topProducts.map((product, index) => (
-                <article key={product.productId} className="flex items-center justify-between gap-3 rounded-xl border border-stone-200 bg-stone-50 p-4">
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-wide text-red-600">#{index + 1}</p>
-                    <h3 className="font-bold text-stone-950">{product.productName}</h3>
-                    <p className="text-sm text-stone-500">{product.quantity} unidade(s)</p>
+                <article key={product.productId} className="rounded-3xl border border-stone-200 bg-stone-50 p-4 transition hover:bg-white hover:shadow-md hover:shadow-stone-200/70">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-xs font-black uppercase tracking-[0.16em] text-red-700">#{index + 1}</p>
+                      <h3 className="mt-1 break-words font-black text-stone-950">{product.productName}</h3>
+                      <p className="mt-1 text-sm text-stone-600">{product.quantity} unidade(s)</p>
+                    </div>
+                    <strong className="shrink-0 text-right text-xl text-red-700">{formatCurrencyBRL(product.revenueCents)}</strong>
                   </div>
-                  <strong className="text-right text-red-600">{formatCurrencyBRL(product.revenueCents)}</strong>
                 </article>
               ))}
             </div>
           )}
         </section>
 
-        <section className="rounded-2xl border border-stone-200 bg-white p-5">
-          <h2 className="text-xl font-bold">Formas de pagamento hoje</h2>
+        <section className="rounded-[1.75rem] border border-stone-200 bg-white p-5 shadow-sm shadow-stone-200/70">
+          <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.18em] text-red-700">Financeiro</p>
+              <h2 className="mt-1 text-2xl font-black tracking-tight text-stone-950">Formas de pagamento hoje</h2>
+            </div>
+            <span className="rounded-full border border-stone-200 bg-stone-50 px-4 py-2 text-xs font-black text-stone-700">{summary.paymentBreakdown.length} método(s)</span>
+          </div>
           {summary.paymentBreakdown.length === 0 ? (
-            <p className="mt-4 rounded-xl border border-stone-200 bg-stone-50 p-4 text-sm text-stone-500">Nenhum pagamento fechado hoje.</p>
+            <p className="mt-5 rounded-2xl border border-stone-200 bg-stone-50 p-4 text-sm text-stone-500">Nenhum pagamento fechado hoje.</p>
           ) : (
-            <div className="mt-4 space-y-3">
+            <div className="mt-5 space-y-3">
               {summary.paymentBreakdown.map((payment) => (
-                <article key={payment.paymentMethod} className="rounded-xl border border-stone-200 bg-stone-50 p-4">
-                  <div className="flex items-center justify-between gap-3">
-                    <h3 className="font-bold uppercase text-stone-950">{payment.paymentMethod}</h3>
-                    <span className="rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-red-600">{payment.count} fechamento(s)</span>
+                <article key={payment.paymentMethod} className="rounded-3xl border border-stone-200 bg-stone-50 p-4 transition hover:bg-white hover:shadow-md hover:shadow-stone-200/70">
+                  <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
+                    <div>
+                      <h3 className="font-black text-stone-950">{paymentMethodLabels[payment.paymentMethod] ?? payment.paymentMethod}</h3>
+                      <p className="mt-1 text-sm text-stone-600">{payment.count} fechamento(s)</p>
+                    </div>
+                    <strong className="text-xl text-red-700">{formatCurrencyBRL(payment.amountPaidCents - payment.changeCents)}</strong>
                   </div>
-                  <dl className="mt-3 grid gap-3 text-sm text-stone-500 sm:grid-cols-3">
-                    <div><dt>Total devido</dt><dd className="font-bold text-stone-950">{formatCurrencyBRL(payment.totalDueCents)}</dd></div>
-                    <div><dt>Pago</dt><dd className="font-bold text-stone-950">{formatCurrencyBRL(payment.amountPaidCents)}</dd></div>
-                    <div><dt>Troco</dt><dd className="font-bold text-stone-950">{formatCurrencyBRL(payment.changeCents)}</dd></div>
+                  <dl className="mt-4 grid gap-3 text-sm text-stone-600 sm:grid-cols-3">
+                    <div className="rounded-2xl bg-white p-3"><dt className="text-xs font-bold uppercase tracking-[0.14em] text-stone-500">Total devido</dt><dd className="mt-1 font-black text-stone-950">{formatCurrencyBRL(payment.totalDueCents)}</dd></div>
+                    <div className="rounded-2xl bg-white p-3"><dt className="text-xs font-bold uppercase tracking-[0.14em] text-stone-500">Pago</dt><dd className="mt-1 font-black text-stone-950">{formatCurrencyBRL(payment.amountPaidCents)}</dd></div>
+                    <div className="rounded-2xl bg-white p-3"><dt className="text-xs font-bold uppercase tracking-[0.14em] text-stone-500">Troco</dt><dd className="mt-1 font-black text-stone-950">{formatCurrencyBRL(payment.changeCents)}</dd></div>
                   </dl>
                 </article>
               ))}
@@ -366,12 +490,12 @@ export function ReportsPanel({ summary }: Readonly<{ summary: ReportSummary }>) 
         </section>
       </div>
 
-      <section className="rounded-2xl border border-stone-200 bg-white p-5">
-        <h2 className="text-xl font-bold">Leitura gerencial</h2>
-        <ul className="mt-3 space-y-2 text-sm text-stone-600">
-          <li className="flex gap-2"><span className="text-red-600">•</span><span>Use pedidos abertos para decidir reforço na cozinha/atendimento.</span></li>
-          <li className="flex gap-2"><span className="text-red-600">•</span><span>Compare produtos mais vendidos com disponibilidade para evitar ruptura operacional.</span></li>
-          <li className="flex gap-2"><span className="text-red-600">•</span><span>Receita financeira vem do caixa fechado, não apenas de pedido entregue.</span></li>
+      <section className="rounded-[1.75rem] border border-red-100 bg-red-50 p-5">
+        <h2 className="text-lg font-black text-red-800">Leitura gerencial</h2>
+        <ul className="mt-3 space-y-2 text-sm leading-6 text-red-800">
+          <li className="flex gap-2"><span className="font-black">•</span><span>Use pedidos abertos para decidir reforço na cozinha/atendimento.</span></li>
+          <li className="flex gap-2"><span className="font-black">•</span><span>Compare produtos mais vendidos com disponibilidade para evitar ruptura operacional.</span></li>
+          <li className="flex gap-2"><span className="font-black">•</span><span>Receita financeira vem do caixa fechado, não apenas de pedido entregue.</span></li>
         </ul>
       </section>
     </div>
