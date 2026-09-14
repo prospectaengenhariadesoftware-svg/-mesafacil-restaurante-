@@ -1,15 +1,51 @@
-import { OrdersList } from '@/components/orders/orders-list';
-import { TenantModulePage } from '@/components/tenant/tenant-module-page';
+import { redirect } from 'next/navigation';
+import { DesignSystemShell } from '@/components/design-system/ds-shell';
+import { OrdersPilotList, type OrdersPilotFilters } from '@/components/orders/orders-pilot-list';
 import { requireActiveTenant } from '@/lib/auth/context';
 import { createClient } from '@/lib/supabase/server';
+import type { OrderStatus } from '@/lib/domain/order';
 import type { TenantCustomerOrder, TenantCustomerOrderItem } from '@/lib/types/orders';
 import { isUuid } from '@/lib/validation/auth';
-import { redirect } from 'next/navigation';
 
-export default async function PedidosPage({ params }: Readonly<{ params: Promise<{ tenantId: string }> }>) {
+const allowedStatus = new Set<OrderStatus>(['received', 'confirmed', 'preparing', 'ready', 'delivered', 'cancelled']);
+
+function normalizeSearch(value: string | string[] | undefined) {
+  const raw = Array.isArray(value) ? value[0] : value;
+  return typeof raw === 'string' ? raw.trim().slice(0, 80) : '';
+}
+
+function normalizeStatus(value: string | string[] | undefined): OrdersPilotFilters['status'] {
+  const raw = Array.isArray(value) ? value[0] : value;
+  return raw && allowedStatus.has(raw as OrderStatus) ? raw as OrderStatus : 'all';
+}
+
+function matchesSearch(order: TenantCustomerOrder, q: string) {
+  if (!q) return true;
+  const needle = q.toLowerCase();
+  return [
+    order.public_order_code,
+    order.customer_name ?? '',
+    order.table_number ?? '',
+    order.table_sector ?? '',
+  ].some((value) => value.toLowerCase().includes(needle));
+}
+
+export default async function PedidosPage({
+  params,
+  searchParams,
+}: Readonly<{
+  params: Promise<{ tenantId: string }>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+}>) {
   const { tenantId } = await params;
   if (!isUuid(tenantId)) redirect('/dashboard?erro=tenant-invalido');
   await requireActiveTenant(tenantId);
+
+  const query = await searchParams;
+  const filters: OrdersPilotFilters = {
+    status: normalizeStatus(query?.status),
+    q: normalizeSearch(query?.q),
+  };
 
   const supabase = await createClient();
   const { data: ordersData } = await supabase
@@ -45,9 +81,14 @@ export default async function PedidosPage({ params }: Readonly<{ params: Promise
     };
   });
 
+  const filteredOrders = hydratedOrders.filter((order) => {
+    const statusMatch = filters.status === 'all' || order.status === filters.status;
+    return statusMatch && matchesSearch(order, filters.q);
+  });
+
   return (
-    <TenantModulePage tenantId={tenantId} module="pedidos">
-      <OrdersList orders={hydratedOrders} tenantId={tenantId} />
-    </TenantModulePage>
+    <DesignSystemShell tenantId={tenantId} activeModule="pedidos">
+      <OrdersPilotList orders={filteredOrders} allOrders={hydratedOrders} tenantId={tenantId} filters={filters} />
+    </DesignSystemShell>
   );
 }
