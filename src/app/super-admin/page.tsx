@@ -1,10 +1,12 @@
 import Link from 'next/link';
+import { updateTenantPlatformStatusAction } from '@/app/actions/platform-admin';
 import { AppShell } from '@/components/layout/app-shell';
 import { requirePlatformAdmin } from '@/lib/auth/context';
 import { createClient } from '@/lib/supabase/server';
-import type { Tenant } from '@/lib/types/saas';
+import type { Tenant, TenantStatus } from '@/lib/types/saas';
 
 const tenantStatusLabels: Record<string, string> = {
+  all: 'Todos',
   trialing: 'Teste',
   active: 'Ativo',
   blocked: 'Bloqueado',
@@ -18,11 +20,18 @@ const tenantStatusClasses: Record<string, string> = {
   cancelled: 'border-stone-200 bg-stone-100 text-stone-700',
 };
 
+const statusFilters = ['all', 'trialing', 'active', 'blocked', 'cancelled'] as const;
+type StatusFilter = (typeof statusFilters)[number];
+
 function formatDateBR(value: string | null | undefined): string {
   if (!value) return '—';
   const date = new Date(value);
   if (!Number.isFinite(date.getTime())) return '—';
   return date.toLocaleDateString('pt-BR');
+}
+
+function normalizeStatusFilter(value: unknown): StatusFilter {
+  return typeof value === 'string' && statusFilters.includes(value as StatusFilter) ? value as StatusFilter : 'all';
 }
 
 function StatCard({ label, value, hint }: Readonly<{ label: string; value: string | number; hint: string }>) {
@@ -35,7 +44,7 @@ function StatCard({ label, value, hint }: Readonly<{ label: string; value: strin
   );
 }
 
-function StatusBadge({ status }: Readonly<{ status: string }>) {
+function StatusBadge({ status }: Readonly<{ status: TenantStatus }>) {
   return (
     <span className={`inline-flex rounded-full border px-3 py-1 text-xs font-black ${tenantStatusClasses[status] ?? tenantStatusClasses.cancelled}`}>
       {tenantStatusLabels[status] ?? status}
@@ -43,16 +52,66 @@ function StatusBadge({ status }: Readonly<{ status: string }>) {
   );
 }
 
-export default async function SuperAdminPage() {
+function TenantStatusActionForm({ tenant }: Readonly<{ tenant: Tenant }>) {
+  if (tenant.status === 'cancelled') {
+    return (
+      <p className="mt-5 rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm font-semibold text-stone-700">
+        Tenant cancelado não pode ser reativado por esta ação rápida.
+      </p>
+    );
+  }
+
+  if (tenant.status === 'blocked') {
+    return (
+      <form action={updateTenantPlatformStatusAction} className="mt-5 rounded-[1.25rem] border border-green-200 bg-green-50 p-4">
+        <input type="hidden" name="tenantId" value={tenant.id} />
+        <input type="hidden" name="action" value="unblock" />
+        <p className="text-sm font-black text-green-900">Desbloquear restaurante</p>
+        <p className="mt-1 text-xs leading-5 text-green-800">Digite DESBLOQUEAR para voltar o tenant para status ativo.</p>
+        <div className="mt-3 grid gap-2 sm:grid-cols-[160px_minmax(0,1fr)_auto]">
+          <input aria-label={`Confirmar desbloqueio de ${tenant.name}`} name="confirmation" placeholder="DESBLOQUEAR" className="min-h-11 rounded-full border border-green-200 bg-white px-4 text-sm font-bold text-stone-900 outline-none focus:border-green-600" />
+          <input aria-label={`Observação para desbloqueio de ${tenant.name}`} name="notes" maxLength={240} placeholder="Observação opcional" className="min-h-11 rounded-full border border-green-200 bg-white px-4 text-sm text-stone-900 outline-none focus:border-green-600" />
+          <button type="submit" className="min-h-11 rounded-full bg-green-700 px-5 py-2 text-sm font-black text-white shadow-sm hover:bg-green-800">Desbloquear</button>
+        </div>
+      </form>
+    );
+  }
+
+  return (
+    <form action={updateTenantPlatformStatusAction} className="mt-5 rounded-[1.25rem] border border-red-200 bg-red-50 p-4">
+      <input type="hidden" name="tenantId" value={tenant.id} />
+      <input type="hidden" name="action" value="block" />
+      <p className="text-sm font-black text-red-900">Bloquear restaurante</p>
+      <p className="mt-1 text-xs leading-5 text-red-800">Digite BLOQUEAR para suspender o tenant. A ação será registrada em auditoria.</p>
+      <div className="mt-3 grid gap-2 sm:grid-cols-[140px_minmax(0,1fr)_auto]">
+        <input aria-label={`Confirmar bloqueio de ${tenant.name}`} name="confirmation" placeholder="BLOQUEAR" className="min-h-11 rounded-full border border-red-200 bg-white px-4 text-sm font-bold text-stone-900 outline-none focus:border-red-600" />
+        <input aria-label={`Observação para bloqueio de ${tenant.name}`} name="notes" maxLength={240} placeholder="Motivo opcional" className="min-h-11 rounded-full border border-red-200 bg-white px-4 text-sm text-stone-900 outline-none focus:border-red-600" />
+        <button type="submit" className="min-h-11 rounded-full bg-red-700 px-5 py-2 text-sm font-black text-white shadow-sm hover:bg-red-800">Bloquear</button>
+      </div>
+    </form>
+  );
+}
+
+export default async function SuperAdminPage({ searchParams }: Readonly<{ searchParams?: Promise<Record<string, string | string[] | undefined>> }>) {
   const { platformAdmin } = await requirePlatformAdmin();
+  const params = (await searchParams) ?? {};
+  const statusFilter = normalizeStatusFilter(params.status);
+  const erro = typeof params.erro === 'string' ? params.erro : undefined;
+  const mensagem = typeof params.mensagem === 'string' ? params.mensagem : undefined;
   const supabase = await createClient();
 
+  let tenantsQuery = supabase
+    .from('tenants')
+    .select('id, name, legal_name, document, email, phone, status, public_slug, created_at, updated_at', { count: 'exact' })
+    .order('created_at', { ascending: false })
+    .limit(50);
+
+  if (statusFilter !== 'all') {
+    tenantsQuery = tenantsQuery.eq('status', statusFilter);
+  }
+
   const [tenantsResult, activeTenantsCount, trialingTenantsCount, blockedTenantsCount, tenantUsersCount, profilesCount, platformAdminsCount, auditLogsCount] = await Promise.all([
-    supabase
-      .from('tenants')
-      .select('id, name, legal_name, document, email, phone, status, public_slug, created_at, updated_at', { count: 'exact' })
-      .order('created_at', { ascending: false })
-      .limit(50),
+    tenantsQuery,
     supabase.from('tenants').select('id', { count: 'exact', head: true }).eq('status', 'active'),
     supabase.from('tenants').select('id', { count: 'exact', head: true }).eq('status', 'trialing'),
     supabase.from('tenants').select('id', { count: 'exact', head: true }).eq('status', 'blocked'),
@@ -88,8 +147,11 @@ export default async function SuperAdminPage() {
         </div>
       </section>
 
+      {mensagem ? <p className="mt-4 rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-sm font-semibold text-green-800">{mensagem}</p> : null}
+      {erro ? <p className="mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-800">{erro}</p> : null}
+
       <section className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-        <StatCard label="Restaurantes" value={tenantCount} hint="Total visível para a plataforma." />
+        <StatCard label="Restaurantes" value={tenantCount} hint={statusFilter === 'all' ? 'Total visível para a plataforma.' : `Total filtrado por ${tenantStatusLabels[statusFilter]}.`} />
         <StatCard label="Ativos" value={activeTenants} hint="Tenants prontos para operação." />
         <StatCard label="Em teste" value={trialingTenants} hint="Restaurantes em implantação." />
         <StatCard label="Bloqueados" value={blockedTenants} hint="Tenants com operação suspensa." />
@@ -125,12 +187,20 @@ export default async function SuperAdminPage() {
           <div>
             <p className="text-sm font-black text-red-700">Tenants</p>
             <h2 className="mt-1 text-2xl font-black tracking-tight text-stone-950">Restaurantes da plataforma</h2>
-            <p className="mt-2 text-sm leading-6 text-stone-600">Lista inicial em modo leitura. Ações de bloqueio/desbloqueio devem entrar com Server Action auditada.</p>
+            <p className="mt-2 text-sm leading-6 text-stone-600">Ações de bloqueio/desbloqueio exigem confirmação textual e registram auditoria.</p>
           </div>
           <Link href="/dashboard" className="inline-flex min-h-11 items-center justify-center rounded-full border border-stone-300 bg-white px-5 py-2 text-sm font-black text-stone-700 shadow-sm hover:border-red-200 hover:bg-red-50 hover:text-red-700">
             Voltar ao dashboard
           </Link>
         </div>
+
+        <nav aria-label="Filtrar tenants por status" className="mb-5 flex gap-2 overflow-x-auto pb-2">
+          {statusFilters.map((status) => (
+            <Link key={status} href={status === 'all' ? '/super-admin' : `/super-admin?status=${status}`} className={`inline-flex min-h-10 shrink-0 items-center justify-center rounded-full border px-4 py-2 text-sm font-black ${statusFilter === status ? 'border-red-600 bg-red-600 text-white' : 'border-stone-200 bg-white text-stone-700 hover:border-red-200 hover:bg-red-50 hover:text-red-700'}`}>
+              {tenantStatusLabels[status]}
+            </Link>
+          ))}
+        </nav>
 
         <div className="grid gap-4 xl:grid-cols-2">
           {tenants.map((tenant) => (
@@ -151,14 +221,7 @@ export default async function SuperAdminPage() {
                 <div className="rounded-2xl bg-stone-50 p-3"><dt className="text-xs font-bold uppercase tracking-[0.12em] text-stone-500">Criado</dt><dd className="mt-1 font-semibold text-stone-800">{formatDateBR(tenant.created_at)}</dd></div>
               </dl>
 
-              <div className="mt-5 flex flex-wrap gap-2">
-                <span className="inline-flex min-h-11 items-center justify-center rounded-full border border-stone-200 bg-stone-50 px-5 py-2 text-sm font-bold text-stone-700">
-                  Acesso ao tenant exige vínculo operacional ativo
-                </span>
-                <span className="inline-flex min-h-11 items-center justify-center rounded-full border border-red-100 bg-red-50 px-5 py-2 text-sm font-black text-red-700">
-                  Bloqueio/auditoria: próxima etapa
-                </span>
-              </div>
+              <TenantStatusActionForm tenant={tenant} />
             </article>
           ))}
 
