@@ -39,7 +39,7 @@ export function TableForm({ tenantId }: Readonly<{ tenantId: string }>) {
           </div>
           <div className="mt-6 flex flex-col gap-3 border-t border-stone-100 pt-4 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm text-stone-500">Ao salvar, o QR Code fica disponível no card da mesa.</p>
-            <button type="submit" className="min-h-12 rounded-full bg-red-600 px-6 py-3 text-sm font-black text-white hover:bg-red-700">Salvar mesa</button>
+            <button type="submit" className="min-h-12 rounded-xl bg-red-600 px-6 py-3 text-sm font-black text-white hover:bg-red-700">Salvar mesa</button>
           </div>
         </form>
       </CreateModal>
@@ -174,7 +174,7 @@ export async function TableList({
                     <input type="hidden" name="tenantId" value={tenantId} />
                     <input type="hidden" name="tableId" value={table.id} />
                     <TableFields table={table} />
-                    <button className="w-full rounded-full bg-red-600 px-4 py-2 text-sm font-black text-white hover:bg-red-700">Salvar alterações</button>
+                    <button className="w-full rounded-xl bg-red-600 px-4 py-2 text-sm font-black text-white hover:bg-red-700">Salvar alterações</button>
                   </form>
                 </details>
 
@@ -184,7 +184,7 @@ export async function TableList({
                     <input type="hidden" name="tenantId" value={tenantId} />
                     <input type="hidden" name="tableId" value={table.id} />
                     <input name="confirmDelete" placeholder="Digite CONFIRMAR" className="w-full rounded-xl border border-red-300 bg-white px-3 py-2 text-sm text-stone-950 outline-none focus:border-red-500" />
-                    <button className="w-full rounded-full border border-red-200 px-4 py-2 text-sm font-black text-red-700 hover:bg-white">Excluir ou inativar</button>
+                    <button className="w-full rounded-xl border border-red-200 px-4 py-2 text-sm font-black text-red-700 hover:bg-white">Excluir ou inativar</button>
                     <p className="text-xs text-stone-400">Com pedidos vinculados, a mesa será inativada para preservar histórico.</p>
                   </form>
                 </details>
@@ -197,8 +197,8 @@ export async function TableList({
       <div className="flex flex-wrap items-center justify-between gap-3 border-t border-stone-200 pt-4 text-sm text-stone-500">
         <span>Página {filters.page} de {totalPages}</span>
         <div className="flex gap-2">
-          <Link aria-disabled={filters.page <= 1} href={buildQuery(tenantId, filters, { page: Math.max(1, filters.page - 1) })} className={`rounded-full border border-stone-300 px-4 py-2 font-bold ${filters.page <= 1 ? 'pointer-events-none opacity-40' : 'hover:border-red-500 hover:text-red-600'}`}>Anterior</Link>
-          <Link aria-disabled={filters.page >= totalPages} href={buildQuery(tenantId, filters, { page: Math.min(totalPages, filters.page + 1) })} className={`rounded-full border border-stone-300 px-4 py-2 font-bold ${filters.page >= totalPages ? 'pointer-events-none opacity-40' : 'hover:border-red-500 hover:text-red-600'}`}>Próxima</Link>
+          <Link aria-disabled={filters.page <= 1} href={buildQuery(tenantId, filters, { page: Math.max(1, filters.page - 1) })} className={`rounded-xl border border-stone-300 px-4 py-2 font-bold ${filters.page <= 1 ? 'pointer-events-none opacity-40' : 'hover:border-red-500 hover:text-red-600'}`}>Anterior</Link>
+          <Link aria-disabled={filters.page >= totalPages} href={buildQuery(tenantId, filters, { page: Math.min(totalPages, filters.page + 1) })} className={`rounded-xl border border-stone-300 px-4 py-2 font-bold ${filters.page >= totalPages ? 'pointer-events-none opacity-40' : 'hover:border-red-500 hover:text-red-600'}`}>Próxima</Link>
         </div>
       </div>
     </section>

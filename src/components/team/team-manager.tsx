@@ -141,7 +141,7 @@ export function TeamMemberForm({ tenantId }: Readonly<{ tenantId: string }>) {
               <label className="block text-sm font-medium text-stone-600">Status<StatusSelect /></label>
             </div>
             <p className="rounded-2xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">Por segurança, o papel Proprietário só pode ser concedido depois por um owner existente.</p>
-            <button type="submit" className="min-h-11 rounded-full bg-red-500 px-5 py-3 text-sm font-bold text-white hover:bg-red-600">Adicionar à equipe</button>
+            <button type="submit" className="min-h-11 rounded-xl bg-red-500 px-5 py-3 text-sm font-bold text-white hover:bg-red-600">Adicionar à equipe</button>
           </form>
         </CreateModal>
       </div>
@@ -171,7 +171,7 @@ export function TeamManager({
           <h2 className="mt-1 text-xl font-bold text-stone-950">Membros e permissões</h2>
           <p className="mt-1 text-sm text-stone-500">{total} vínculo(s) encontrados neste restaurante.</p>
         </div>
-        <Link href={buildQuery(tenantId, filters, { q: '', role: 'all', status: 'all', sort: 'created_at', dir: 'asc', page: 1 })} className="w-fit rounded-full border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-600 hover:border-red-300 hover:text-red-600">Limpar filtros</Link>
+        <Link href={buildQuery(tenantId, filters, { q: '', role: 'all', status: 'all', sort: 'created_at', dir: 'asc', page: 1 })} className="w-fit rounded-xl border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-600 hover:border-red-300 hover:text-red-600">Limpar filtros</Link>
       </div>
 
       <form className="grid gap-3 rounded-2xl border border-stone-200 bg-stone-50 p-4 md:grid-cols-[1.2fr_0.8fr_0.8fr_0.8fr_0.8fr_auto]" action={`/tenants/${tenantId}/equipe`}>
@@ -244,7 +244,7 @@ export function TeamManager({
                         <label className="block text-sm font-medium text-stone-600">Papel<RoleSelect defaultValue={member.role} /></label>
                         <label className="block text-sm font-medium text-stone-600">Status<StatusSelect defaultValue={member.status} /></label>
                       </div>
-                      <button type="submit" className="min-h-11 rounded-full bg-red-500 px-5 py-3 text-sm font-bold text-white hover:bg-red-600">Salvar permissões</button>
+                      <button type="submit" className="min-h-11 rounded-xl bg-red-500 px-5 py-3 text-sm font-bold text-white hover:bg-red-600">Salvar permissões</button>
                     </form>
                   </CreateModal>
 
@@ -258,7 +258,7 @@ export function TeamManager({
                         Digite CONFIRMAR
                         <input name="confirmDelete" required pattern="CONFIRMAR" className="mt-2 w-full rounded-xl border border-red-200 bg-white px-4 py-2 text-stone-950 outline-none focus:border-red-400" />
                       </label>
-                      <button type="submit" className="rounded-full border border-red-200 bg-white px-4 py-2 text-sm font-bold text-red-700 hover:bg-red-100">Remover vínculo</button>
+                      <button type="submit" className="rounded-xl border border-red-200 bg-white px-4 py-2 text-sm font-bold text-red-700 hover:bg-red-100">Remover vínculo</button>
                     </form>
                   </details>
                 </div>
@@ -271,8 +271,8 @@ export function TeamManager({
       <div className="flex flex-wrap items-center justify-between gap-3 border-t border-stone-200 pt-4 text-sm text-stone-500">
         <span>Página {filters.page} de {totalPages}</span>
         <div className="flex gap-2">
-          <Link aria-disabled={filters.page <= 1} href={buildQuery(tenantId, filters, { page: Math.max(1, filters.page - 1) })} className={`rounded-full border border-stone-300 px-4 py-2 ${filters.page <= 1 ? 'pointer-events-none opacity-40' : 'hover:border-red-500 hover:text-red-600'}`}>Anterior</Link>
-          <Link aria-disabled={filters.page >= totalPages} href={buildQuery(tenantId, filters, { page: Math.min(totalPages, filters.page + 1) })} className={`rounded-full border border-stone-300 px-4 py-2 ${filters.page >= totalPages ? 'pointer-events-none opacity-40' : 'hover:border-red-500 hover:text-red-600'}`}>Próxima</Link>
+          <Link aria-disabled={filters.page <= 1} href={buildQuery(tenantId, filters, { page: Math.max(1, filters.page - 1) })} className={`rounded-xl border border-stone-300 px-4 py-2 ${filters.page <= 1 ? 'pointer-events-none opacity-40' : 'hover:border-red-500 hover:text-red-600'}`}>Anterior</Link>
+          <Link aria-disabled={filters.page >= totalPages} href={buildQuery(tenantId, filters, { page: Math.min(totalPages, filters.page + 1) })} className={`rounded-xl border border-stone-300 px-4 py-2 ${filters.page >= totalPages ? 'pointer-events-none opacity-40' : 'hover:border-red-500 hover:text-red-600'}`}>Próxima</Link>
         </div>
       </div>
     </section>

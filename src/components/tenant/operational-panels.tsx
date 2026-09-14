@@ -143,7 +143,7 @@ export function CashPanel({
               <h2 className="text-2xl font-black tracking-tight sm:text-3xl">Fechamento de contas</h2>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-white">Mesas com pedidos prontos ou entregues, ainda não pagos. Registre pagamento real com método, desconto, valor pago e observação.</p>
             </div>
-            <Link href={`/tenants/${tenantId}/pedidos`} className="inline-flex min-h-12 items-center justify-center rounded-full border border-white/30 bg-white px-5 py-3 text-sm font-black text-red-700 shadow-sm transition hover:bg-red-50">
+            <Link href={`/tenants/${tenantId}/pedidos`} className="inline-flex min-h-12 items-center justify-center rounded-xl border border-white/30 bg-white px-5 py-3 text-sm font-black text-red-700 shadow-sm transition hover:bg-red-50">
               Ver pedidos
             </Link>
           </div>

@@ -51,11 +51,11 @@ export default async function DashboardPage({ searchParams }: Readonly<{ searchP
           </div>
           <div className="flex flex-wrap gap-2">
             {platformAdmin ? (
-              <Link className="inline-flex min-h-11 items-center justify-center rounded-full bg-stone-950 px-5 py-2 text-sm font-black text-white shadow-sm hover:bg-red-700" href="/super-admin">
+              <Link className="inline-flex min-h-11 items-center justify-center rounded-xl bg-stone-950 px-5 py-2 text-sm font-black text-white shadow-sm hover:bg-red-700" href="/super-admin">
                 Super Admin
               </Link>
             ) : null}
-            <Link className="inline-flex min-h-11 items-center justify-center rounded-full border border-red-200 bg-white px-5 py-2 text-sm font-black text-red-600 shadow-sm hover:bg-red-50" href="/onboarding/restaurante">
+            <Link className="inline-flex min-h-11 items-center justify-center rounded-xl border border-red-200 bg-white px-5 py-2 text-sm font-black text-red-600 shadow-sm hover:bg-red-50" href="/onboarding/restaurante">
               Novo restaurante
             </Link>
           </div>
@@ -84,7 +84,7 @@ export default async function DashboardPage({ searchParams }: Readonly<{ searchP
             <div className="rounded-[1.5rem] border border-dashed border-stone-300 bg-white p-6 text-center shadow-sm">
               <h2 className="text-xl font-black">Nenhum restaurante vinculado</h2>
               <p className="mt-2 text-sm leading-6 text-stone-500">Crie o primeiro restaurante para receber o papel owner e começar a configurar o cardápio.</p>
-              <Link className="mt-5 inline-flex min-h-11 items-center justify-center rounded-full bg-red-600 px-5 py-2 font-black text-white shadow-lg shadow-red-100 hover:bg-red-700" href="/onboarding/restaurante">Criar restaurante</Link>
+              <Link className="mt-5 inline-flex min-h-11 items-center justify-center rounded-xl bg-red-600 px-5 py-2 font-black text-white shadow-lg shadow-red-100 hover:bg-red-700" href="/onboarding/restaurante">Criar restaurante</Link>
             </div>
           ) : null}
         </div>

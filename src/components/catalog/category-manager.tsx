@@ -67,7 +67,7 @@ export function CategoryForm({ tenantId }: Readonly<{ tenantId: string }>) {
           </div>
           <div className="mt-6 flex flex-col gap-3 border-t border-stone-100 pt-4 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm text-stone-500">Ao salvar, a categoria aparece nos cards abaixo.</p>
-            <button type="submit" className="min-h-12 rounded-full bg-red-600 px-6 py-3 text-sm font-black text-white hover:bg-red-700">Salvar categoria</button>
+            <button type="submit" className="min-h-12 rounded-xl bg-red-600 px-6 py-3 text-sm font-black text-white hover:bg-red-700">Salvar categoria</button>
           </div>
         </form>
       </CreateModal>
@@ -106,8 +106,8 @@ export function CategoryFiltersBar({ tenantId, filters }: Readonly<{ tenantId: s
         </select>
       </label>
       <div className="flex items-end gap-2">
-        <button type="submit" className="rounded-full bg-red-600 px-4 py-2 text-sm font-black text-white hover:bg-red-700">Filtrar</button>
-        <Link href={`/tenants/${tenantId}/cardapio`} className="rounded-full border border-stone-300 px-4 py-2 text-sm font-bold text-stone-600 hover:border-red-300">Limpar</Link>
+        <button type="submit" className="rounded-xl bg-red-600 px-4 py-2 text-sm font-black text-white hover:bg-red-700">Filtrar</button>
+        <Link href={`/tenants/${tenantId}/cardapio`} className="rounded-xl border border-stone-300 px-4 py-2 text-sm font-bold text-stone-600 hover:border-red-300">Limpar</Link>
       </div>
     </form>
   );
@@ -169,7 +169,7 @@ export function CategoryList({ tenantId, categories, filters, total, pageSize }:
                     <input name="isActive" type="checkbox" defaultChecked={category.is_active} className="size-4 accent-red-500" />
                     Categoria ativa
                   </label>
-                  <button type="submit" className="rounded-full bg-red-600 px-4 py-2 text-sm font-black text-white hover:bg-red-700">Salvar alterações</button>
+                  <button type="submit" className="rounded-xl bg-red-600 px-4 py-2 text-sm font-black text-white hover:bg-red-700">Salvar alterações</button>
                 </form>
               </details>
 
@@ -183,7 +183,7 @@ export function CategoryList({ tenantId, categories, filters, total, pageSize }:
                     Digite CONFIRMAR
                     <input name="confirmDelete" required pattern="CONFIRMAR" className="mt-2 w-full rounded-xl border border-red-300 bg-white px-4 py-2 text-stone-950 outline-none focus:border-red-500" />
                   </label>
-                  <button type="submit" className="rounded-full border border-red-200 px-4 py-2 text-sm font-black text-red-700 hover:bg-white">Confirmar exclusão/inativação</button>
+                  <button type="submit" className="rounded-xl border border-red-200 px-4 py-2 text-sm font-black text-red-700 hover:bg-white">Confirmar exclusão/inativação</button>
                 </form>
               </details>
             </article>
@@ -194,8 +194,8 @@ export function CategoryList({ tenantId, categories, filters, total, pageSize }:
       <div className="flex flex-col justify-between gap-3 border-t border-stone-200 pt-4 sm:flex-row sm:items-center">
         <p className="text-sm text-stone-500">Mostrando até {pageSize} registros por página.</p>
         <div className="flex gap-2">
-          <Link aria-disabled={filters.page <= 1} href={buildCategoryHref(tenantId, filters, { page: Math.max(1, filters.page - 1) })} className="rounded-full border border-stone-300 px-4 py-2 text-sm font-bold text-stone-600 aria-disabled:pointer-events-none aria-disabled:opacity-40">Anterior</Link>
-          <Link aria-disabled={filters.page >= totalPages} href={buildCategoryHref(tenantId, filters, { page: Math.min(totalPages, filters.page + 1) })} className="rounded-full border border-stone-300 px-4 py-2 text-sm font-bold text-stone-600 aria-disabled:pointer-events-none aria-disabled:opacity-40">Próxima</Link>
+          <Link aria-disabled={filters.page <= 1} href={buildCategoryHref(tenantId, filters, { page: Math.max(1, filters.page - 1) })} className="rounded-xl border border-stone-300 px-4 py-2 text-sm font-bold text-stone-600 aria-disabled:pointer-events-none aria-disabled:opacity-40">Anterior</Link>
+          <Link aria-disabled={filters.page >= totalPages} href={buildCategoryHref(tenantId, filters, { page: Math.min(totalPages, filters.page + 1) })} className="rounded-xl border border-stone-300 px-4 py-2 text-sm font-bold text-stone-600 aria-disabled:pointer-events-none aria-disabled:opacity-40">Próxima</Link>
         </div>
       </div>
     </section>

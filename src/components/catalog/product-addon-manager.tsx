@@ -104,7 +104,7 @@ export function ProductAddonForm({ tenantId, products }: Readonly<{ tenantId: st
             <input type="hidden" name="tenantId" value={tenantId} />
             <AddonFields products={availableProducts} />
             {availableProducts.length === 0 ? <p className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">Cadastre ou reative um produto antes de cadastrar adicionais.</p> : null}
-            <button disabled={availableProducts.length === 0} type="submit" className="min-h-11 rounded-full bg-red-500 px-5 py-3 text-sm font-bold text-white hover:bg-red-600 disabled:cursor-not-allowed disabled:bg-stone-200 disabled:text-stone-500">Salvar adicional</button>
+            <button disabled={availableProducts.length === 0} type="submit" className="min-h-11 rounded-xl bg-red-500 px-5 py-3 text-sm font-bold text-white hover:bg-red-600 disabled:cursor-not-allowed disabled:bg-stone-200 disabled:text-stone-500">Salvar adicional</button>
           </form>
         </CreateModal>
       </div>
@@ -151,8 +151,8 @@ export function ProductAddonFiltersBar({ tenantId, products, filters }: Readonly
         </select>
       </label>
       <div className="flex items-end gap-2">
-        <button type="submit" className="rounded-full bg-red-500 px-4 py-2 text-sm font-bold text-white hover:bg-red-600">Filtrar</button>
-        <Link href={`/tenants/${tenantId}/adicionais`} className="rounded-full border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-600 hover:border-red-300">Limpar</Link>
+        <button type="submit" className="rounded-xl bg-red-500 px-4 py-2 text-sm font-bold text-white hover:bg-red-600">Filtrar</button>
+        <Link href={`/tenants/${tenantId}/adicionais`} className="rounded-xl border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-600 hover:border-red-300">Limpar</Link>
       </div>
     </form>
   );
@@ -218,7 +218,7 @@ export function ProductAddonList({ tenantId, addons, products, filters, total, p
                     <input type="hidden" name="tenantId" value={tenantId} />
                     <input type="hidden" name="addonId" value={addon.id} />
                     <AddonFields products={products} addon={addon} />
-                    <button type="submit" className="min-h-11 rounded-full bg-red-500 px-5 py-3 text-sm font-bold text-white hover:bg-red-600">Salvar alterações</button>
+                    <button type="submit" className="min-h-11 rounded-xl bg-red-500 px-5 py-3 text-sm font-bold text-white hover:bg-red-600">Salvar alterações</button>
                   </form>
                 </CreateModal>
 
@@ -232,7 +232,7 @@ export function ProductAddonList({ tenantId, addons, products, filters, total, p
                       Digite CONFIRMAR
                       <input name="confirmDelete" required pattern="CONFIRMAR" className="mt-2 w-full rounded-xl border border-red-200 bg-white px-4 py-2 text-stone-950 outline-none focus:border-red-400" />
                     </label>
-                    <button type="submit" className="rounded-full border border-red-200 bg-white px-4 py-2 text-sm font-bold text-red-700 hover:bg-red-100">Confirmar exclusão</button>
+                    <button type="submit" className="rounded-xl border border-red-200 bg-white px-4 py-2 text-sm font-bold text-red-700 hover:bg-red-100">Confirmar exclusão</button>
                   </form>
                 </details>
               </div>
@@ -244,8 +244,8 @@ export function ProductAddonList({ tenantId, addons, products, filters, total, p
       <div className="flex flex-col justify-between gap-3 border-t border-stone-200 pt-4 sm:flex-row sm:items-center">
         <p className="text-sm text-stone-500">Mostrando até {pageSize} registros por página.</p>
         <div className="flex gap-2">
-          <Link aria-disabled={filters.page <= 1} href={buildAddonHref(tenantId, filters, { page: Math.max(1, filters.page - 1) })} className="rounded-full border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-600 aria-disabled:pointer-events-none aria-disabled:opacity-40">Anterior</Link>
-          <Link aria-disabled={filters.page >= totalPages} href={buildAddonHref(tenantId, filters, { page: Math.min(totalPages, filters.page + 1) })} className="rounded-full border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-600 aria-disabled:pointer-events-none aria-disabled:opacity-40">Próxima</Link>
+          <Link aria-disabled={filters.page <= 1} href={buildAddonHref(tenantId, filters, { page: Math.max(1, filters.page - 1) })} className="rounded-xl border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-600 aria-disabled:pointer-events-none aria-disabled:opacity-40">Anterior</Link>
+          <Link aria-disabled={filters.page >= totalPages} href={buildAddonHref(tenantId, filters, { page: Math.min(totalPages, filters.page + 1) })} className="rounded-xl border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-600 aria-disabled:pointer-events-none aria-disabled:opacity-40">Próxima</Link>
         </div>
       </div>
     </section>

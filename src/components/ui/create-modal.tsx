@@ -82,7 +82,7 @@ export function CreateModal({
         ref={triggerRef}
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex min-h-12 items-center justify-center rounded-full bg-red-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-red-100 transition hover:bg-red-700"
+        className="mf-btn-primary"
       >
         {triggerLabel}
       </button>
@@ -97,18 +97,18 @@ export function CreateModal({
             aria-labelledby={titleId}
             aria-describedby={descriptionId}
             tabIndex={-1}
-            className="relative max-h-[92vh] w-full overflow-y-auto rounded-t-[2rem] border border-stone-200 bg-white p-5 shadow-2xl sm:max-w-2xl sm:rounded-[2rem] sm:p-6"
+            className="relative max-h-[92vh] w-full overflow-y-auto rounded-t-[1.35rem] border border-gray-200 bg-white p-5 shadow-2xl sm:max-w-2xl sm:rounded-[1.35rem] sm:p-6"
           >
-            <div className="flex items-start justify-between gap-4 border-b border-stone-100 pb-4">
+            <div className="flex items-start justify-between gap-4 border-b border-gray-100 pb-4">
               <div>
-                <p className="text-sm font-black text-red-600">{eyebrow}</p>
+                <p className="text-xs font-black uppercase tracking-[0.18em] text-red-600">{eyebrow}</p>
                 <h2 id={titleId} className="mt-1 text-2xl font-black tracking-tight">{title}</h2>
                 <p id={descriptionId} className="mt-2 text-sm leading-6 text-stone-500">{description}</p>
               </div>
               <button
                 type="button"
                 onClick={closeModal}
-                className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl border border-stone-200 bg-stone-50 text-xl font-black text-stone-500 hover:bg-red-50 hover:text-red-600"
+                className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-gray-200 bg-gray-50 text-xl font-black text-gray-500 hover:bg-red-50 hover:text-red-600"
                 aria-label="Fechar modal"
               >
                 ×

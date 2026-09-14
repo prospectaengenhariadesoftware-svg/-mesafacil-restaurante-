@@ -6,50 +6,17 @@ import { getTenantModule, type TenantModuleSlug } from '@/lib/tenant/navigation'
 import { isUuid } from '@/lib/validation/auth';
 
 const moduleGuidance: Record<TenantModuleSlug, string[]> = {
-  'visao-geral': [
-    'Conferir dados do restaurante e vínculos do usuário.',
-    'Acompanhar se a fundação SaaS está pronta antes dos módulos operacionais.',
-  ],
-  cardapio: [
-    'Categorias do cardápio já podem ser cadastradas por tenant.',
-    'Os produtos usam essas categorias como vínculo obrigatório.',
-  ],
-  produtos: [
-    'Produtos já podem ser cadastrados com categoria, descrição, preço e disponibilidade.',
-    'O vínculo produto-categoria é validado no app e protegido por RLS no banco.',
-  ],
-  adicionais: [
-    'Complementos/adicionais podem ser cadastrados por produto, com valor incremental e disponibilidade.',
-    'O vínculo adicional-produto é validado no app e protegido por RLS no banco.',
-  ],
-  mesas: [
-    'Mesas já podem ser cadastradas com identificação, lugares, setor e QR Code visual.',
-    'O QR Code aponta para o cardápio público da mesa no domínio oficial.',
-  ],
-  pedidos: [
-    'Pedidos enviados pelo cardápio público já aparecem nesta listagem.',
-    'O status pode ser confirmado, enviado para cozinha, marcado como pronto, entregue ou cancelado.',
-  ],
-  cozinha: [
-    'A cozinha já recebe a fila de pedidos confirmados, em preparo e prontos.',
-    'Use os botões de status para avançar o preparo até a entrega.',
-  ],
-  caixa: [
-    'Fechar contas de pedidos prontos/entregues por mesa.',
-    'Registrar forma de pagamento, desconto, taxa de serviço, valor pago e troco; fiscal/NFC-e continua fora do escopo.',
-  ],
-  equipe: [
-    'Listar usuários vinculados ao restaurante e seus papéis.',
-    'Convites e alteração de papéis devem entrar em fluxo próprio com auditoria.',
-  ],
-  relatorios: [
-    'Acompanhar pedidos do dia, recebimentos de caixa, ticket médio, cancelamentos e produtos mais vendidos.',
-    'Indicadores usam somente dados do tenant atual filtrados por RLS e consultas tenant-scoped.',
-  ],
-  configuracoes: [
-    'Visualizar dados cadastrais, status e slug público do restaurante.',
-    'Edição avançada deve ser validada por role, RLS e auditoria.',
-  ],
+  'visao-geral': ['Central operacional do restaurante.', 'Resumo rápido dos principais indicadores.'],
+  cardapio: ['Categorias organizam o cardápio público.', 'Use nomes claros para facilitar pedido via QR.'],
+  produtos: ['Itens com preço, imagem e disponibilidade.', 'Produtos indisponíveis deixam de aparecer para venda.'],
+  adicionais: ['Complementos por produto.', 'Controle acréscimos e disponibilidade sem duplicar produtos.'],
+  mesas: ['Mesas e setores com QR Code.', 'Ative apenas mesas liberadas para operação.'],
+  pedidos: ['Pedidos recebidos via QR Code.', 'Avance status sem sair da fila operacional.'],
+  cozinha: ['Fila de produção.', 'Acompanhe confirmados, preparo e prontos.'],
+  caixa: ['Fechamento por mesa/pedido.', 'Registre pagamentos sem perder histórico.'],
+  equipe: ['Usuários vinculados ao restaurante.', 'Papéis controlam acesso aos módulos.'],
+  relatorios: ['Vendas, pagamentos e produtos do dia.', 'Indicadores usam apenas dados deste tenant.'],
+  configuracoes: ['Dados cadastrais e operação.', 'Edições seguem permissões do restaurante.'],
 };
 
 export async function TenantModulePage({
@@ -68,49 +35,35 @@ export async function TenantModulePage({
   const currentModule = getTenantModule(module, tenantId);
 
   return (
-    <AppShell tenantId={tenantId}>
+    <AppShell tenantId={tenantId} activeModule={module}>
       <section className="space-y-6">
-        <div className="rounded-3xl border border-stone-200 bg-white p-6">
-          <p className="text-sm font-semibold text-red-600">{tenant?.name}</p>
-          <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <header className="mf-surface overflow-hidden">
+          <div className="grid gap-6 p-5 sm:p-6 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-end">
             <div>
-              <h1 className="text-3xl font-black">{currentModule.label}</h1>
-              <p className="mt-2 max-w-3xl text-stone-600">{currentModule.description}</p>
+              <div className="flex flex-wrap items-center gap-2 text-xs font-black">
+                <span className="mf-chip mf-status-red">{tenant?.name}</span>
+                <span className="mf-chip">Papel: {membership.role}</span>
+              </div>
+              <h1 className="mf-page-title mt-4">{currentModule.label}</h1>
+              <p className="mf-page-description mt-2">{currentModule.description}</p>
             </div>
-            <span className="rounded-full border border-stone-300 px-3 py-1 text-xs font-semibold text-stone-600">
-              Papel: {membership.role}
-            </span>
+            <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4">
+              <p className="text-xs font-black uppercase tracking-[0.18em] text-gray-500">Orientação rápida</p>
+              <ul className="mt-3 space-y-2 text-sm font-semibold text-gray-600">
+                {moduleGuidance[module].slice(0, 2).map((item) => (
+                  <li key={item} className="flex gap-2"><span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-red-600" /><span>{item}</span></li>
+                ))}
+              </ul>
+            </div>
           </div>
-        </div>
+        </header>
 
         {children ? <div className="space-y-5">{children}</div> : null}
 
-        <div className="grid gap-4 md:grid-cols-2">
-          <article className="rounded-2xl border border-stone-200 bg-white p-5">
-            <h2 className="text-lg font-bold text-stone-950">Estado atual</h2>
-            <p className="mt-2 text-sm leading-6 text-stone-600">
-              Página protegida por tenant. Quando houver formulário neste módulo, os cadastros são gravados com tenant_id e respeitam as policies RLS do Supabase.
-            </p>
-          </article>
-          <article className="rounded-2xl border border-stone-200 bg-white p-5">
-            <h2 className="text-lg font-bold text-stone-950">Segurança SaaS</h2>
-            <p className="mt-2 break-all font-mono text-xs text-stone-500">tenant_id: {tenantId}</p>
-            <p className="mt-2 text-sm leading-6 text-stone-600">A autorização depende do vínculo em tenant_users e das policies RLS do Supabase.</p>
-          </article>
-        </div>
-
-        <article className="rounded-2xl border border-stone-200 bg-white p-5">
-          <h2 className="text-lg font-bold text-stone-950">Próximos passos deste módulo</h2>
-          <ul className="mt-3 space-y-2 text-sm text-stone-600">
-            {moduleGuidance[module].map((item) => (
-              <li key={item} className="flex gap-2"><span className="text-red-600">•</span><span>{item}</span></li>
-            ))}
-          </ul>
-        </article>
-
-        <Link href={`/tenants/${tenantId}`} className="inline-flex rounded-full border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-800 hover:border-red-500 hover:text-red-600">
-          Voltar para visão geral
-        </Link>
+        <footer className="flex flex-col justify-between gap-3 rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-600 shadow-sm sm:flex-row sm:items-center">
+          <span>Ambiente multi-tenant protegido por autenticação, vínculo e RLS.</span>
+          <Link href={`/tenants/${tenantId}`} className="mf-btn-secondary w-fit">Voltar ao início</Link>
+        </footer>
       </section>
     </AppShell>
   );
