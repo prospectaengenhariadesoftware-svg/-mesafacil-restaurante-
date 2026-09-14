@@ -5,6 +5,7 @@ describe('protected routes', () => {
   it('redirects unauthenticated admin access to login preserving next path', () => {
     expect(getProtectedRouteRedirect('/dashboard', false)).toBe('/login?next=%2Fdashboard');
     expect(getProtectedRouteRedirect('/tenants/abc', false)).toBe('/login?next=%2Ftenants%2Fabc');
+    expect(getProtectedRouteRedirect('/super-admin', false)).toBe('/login?next=%2Fsuper-admin');
   });
 
   it('does not redirect public auth routes or authenticated users', () => {

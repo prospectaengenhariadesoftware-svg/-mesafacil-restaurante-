@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
-import type { Profile, TenantMembershipWithTenant } from '@/lib/types/saas';
+import type { PlatformAdmin, Profile, TenantMembershipWithTenant } from '@/lib/types/saas';
 
 export async function getCurrentUser() {
   const supabase = await createClient();
@@ -49,6 +49,26 @@ export async function getTenantMemberships(userId: string): Promise<TenantMember
 
   if (error) return [];
   return (data ?? []) as TenantMembershipWithTenant[];
+}
+
+export async function getCurrentPlatformAdmin(userId: string): Promise<PlatformAdmin | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('platform_admins')
+    .select('*')
+    .eq('user_id', userId)
+    .eq('status', 'active')
+    .maybeSingle();
+
+  if (error) return null;
+  return data as PlatformAdmin | null;
+}
+
+export async function requirePlatformAdmin(): Promise<{ user: Awaited<ReturnType<typeof requireUser>>; platformAdmin: PlatformAdmin }> {
+  const user = await requireUser();
+  const platformAdmin = await getCurrentPlatformAdmin(user.id);
+  if (!platformAdmin) redirect('/dashboard?erro=super-admin-negado');
+  return { user, platformAdmin };
 }
 
 export async function requireActiveTenant(tenantId: string) {

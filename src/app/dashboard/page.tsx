@@ -1,12 +1,13 @@
 import Link from 'next/link';
 import { AppShell } from '@/components/layout/app-shell';
-import { getCurrentProfile, getTenantMemberships, requireUser } from '@/lib/auth/context';
+import { getCurrentPlatformAdmin, getCurrentProfile, getTenantMemberships, requireUser } from '@/lib/auth/context';
 
 export default async function DashboardPage({ searchParams }: Readonly<{ searchParams?: Promise<Record<string, string | string[] | undefined>> }>) {
   const user = await requireUser();
   const params = (await searchParams) ?? {};
   const memberships = await getTenantMemberships(user.id);
   const profile = await getCurrentProfile(user.id);
+  const platformAdmin = await getCurrentPlatformAdmin(user.id);
   const erro = typeof params.erro === 'string' ? params.erro : undefined;
   const activeMemberships = memberships.filter((membership) => membership.status === 'active');
 
@@ -48,9 +49,16 @@ export default async function DashboardPage({ searchParams }: Readonly<{ searchP
             <p className="text-sm font-black text-red-600">Restaurantes vinculados</p>
             <h2 className="mt-1 text-2xl font-black tracking-tight text-stone-950">Escolha onde trabalhar agora</h2>
           </div>
-          <Link className="inline-flex min-h-11 items-center justify-center rounded-full border border-red-200 bg-white px-5 py-2 text-sm font-black text-red-600 shadow-sm hover:bg-red-50" href="/onboarding/restaurante">
-            Novo restaurante
-          </Link>
+          <div className="flex flex-wrap gap-2">
+            {platformAdmin ? (
+              <Link className="inline-flex min-h-11 items-center justify-center rounded-full bg-stone-950 px-5 py-2 text-sm font-black text-white shadow-sm hover:bg-red-700" href="/super-admin">
+                Super Admin
+              </Link>
+            ) : null}
+            <Link className="inline-flex min-h-11 items-center justify-center rounded-full border border-red-200 bg-white px-5 py-2 text-sm font-black text-red-600 shadow-sm hover:bg-red-50" href="/onboarding/restaurante">
+              Novo restaurante
+            </Link>
+          </div>
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">

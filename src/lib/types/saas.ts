@@ -38,6 +38,16 @@ export type TenantUser = {
   updated_at: string;
 };
 
+export type PlatformAdmin = {
+  id: string;
+  user_id: string;
+  role: string;
+  status: ProfileStatus;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export type TenantMembershipWithTenant = TenantUser & {
   tenants: Tenant | null;
 };
