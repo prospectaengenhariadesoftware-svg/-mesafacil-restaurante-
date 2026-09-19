@@ -19,7 +19,7 @@ export function Button({ children, href, variant = 'primary', type = 'button', c
     secondary: 'border border-gray-200 bg-white text-gray-700 hover:border-red-200 hover:bg-red-50 hover:text-red-700',
     ghost: 'text-gray-600 hover:bg-gray-50 hover:text-gray-950',
   }[variant];
-  const composed = `inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-extrabold transition ${classes} ${className}`;
+  const composed = `inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition ${classes} ${className}`;
   if (href) return <Link href={href} className={composed}>{children}</Link>;
   return <button type={type} className={composed}>{children}</button>;
 }
@@ -29,8 +29,8 @@ export function PageHeader({ eyebrow, title, description, action, breadcrumb }: 
     <header className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
       <div className="min-w-0">
         {breadcrumb ? <div className="mb-3 text-sm font-semibold text-gray-500">{breadcrumb}</div> : null}
-        {eyebrow ? <p className="text-xs font-black uppercase tracking-[0.2em] text-red-600">{eyebrow}</p> : null}
-        <h1 className="mt-1 text-3xl font-black tracking-tight text-gray-950 md:text-4xl">{title}</h1>
+        {eyebrow ? <p className="text-xs font-semibold uppercase tracking-[0.2em] text-red-600">{eyebrow}</p> : null}
+        <h1 className="mt-1 text-3xl font-bold tracking-tight text-gray-950 md:text-4xl">{title}</h1>
         {description ? <p className="mt-2 max-w-3xl text-sm leading-6 text-gray-500 md:text-base">{description}</p> : null}
       </div>
       {action ? <div className="shrink-0">{action}</div> : null}
@@ -45,14 +45,14 @@ export function MetricCard({ icon, label, value, hint, tone = 'neutral' }: Reado
         <div className={`grid h-10 w-10 place-items-center rounded-xl border ${toneClasses[tone]}`}><AppIcon name={icon} size={20} /></div>
         {hint ? <span className="text-xs font-bold text-gray-500">{hint}</span> : null}
       </div>
-      <p className="mt-4 text-xs font-black uppercase tracking-[0.16em] text-gray-500">{label}</p>
-      <p className="mt-1 text-3xl font-black tracking-tight text-gray-950">{value}</p>
+      <p className="mt-4 text-xs font-semibold uppercase tracking-[0.16em] text-gray-500">{label}</p>
+      <p className="mt-1 text-3xl font-bold tracking-tight text-gray-950">{value}</p>
     </article>
   );
 }
 
 export function StatusBadge({ children, tone = 'neutral' }: Readonly<{ children: ReactNode; tone?: StatusTone }>) {
-  return <span className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-black ${toneClasses[tone]}`}>{children}</span>;
+  return <span className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-semibold ${toneClasses[tone]}`}>{children}</span>;
 }
 
 export function SearchBar({ name = 'q', placeholder = 'Buscar...', defaultValue }: Readonly<{ name?: string; placeholder?: string; defaultValue?: string }>) {
@@ -77,7 +77,7 @@ export function EmptyState({ icon = 'orders', title, description, action }: Read
   return (
     <div className="rounded-2xl border border-dashed border-gray-300 bg-white p-8 text-center">
       <div className="mx-auto grid h-12 w-12 place-items-center rounded-xl border border-gray-200 bg-gray-50 text-gray-500"><AppIcon name={icon} size={22} /></div>
-      <p className="mt-4 font-black text-gray-950">{title}</p>
+      <p className="mt-4 font-semibold text-gray-950">{title}</p>
       {description ? <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-gray-500">{description}</p> : null}
       {action ? <div className="mt-5">{action}</div> : null}
     </div>
