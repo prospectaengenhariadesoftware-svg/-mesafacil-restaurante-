@@ -21,12 +21,18 @@ export type TenantNavigationItem = {
   href: string;
 };
 
-export const tenantPrimaryMobileModuleSlugs = [
+export const tenantMobileModuleSlugs = [
   'visao-geral',
+  'cardapio',
   'produtos',
+  'adicionais',
+  'mesas',
   'pedidos',
   'cozinha',
   'caixa',
+  'equipe',
+  'relatorios',
+  'configuracoes',
 ] as const satisfies readonly TenantModuleSlug[];
 
 const moduleLabels: Record<TenantModuleSlug, Omit<TenantNavigationItem, 'slug' | 'href'>> = {
@@ -85,9 +91,9 @@ export function getTenantNavigation(tenantId: string): TenantNavigationItem[] {
   }));
 }
 
-export function getTenantPrimaryMobileNavigation(tenantId: string): TenantNavigationItem[] {
-  const primarySlugs = new Set<TenantModuleSlug>(tenantPrimaryMobileModuleSlugs);
-  return getTenantNavigation(tenantId).filter((item) => primarySlugs.has(item.slug));
+export function getTenantMobileNavigation(tenantId: string): TenantNavigationItem[] {
+  const mobileSlugs = new Set<TenantModuleSlug>(tenantMobileModuleSlugs);
+  return getTenantNavigation(tenantId).filter((item) => mobileSlugs.has(item.slug));
 }
 
 export function getTenantModule(slug: TenantModuleSlug, tenantId: string): TenantNavigationItem {

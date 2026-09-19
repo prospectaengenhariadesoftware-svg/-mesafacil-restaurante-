@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { signOutAction } from '@/app/actions/auth';
-import { getTenantNavigation, getTenantPrimaryMobileNavigation, type TenantModuleSlug } from '@/lib/tenant/navigation';
+import { getTenantMobileNavigation, getTenantNavigation, type TenantModuleSlug } from '@/lib/tenant/navigation';
 import { NavigationPendingIndicator } from '@/components/navigation/navigation-pending-indicator';
 import { AppIcon, type AppIconName } from './app-icon';
 import { Button } from './primitives';
@@ -28,7 +28,7 @@ const sidebarGroups: { title: string; items: TenantModuleSlug[] }[] = [
 export function DesignSystemShell({ tenantId, activeModule = 'pedidos', children }: Readonly<{ tenantId: string; activeModule?: TenantModuleSlug; children: React.ReactNode }>) {
   const nav = getTenantNavigation(tenantId);
   const bySlug = new Map(nav.map((item) => [item.slug, item]));
-  const mobileItems = getTenantPrimaryMobileNavigation(tenantId);
+  const mobileItems = getTenantMobileNavigation(tenantId);
 
   return (
     <main className="min-h-screen bg-[#fbfafc] pb-24 text-gray-950 md:pb-0">
@@ -81,12 +81,12 @@ export function DesignSystemShell({ tenantId, activeModule = 'pedidos', children
 
       <section className="mx-auto max-w-7xl px-4 py-6 md:ml-[232px] md:px-6 lg:px-8">{children}</section>
 
-      <nav aria-label="Navegação inferior piloto" className="fixed inset-x-3 bottom-3 z-50 rounded-2xl border border-gray-200 bg-white/95 p-2 shadow-2xl shadow-gray-300/60 backdrop-blur md:hidden">
-        <div className="grid grid-cols-5 gap-1">
+      <nav aria-label="Navegação inferior piloto" className="fixed inset-x-3 bottom-3 z-50 overflow-x-auto rounded-2xl border border-gray-200 bg-white/95 p-2 shadow-2xl shadow-gray-300/60 backdrop-blur md:hidden">
+        <div className="flex min-w-max gap-1">
           {mobileItems.map((item) => item ? (
-            <Link key={item.slug} href={item.href} className={`flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl px-1 text-[11px] font-black ${item.slug === activeModule ? 'text-red-700' : 'text-gray-500'}`}>
+            <Link key={item.slug} href={item.href} className={`flex min-h-14 w-16 shrink-0 flex-col items-center justify-center gap-1 rounded-xl px-1 text-[11px] font-black ${item.slug === activeModule ? 'text-red-700' : 'text-gray-500'}`}>
               <AppIcon name={moduleIcons[item.slug] ?? 'home'} size={18} />
-              <span className="flex items-center justify-center">{item.slug === 'visao-geral' ? 'Início' : item.label}<NavigationPendingIndicator /></span>
+              <span className="flex max-w-full items-center justify-center truncate">{item.slug === 'visao-geral' ? 'Início' : item.label}<NavigationPendingIndicator /></span>
             </Link>
           ) : null)}
         </div>

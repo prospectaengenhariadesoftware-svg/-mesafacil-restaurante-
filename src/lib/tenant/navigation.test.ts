@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getTenantNavigation, getTenantPrimaryMobileNavigation, tenantModuleSlugs, tenantPrimaryMobileModuleSlugs } from './navigation';
+import { getTenantMobileNavigation, getTenantNavigation, tenantMobileModuleSlugs, tenantModuleSlugs } from './navigation';
 
 describe('tenant module navigation', () => {
   it('keeps only approved tenant module pages in this structural phase', () => {
@@ -26,12 +26,12 @@ describe('tenant module navigation', () => {
     expect(nav.some((item) => item.href === '/admin/kitchen')).toBe(false);
   });
 
-  it('keeps the mobile bottom navigation focused on high-frequency modules without a generic home fallback', () => {
-    const nav = getTenantPrimaryMobileNavigation('11111111-1111-4111-8111-111111111111');
+  it('keeps every tenant module reachable from the horizontally scrollable mobile navigation', () => {
+    const nav = getTenantMobileNavigation('11111111-1111-4111-8111-111111111111');
 
-    expect(tenantPrimaryMobileModuleSlugs).toEqual(['visao-geral', 'produtos', 'pedidos', 'cozinha', 'caixa']);
-    expect(nav.map((item) => item.slug)).toEqual(['visao-geral', 'produtos', 'pedidos', 'cozinha', 'caixa']);
-    expect(nav).toHaveLength(5);
+    expect(tenantMobileModuleSlugs).toEqual(tenantModuleSlugs);
+    expect(nav.map((item) => item.slug)).toEqual(tenantModuleSlugs);
+    expect(nav).toHaveLength(11);
     expect(nav.map((item) => item.label)).not.toContain('Mais');
     expect(nav.every((item) => item.href.startsWith('/tenants/11111111-1111-4111-8111-111111111111'))).toBe(true);
   });

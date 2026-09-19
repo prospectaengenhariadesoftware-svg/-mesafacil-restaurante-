@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { signOutAction } from '@/app/actions/auth';
 import { NavigationPendingIndicator } from '@/components/navigation/navigation-pending-indicator';
-import { getTenantNavigation, getTenantPrimaryMobileNavigation, type TenantModuleSlug, type TenantNavigationItem } from '@/lib/tenant/navigation';
+import { getTenantMobileNavigation, getTenantNavigation, type TenantModuleSlug, type TenantNavigationItem } from '@/lib/tenant/navigation';
 
 const moduleIcons: Partial<Record<TenantModuleSlug, string>> = {
   'visao-geral': '⌂',
@@ -77,7 +77,7 @@ function MobileNavItem({ item }: Readonly<{ item: TenantNavigationItem }>) {
   return (
     <Link
       href={item.href}
-      className={`flex min-h-16 flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2 text-center text-[11px] font-black transition hover:bg-red-50 hover:text-red-700 ${featured ? 'text-red-700' : 'text-stone-600'}`}
+      className={`flex min-h-16 w-16 shrink-0 flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2 text-center text-[11px] font-black transition hover:bg-red-50 hover:text-red-700 ${featured ? 'text-red-700' : 'text-stone-600'}`}
     >
       <span className={`grid h-8 w-8 place-items-center rounded-xl text-lg ${featured ? 'bg-red-50 text-red-700' : 'bg-stone-50 text-stone-700'}`}>{moduleIcons[item.slug] ?? '•'}</span>
       <span className="flex max-w-full items-center justify-center truncate">{moduleShortLabels[item.slug] ?? item.label}<NavigationPendingIndicator /></span>
@@ -93,7 +93,7 @@ export function AppShell({
   tenantId?: string;
 }>) {
   const tenantNav = tenantId ? getTenantNavigation(tenantId) : [];
-  const bottomNav = tenantId ? getTenantPrimaryMobileNavigation(tenantId) : [];
+  const bottomNav = tenantId ? getTenantMobileNavigation(tenantId) : [];
   const groupedTenantNav = moduleGroups.map((group) => ({
     ...group,
     items: tenantNav.filter((item) => group.slugs.includes(item.slug)),
@@ -137,8 +137,8 @@ export function AppShell({
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-5 sm:py-8 lg:px-6">{children}</div>
 
       {bottomNav.length > 0 ? (
-        <nav aria-label="Navegação principal do restaurante" className="fixed inset-x-3 bottom-3 z-50 rounded-[1.5rem] border border-stone-200 bg-white/95 p-2 shadow-2xl shadow-stone-300/70 backdrop-blur md:hidden">
-          <div className="grid grid-cols-5 gap-1">
+        <nav aria-label="Navegação principal do restaurante" className="fixed inset-x-3 bottom-3 z-50 overflow-x-auto rounded-[1.5rem] border border-stone-200 bg-white/95 p-2 shadow-2xl shadow-stone-300/70 backdrop-blur md:hidden">
+          <div className="flex min-w-max gap-1">
             {bottomNav.map((item) => <MobileNavItem key={item.slug} item={item} />)}
           </div>
         </nav>
