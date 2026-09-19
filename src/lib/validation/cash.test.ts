@@ -43,4 +43,17 @@ describe('cash payment validation', () => {
     expect(validateCashPaymentInput({ tenantId, tableId, orderIds: [], paymentMethod: 'barter', subtotalCents: 1000, amountPaid: '10,00' }).success).toBe(false);
     expect(validateCashPaymentInput({ tenantId, tableId, orderIds: [tenantId], paymentMethod: 'money', subtotalCents: 1000, amountPaid: '0,00' }).success).toBe(false);
   });
+
+  it('rejects closing a table when paid amount does not cover total due', () => {
+    expect(validateCashPaymentInput({
+      tenantId,
+      tableId,
+      orderIds: ['33333333-3333-4333-8333-333333333333'],
+      paymentMethod: 'money',
+      subtotalCents: 10000,
+      serviceFeePercent: '10',
+      discount: '0,00',
+      amountPaid: '100,00',
+    })).toEqual({ success: false, error: 'Valor pago menor que o total da conta.' });
+  });
 });

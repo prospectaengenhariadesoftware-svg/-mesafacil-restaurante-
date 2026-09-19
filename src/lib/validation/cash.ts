@@ -1,4 +1,5 @@
 import { isUuid } from './auth';
+import { calculateCashSettlement } from '../domain/order';
 import { parseMoneyToCents, type ValidationResult } from './catalog';
 
 export const paymentMethods = ['money', 'pix', 'debit', 'credit', 'other'] as const;
@@ -45,6 +46,14 @@ export function validateCashPaymentInput(input: Record<string, unknown>): Valida
   if (discountCents === null || discountCents < 0 || discountCents > subtotalCents) return { success: false, error: 'Desconto inválido.' };
   if (amountPaidCents === null || amountPaidCents <= 0) return { success: false, error: 'Informe um valor pago maior que zero.' };
   if (notes.length > 300) return { success: false, error: 'Observação muito longa.' };
+
+  const settlement = calculateCashSettlement({
+    subtotalCents,
+    serviceFeePercent: serviceFeePercentRaw,
+    discountCents,
+    amountPaidCents,
+  });
+  if (!settlement.isFullyPaid) return { success: false, error: 'Valor pago menor que o total da conta.' };
 
   return {
     success: true,

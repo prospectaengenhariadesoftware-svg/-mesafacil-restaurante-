@@ -6,7 +6,7 @@ describe('buildOperationalReport', () => {
   it('summarizes daily orders, paid cash revenue, average ticket and payment methods', () => {
     const report = buildOperationalReport({
       orders: [
-        { id: 'order-1', status: 'delivered', total_cents: 5000, created_at: '2026-09-12T10:00:00.000Z' },
+        { id: 'order-1', status: 'delivered', total_cents: 5000, created_at: '2026-09-12T10:00:00.000Z', preparing_at: '2026-09-12T10:05:00.000Z', ready_at: '2026-09-12T10:20:00.000Z', delivered_at: '2026-09-12T10:30:00.000Z' },
         { id: 'order-2', status: 'cancelled', total_cents: 3000, created_at: '2026-09-12T11:00:00.000Z' },
         { id: 'order-3', status: 'ready', total_cents: 2000, created_at: '2026-09-12T12:00:00.000Z' },
       ],
@@ -31,6 +31,12 @@ describe('buildOperationalReport', () => {
     expect(report.netReceivedTodayCents).toBe(7700);
     expect(report.averageTicketCents).toBe(7700 / 2);
     expect(report.cancellationRatePercent).toBeCloseTo(33.33, 2);
+    expect(report.timing).toEqual({
+      toKitchen: { sampleSize: 1, averageMinutes: 5 },
+      preparation: { sampleSize: 1, averageMinutes: 15 },
+      readyToDelivery: { sampleSize: 1, averageMinutes: 10 },
+      totalToDelivery: { sampleSize: 1, averageMinutes: 30 },
+    });
     expect(report.paymentBreakdown).toEqual([
       { paymentMethod: 'pix', count: 1, totalDueCents: 5500, amountPaidCents: 6000, changeCents: 500 },
       { paymentMethod: 'money', count: 1, totalDueCents: 2200, amountPaidCents: 2200, changeCents: 0 },
@@ -54,6 +60,12 @@ describe('buildOperationalReport', () => {
       cancellationRatePercent: 0,
       paymentBreakdown: [],
       topProducts: [],
+      timing: {
+        toKitchen: { sampleSize: 0, averageMinutes: 0 },
+        preparation: { sampleSize: 0, averageMinutes: 0 },
+        readyToDelivery: { sampleSize: 0, averageMinutes: 0 },
+        totalToDelivery: { sampleSize: 0, averageMinutes: 0 },
+      },
     });
   });
 

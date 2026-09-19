@@ -78,6 +78,8 @@ declare
   report_paid_revenue integer;
   report_paid_items_count integer;
   cross_tenant_count integer;
+  timing_columns_count integer;
+  underpaid_rejected boolean := false;
 begin
   -- Customer opens the QR menu and receives only customer-safe public catalog data.
   select public.get_public_menu_by_qr(
@@ -181,6 +183,40 @@ begin
   select public.advance_tenant_customer_order_status('eeeeeeee-2000-4000-8000-eeeeeeeeeeee', created_order_id, null) into status_payload;
   if status_payload #>> '{status}' <> 'delivered' then
     raise exception 'MVP smoke: expected delivered status';
+  end if;
+
+  select count(*) into timing_columns_count
+  from public.tenant_customer_orders
+  where id = created_order_id
+    and tenant_id = 'eeeeeeee-2000-4000-8000-eeeeeeeeeeee'
+    and confirmed_at is not null
+    and preparing_at is not null
+    and ready_at is not null
+    and delivered_at is not null
+    and confirmed_at <= preparing_at
+    and preparing_at <= ready_at
+    and ready_at <= delivered_at;
+
+  if timing_columns_count <> 1 then
+    raise exception 'MVP smoke: order transition timing columns were not recorded';
+  end if;
+
+  begin
+    perform public.close_tenant_cash_payment(
+      'eeeeeeee-2000-4000-8000-eeeeeeeeeeee',
+      'eeeeeeee-3000-4000-8000-eeeeeeeeeeee',
+      array[created_order_id],
+      'pix',
+      0,
+      9800,
+      'Smoke MVP subpago'
+    );
+  exception when others then
+    underpaid_rejected := true;
+  end;
+
+  if underpaid_rejected is not true then
+    raise exception 'MVP smoke: underpaid cash settlement was accepted';
   end if;
 
   -- Cashier settlement makes the delivered order count toward paid reports/top products.

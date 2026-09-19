@@ -939,6 +939,10 @@ create table if not exists public.tenant_customer_orders (
   total_cents integer not null default 0,
   created_at timestamptz not null default timezone('utc', now()),
   updated_at timestamptz not null default timezone('utc', now()),
+  confirmed_at timestamptz,
+  preparing_at timestamptz,
+  ready_at timestamptz,
+  delivered_at timestamptz,
   constraint tenant_customer_orders_status_check check (status in ('received','confirmed','preparing','ready','delivered','cancelled')),
   constraint tenant_customer_orders_total_nonnegative check (total_cents >= 0),
   constraint tenant_customer_orders_customer_name_len check (customer_name is null or char_length(trim(customer_name)) between 2 and 80),
@@ -983,6 +987,9 @@ alter table public.tenant_customer_order_items
 create index if not exists idx_tenant_customer_orders_tenant_status on public.tenant_customer_orders(tenant_id, status, created_at desc);
 create index if not exists idx_tenant_customer_orders_table on public.tenant_customer_orders(table_id, created_at desc);
 create index if not exists idx_tenant_customer_order_items_order on public.tenant_customer_order_items(order_id);
+create index if not exists idx_tenant_customer_orders_tenant_preparing_at on public.tenant_customer_orders(tenant_id, preparing_at desc) where preparing_at is not null;
+create index if not exists idx_tenant_customer_orders_tenant_ready_at on public.tenant_customer_orders(tenant_id, ready_at desc) where ready_at is not null;
+create index if not exists idx_tenant_customer_orders_tenant_delivered_at on public.tenant_customer_orders(tenant_id, delivered_at desc) where delivered_at is not null;
 
 create trigger set_tenant_customer_orders_updated_at
 before update on public.tenant_customer_orders
@@ -1368,6 +1375,7 @@ as $$
 declare
   order_record record;
   next_status text;
+  transition_at timestamptz := timezone('utc', now());
 begin
   if not public.current_user_has_tenant_role(
     target_tenant_id,
@@ -1408,7 +1416,11 @@ begin
 
   update public.tenant_customer_orders
   set status = next_status,
-      updated_at = timezone('utc', now())
+      updated_at = transition_at,
+      confirmed_at = case when next_status in ('confirmed','preparing','ready','delivered') and confirmed_at is null then transition_at else confirmed_at end,
+      preparing_at = case when next_status in ('preparing','ready','delivered') and preparing_at is null then transition_at else preparing_at end,
+      ready_at = case when next_status in ('ready','delivered') and ready_at is null then transition_at else ready_at end,
+      delivered_at = case when next_status = 'delivered' and delivered_at is null then transition_at else delivered_at end
   where id = target_order_id
     and tenant_id = target_tenant_id;
 

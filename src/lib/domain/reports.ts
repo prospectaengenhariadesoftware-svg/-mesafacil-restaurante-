@@ -3,6 +3,10 @@ export type ReportOrderRow = {
   status: 'received' | 'confirmed' | 'preparing' | 'ready' | 'delivered' | 'cancelled';
   total_cents: number;
   created_at: string;
+  confirmed_at?: string | null;
+  preparing_at?: string | null;
+  ready_at?: string | null;
+  delivered_at?: string | null;
 };
 
 export type ReportPaymentRow = {
@@ -46,6 +50,18 @@ export type TopProductSummary = {
   revenueCents: number;
 };
 
+export type TimingSummary = {
+  sampleSize: number;
+  averageMinutes: number;
+};
+
+export type OperationalTimingSummary = {
+  toKitchen: TimingSummary;
+  preparation: TimingSummary;
+  readyToDelivery: TimingSummary;
+  totalToDelivery: TimingSummary;
+};
+
 export type OperationalReportSummary = ReportCatalogCounts & {
   ordersToday: number;
   grossOrdersTodayCents: number;
@@ -56,6 +72,7 @@ export type OperationalReportSummary = ReportCatalogCounts & {
   deliveredOrders: number;
   cancelledOrders: number;
   cancellationRatePercent: number;
+  timing: OperationalTimingSummary;
   paymentBreakdown: PaymentBreakdownSummary[];
   topProducts: TopProductSummary[];
 };
@@ -69,6 +86,30 @@ export type BuildOperationalReportInput = {
 };
 
 const openStatuses = new Set<ReportOrderRow['status']>(['received', 'confirmed', 'preparing', 'ready']);
+
+function minutesBetween(start: string | null | undefined, end: string | null | undefined): number | null {
+  if (!start || !end) return null;
+  const startTime = new Date(start).getTime();
+  const endTime = new Date(end).getTime();
+  if (!Number.isFinite(startTime) || !Number.isFinite(endTime) || endTime < startTime) return null;
+  return (endTime - startTime) / 60000;
+}
+
+function summarizeDurations(values: Array<number | null>): TimingSummary {
+  const validValues = values.filter((value): value is number => typeof value === 'number' && Number.isFinite(value));
+  if (validValues.length === 0) return { sampleSize: 0, averageMinutes: 0 };
+  const total = validValues.reduce((sum, value) => sum + value, 0);
+  return { sampleSize: validValues.length, averageMinutes: total / validValues.length };
+}
+
+function buildTimingSummary(orders: ReportOrderRow[]): OperationalTimingSummary {
+  return {
+    toKitchen: summarizeDurations(orders.map((order) => minutesBetween(order.created_at, order.preparing_at))),
+    preparation: summarizeDurations(orders.map((order) => minutesBetween(order.preparing_at, order.ready_at))),
+    readyToDelivery: summarizeDurations(orders.map((order) => minutesBetween(order.ready_at, order.delivered_at))),
+    totalToDelivery: summarizeDurations(orders.map((order) => minutesBetween(order.created_at, order.delivered_at))),
+  };
+}
 
 export function buildOperationalReport(input: BuildOperationalReportInput): OperationalReportSummary {
   const ordersToday = input.orders.length;
@@ -130,6 +171,7 @@ export function buildOperationalReport(input: BuildOperationalReportInput): Oper
     deliveredOrders,
     cancelledOrders,
     cancellationRatePercent: ordersToday > 0 ? (cancelledOrders / ordersToday) * 100 : 0,
+    timing: buildTimingSummary(input.orders),
     paymentBreakdown,
     topProducts,
   };

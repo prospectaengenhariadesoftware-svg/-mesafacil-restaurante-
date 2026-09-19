@@ -314,6 +314,25 @@ function percentLabel(value: number): string {
   return `${safeValue.toFixed(1).replace('.', ',')}%`;
 }
 
+function durationLabel(minutes: number): string {
+  const safeMinutes = Number.isFinite(minutes) ? Math.max(0, Math.round(minutes)) : 0;
+  if (safeMinutes < 60) return `${safeMinutes} min`;
+  const hours = Math.floor(safeMinutes / 60);
+  const remainingMinutes = safeMinutes % 60;
+  return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}min` : `${hours}h`;
+}
+
+function TimingCard({ label, value, sampleSize, hint }: Readonly<{ label: string; value: number; sampleSize: number; hint: string }>) {
+  return (
+    <div className="rounded-3xl border border-stone-200 bg-stone-50 p-4">
+      <p className="text-xs font-black uppercase tracking-[0.16em] text-stone-500">{label}</p>
+      <p className="mt-2 text-3xl font-black text-stone-950">{durationLabel(value)}</p>
+      <p className="mt-1 text-xs leading-5 text-stone-600">{sampleSize > 0 ? `${sampleSize} pedido(s) com horário registrado.` : 'Aguardando pedidos com este marco registrado.'}</p>
+      <p className="mt-2 text-xs leading-5 text-stone-500">{hint}</p>
+    </div>
+  );
+}
+
 function ProgressBar({ value, colorClass }: Readonly<{ value: number; colorClass: string }>) {
   const safeValue = Number.isFinite(value) ? Math.max(0, Math.min(100, Math.round(value))) : 0;
   return (
@@ -426,6 +445,23 @@ export function ReportsPanel({ summary }: Readonly<{ summary: ReportSummary }>) 
             </div>
           </div>
         </article>
+      </section>
+
+      <section className="rounded-[1.75rem] border border-stone-200 bg-white p-5 shadow-sm shadow-stone-200/70">
+        <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
+          <div>
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-red-700">Tempos da operação</p>
+            <h2 className="mt-1 text-2xl font-black tracking-tight text-stone-950">Pedido, cozinha, pronto e entrega</h2>
+            <p className="mt-2 text-sm leading-6 text-stone-600">Médias do dia calculadas com horários reais gravados quando o pedido muda de etapa.</p>
+          </div>
+          <span className="rounded-full border border-stone-200 bg-stone-50 px-4 py-2 text-xs font-black text-stone-700">Hoje</span>
+        </div>
+        <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <TimingCard label="Pedido → cozinha" value={summary.timing.toKitchen.averageMinutes} sampleSize={summary.timing.toKitchen.sampleSize} hint="Do pedido feito até entrar em preparo." />
+          <TimingCard label="Tempo de preparo" value={summary.timing.preparation.averageMinutes} sampleSize={summary.timing.preparation.sampleSize} hint="Da cozinha até marcar como pronto." />
+          <TimingCard label="Pronto → mesa" value={summary.timing.readyToDelivery.averageMinutes} sampleSize={summary.timing.readyToDelivery.sampleSize} hint="Do prato pronto até entrega na mesa." />
+          <TimingCard label="Pedido → entrega" value={summary.timing.totalToDelivery.averageMinutes} sampleSize={summary.timing.totalToDelivery.sampleSize} hint="Ciclo completo até a mesa receber." />
+        </div>
       </section>
 
       <div className="grid gap-5 xl:grid-cols-2">

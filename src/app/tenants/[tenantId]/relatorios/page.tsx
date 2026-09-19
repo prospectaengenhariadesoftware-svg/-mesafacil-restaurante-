@@ -34,7 +34,7 @@ export default async function RelatoriosPage({ params }: Readonly<{ params: Prom
   const [ordersResult, paymentsResult, openOrdersResult, categories, products, availableProducts, tables, activeTables] = await Promise.all([
     supabase
       .from('tenant_customer_orders')
-      .select('id, status, total_cents, created_at', { count: 'exact' })
+      .select('id, status, total_cents, created_at, confirmed_at, preparing_at, ready_at, delivered_at', { count: 'exact' })
       .eq('tenant_id', tenantId)
       .gte('created_at', todayIso)
       .range(0, REPORT_ROW_LIMIT - 1),

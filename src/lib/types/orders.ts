@@ -8,6 +8,10 @@ export type TenantCustomerOrder = {
   status: 'received' | 'confirmed' | 'preparing' | 'ready' | 'delivered' | 'cancelled';
   total_cents: number;
   created_at: string;
+  confirmed_at?: string | null;
+  preparing_at?: string | null;
+  ready_at?: string | null;
+  delivered_at?: string | null;
   table_number?: string;
   table_sector?: string | null;
   items: TenantCustomerOrderItem[];
