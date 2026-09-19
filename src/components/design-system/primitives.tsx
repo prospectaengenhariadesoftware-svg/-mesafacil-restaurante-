@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { AppIcon, type AppIconName } from './app-icon';
+import { NavigationPendingIndicator } from '@/components/navigation/navigation-pending-indicator';
 
 export type StatusTone = 'brand' | 'warning' | 'success' | 'info' | 'neutral' | 'danger';
 
@@ -20,7 +21,7 @@ export function Button({ children, href, variant = 'primary', type = 'button', c
     ghost: 'text-gray-600 hover:bg-gray-50 hover:text-gray-950',
   }[variant];
   const composed = `inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition ${classes} ${className}`;
-  if (href) return <Link href={href} className={composed}>{children}</Link>;
+  if (href) return <Link href={href} className={composed}>{children}<NavigationPendingIndicator /></Link>;
   return <button type={type} className={composed}>{children}</button>;
 }
 

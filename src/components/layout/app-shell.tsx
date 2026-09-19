@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { signOutAction } from '@/app/actions/auth';
+import { NavigationPendingIndicator } from '@/components/navigation/navigation-pending-indicator';
 import { getTenantNavigation, type TenantModuleSlug, type TenantNavigationItem } from '@/lib/tenant/navigation';
 
 const moduleIcons: Partial<Record<TenantModuleSlug, string>> = {
@@ -79,7 +80,7 @@ function MobileNavItem({ item }: Readonly<{ item: TenantNavigationItem }>) {
       className={`flex min-h-16 flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2 text-center text-[11px] font-black transition hover:bg-red-50 hover:text-red-700 ${featured ? 'text-red-700' : 'text-stone-600'}`}
     >
       <span className={`grid h-8 w-8 place-items-center rounded-xl text-lg ${featured ? 'bg-red-50 text-red-700' : 'bg-stone-50 text-stone-700'}`}>{moduleIcons[item.slug] ?? '•'}</span>
-      <span className="max-w-full truncate">{moduleShortLabels[item.slug] ?? item.label}</span>
+      <span className="flex max-w-full items-center justify-center truncate">{moduleShortLabels[item.slug] ?? item.label}<NavigationPendingIndicator /></span>
     </Link>
   );
 }

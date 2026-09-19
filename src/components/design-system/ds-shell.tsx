@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { signOutAction } from '@/app/actions/auth';
 import { getTenantNavigation, type TenantModuleSlug } from '@/lib/tenant/navigation';
+import { NavigationPendingIndicator } from '@/components/navigation/navigation-pending-indicator';
 import { AppIcon, type AppIconName } from './app-icon';
 import { Button } from './primitives';
 
@@ -18,7 +19,7 @@ const moduleIcons: Partial<Record<TenantModuleSlug, AppIconName>> = {
   configuracoes: 'settings',
 };
 
-const primaryMobile: TenantModuleSlug[] = ['visao-geral', 'cardapio', 'pedidos', 'mesas'];
+const primaryMobile: TenantModuleSlug[] = ['visao-geral', 'produtos', 'pedidos', 'cozinha', 'caixa'];
 const sidebarGroups: { title: string; items: TenantModuleSlug[] }[] = [
   { title: 'Operação', items: ['visao-geral', 'pedidos', 'mesas', 'cozinha', 'caixa'] },
   { title: 'Cardápio', items: ['cardapio', 'produtos', 'adicionais'] },
@@ -86,10 +87,9 @@ export function DesignSystemShell({ tenantId, activeModule = 'pedidos', children
           {mobileItems.map((item) => item ? (
             <Link key={item.slug} href={item.href} className={`flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl px-1 text-[11px] font-black ${item.slug === activeModule ? 'text-red-700' : 'text-gray-500'}`}>
               <AppIcon name={moduleIcons[item.slug] ?? 'home'} size={18} />
-              <span>{item.slug === 'visao-geral' ? 'Início' : item.label}</span>
+              <span className="flex items-center justify-center">{item.slug === 'visao-geral' ? 'Início' : item.label}<NavigationPendingIndicator /></span>
             </Link>
           ) : null)}
-          <Link href={`/tenants/${tenantId}`} className="flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl px-1 text-[11px] font-black text-gray-500"><AppIcon name="more" size={18} /><span>Mais</span></Link>
         </div>
       </nav>
     </main>
