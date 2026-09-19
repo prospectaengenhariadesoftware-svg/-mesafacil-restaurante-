@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { signOutAction } from '@/app/actions/auth';
 import { NavigationPendingIndicator } from '@/components/navigation/navigation-pending-indicator';
-import { getTenantNavigation, type TenantModuleSlug, type TenantNavigationItem } from '@/lib/tenant/navigation';
+import { getTenantNavigation, getTenantPrimaryMobileNavigation, type TenantModuleSlug, type TenantNavigationItem } from '@/lib/tenant/navigation';
 
 const moduleIcons: Partial<Record<TenantModuleSlug, string>> = {
   'visao-geral': '⌂',
@@ -93,9 +93,7 @@ export function AppShell({
   tenantId?: string;
 }>) {
   const tenantNav = tenantId ? getTenantNavigation(tenantId) : [];
-  const bottomNav = tenantNav.length > 0
-    ? tenantNav.filter((item) => ['visao-geral', 'produtos', 'pedidos', 'cozinha', 'caixa'].includes(item.slug))
-    : [];
+  const bottomNav = tenantId ? getTenantPrimaryMobileNavigation(tenantId) : [];
   const groupedTenantNav = moduleGroups.map((group) => ({
     ...group,
     items: tenantNav.filter((item) => group.slugs.includes(item.slug)),

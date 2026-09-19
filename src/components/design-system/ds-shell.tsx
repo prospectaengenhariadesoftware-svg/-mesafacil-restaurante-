@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { signOutAction } from '@/app/actions/auth';
-import { getTenantNavigation, type TenantModuleSlug } from '@/lib/tenant/navigation';
+import { getTenantNavigation, getTenantPrimaryMobileNavigation, type TenantModuleSlug } from '@/lib/tenant/navigation';
 import { NavigationPendingIndicator } from '@/components/navigation/navigation-pending-indicator';
 import { AppIcon, type AppIconName } from './app-icon';
 import { Button } from './primitives';
@@ -19,7 +19,6 @@ const moduleIcons: Partial<Record<TenantModuleSlug, AppIconName>> = {
   configuracoes: 'settings',
 };
 
-const primaryMobile: TenantModuleSlug[] = ['visao-geral', 'produtos', 'pedidos', 'cozinha', 'caixa'];
 const sidebarGroups: { title: string; items: TenantModuleSlug[] }[] = [
   { title: 'Operação', items: ['visao-geral', 'pedidos', 'mesas', 'cozinha', 'caixa'] },
   { title: 'Cardápio', items: ['cardapio', 'produtos', 'adicionais'] },
@@ -29,7 +28,7 @@ const sidebarGroups: { title: string; items: TenantModuleSlug[] }[] = [
 export function DesignSystemShell({ tenantId, activeModule = 'pedidos', children }: Readonly<{ tenantId: string; activeModule?: TenantModuleSlug; children: React.ReactNode }>) {
   const nav = getTenantNavigation(tenantId);
   const bySlug = new Map(nav.map((item) => [item.slug, item]));
-  const mobileItems = primaryMobile.map((slug) => bySlug.get(slug)).filter(Boolean);
+  const mobileItems = getTenantPrimaryMobileNavigation(tenantId);
 
   return (
     <main className="min-h-screen bg-[#fbfafc] pb-24 text-gray-950 md:pb-0">
