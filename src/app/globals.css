@@ -57,3 +57,35 @@ textarea {
 ::-webkit-scrollbar-thumb:hover {
   background: #a8a29e;
 }
+
+/*
+ * Regra visual global do MesaFácil:
+ * - botões vermelhos sólidos devem ter texto branco;
+ * - botões brancos devem usar o vermelho da marca no texto.
+ *
+ * Mantém cards brancos em <a> fora do escopo ao exigir espaçamento horizontal
+ * de botão (px-*), evitando recolorir blocos/cards clicáveis inteiros.
+ */
+button[class*="bg-red-500"],
+button[class*="bg-red-600"],
+button[class*="bg-red-700"],
+button[class*="bg-red-800"],
+button[class*="bg-rose-500"],
+button[class*="bg-rose-600"],
+button[class*="bg-rose-700"],
+button[class*="bg-rose-800"],
+a[class*="bg-red-500"],
+a[class*="bg-red-600"],
+a[class*="bg-red-700"],
+a[class*="bg-red-800"],
+a[class*="bg-rose-500"],
+a[class*="bg-rose-600"],
+a[class*="bg-rose-700"],
+a[class*="bg-rose-800"] {
+  color: #ffffff !important;
+}
+
+button[class*="bg-white"]:not([class*="bg-white/"]),
+a[class*="bg-white"][class*="px-"]:not([class*="bg-white/"]) {
+  color: var(--brand) !important;
+}
