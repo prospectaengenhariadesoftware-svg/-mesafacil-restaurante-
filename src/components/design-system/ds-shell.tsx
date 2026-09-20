@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { signOutAction } from '@/app/actions/auth';
-import { getTenantMobileNavigation, getTenantNavigation, type TenantModuleSlug } from '@/lib/tenant/navigation';
+import { getTenantMobileMoreNavigation, getTenantMobilePrimaryNavigation, getTenantNavigation, type TenantModuleSlug, type TenantNavigationItem } from '@/lib/tenant/navigation';
 import { NavigationPendingIndicator } from '@/components/navigation/navigation-pending-indicator';
 import { AppIcon, type AppIconName } from './app-icon';
 import { Button } from './primitives';
@@ -25,10 +25,33 @@ const sidebarGroups: { title: string; items: TenantModuleSlug[] }[] = [
   { title: 'Gestão', items: ['relatorios', 'equipe', 'configuracoes'] },
 ];
 
+function DesignSystemMobileMoreMenu({ items }: Readonly<{ items: TenantNavigationItem[] }>) {
+  if (items.length === 0) return null;
+
+  return (
+    <details className="group relative shrink-0">
+      <summary className="flex min-h-14 w-16 cursor-pointer list-none flex-col items-center justify-center gap-1 rounded-xl px-1 text-[11px] font-black text-gray-500 transition hover:bg-red-50 hover:text-red-700 [&::-webkit-details-marker]:hidden">
+        <span className="text-lg leading-none">•••</span>
+        <span>Mais</span>
+      </summary>
+      <div className="absolute bottom-full right-0 mb-3 grid w-56 gap-1 rounded-2xl border border-gray-200 bg-white p-2 shadow-2xl shadow-gray-300/60">
+        {items.map((item) => (
+          <Link key={item.slug} href={item.href} className="flex min-h-11 items-center gap-3 rounded-xl px-3 py-2 text-sm font-black text-gray-600 transition hover:bg-red-50 hover:text-red-700">
+            <AppIcon name={moduleIcons[item.slug] ?? 'home'} size={18} />
+            <span className="truncate">{item.label}</span>
+            <NavigationPendingIndicator />
+          </Link>
+        ))}
+      </div>
+    </details>
+  );
+}
+
 export function DesignSystemShell({ tenantId, activeModule = 'pedidos', children }: Readonly<{ tenantId: string; activeModule?: TenantModuleSlug; children: React.ReactNode }>) {
   const nav = getTenantNavigation(tenantId);
   const bySlug = new Map(nav.map((item) => [item.slug, item]));
-  const mobileItems = getTenantMobileNavigation(tenantId);
+  const mobileItems = getTenantMobilePrimaryNavigation(tenantId);
+  const mobileMoreItems = getTenantMobileMoreNavigation(tenantId);
 
   return (
     <main className="min-h-screen bg-[#fbfafc] pb-24 text-gray-950 md:pb-0">
@@ -81,14 +104,17 @@ export function DesignSystemShell({ tenantId, activeModule = 'pedidos', children
 
       <section className="mx-auto max-w-7xl px-4 py-6 md:ml-[232px] md:px-6 lg:px-8">{children}</section>
 
-      <nav aria-label="Navegação inferior piloto" className="fixed inset-x-3 bottom-3 z-50 overflow-x-auto rounded-2xl border border-gray-200 bg-white/95 p-2 shadow-2xl shadow-gray-300/60 backdrop-blur md:hidden">
-        <div className="flex min-w-max gap-1">
-          {mobileItems.map((item) => item ? (
-            <Link key={item.slug} href={item.href} className={`flex min-h-14 w-16 shrink-0 flex-col items-center justify-center gap-1 rounded-xl px-1 text-[11px] font-black ${item.slug === activeModule ? 'text-red-700' : 'text-gray-500'}`}>
-              <AppIcon name={moduleIcons[item.slug] ?? 'home'} size={18} />
-              <span className="flex max-w-full items-center justify-center truncate">{item.slug === 'visao-geral' ? 'Início' : item.label}<NavigationPendingIndicator /></span>
-            </Link>
-          ) : null)}
+      <nav aria-label="Navegação inferior piloto" className="fixed inset-x-3 bottom-3 z-50 rounded-2xl border border-gray-200 bg-white/95 p-2 shadow-2xl shadow-gray-300/60 backdrop-blur md:hidden">
+        <div className="flex items-center gap-1">
+          <div className="flex min-w-0 flex-1 gap-1 overflow-x-auto">
+            {mobileItems.map((item) => item ? (
+              <Link key={item.slug} href={item.href} className={`flex min-h-14 w-16 shrink-0 flex-col items-center justify-center gap-1 rounded-xl px-1 text-[11px] font-black ${item.slug === activeModule ? 'text-red-700' : 'text-gray-500'}`}>
+                <AppIcon name={moduleIcons[item.slug] ?? 'home'} size={18} />
+                <span className="flex max-w-full items-center justify-center truncate">{item.slug === 'visao-geral' ? 'Home' : item.slug === 'mesas' ? 'Mesa' : item.label}<NavigationPendingIndicator /></span>
+              </Link>
+            ) : null)}
+          </div>
+          <DesignSystemMobileMoreMenu items={mobileMoreItems} />
         </div>
       </nav>
     </main>

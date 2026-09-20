@@ -1,5 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { getTenantMobileNavigation, getTenantNavigation, tenantMobileModuleSlugs, tenantModuleSlugs } from './navigation';
+import {
+  getTenantMobileMoreNavigation,
+  getTenantMobileNavigation,
+  getTenantMobilePrimaryNavigation,
+  getTenantNavigation,
+  tenantMobileModuleSlugs,
+  tenantMobileMoreModuleSlugs,
+  tenantMobilePrimaryModuleSlugs,
+  tenantModuleSlugs,
+} from './navigation';
 
 describe('tenant module navigation', () => {
   it('keeps only approved tenant module pages in this structural phase', () => {
@@ -26,13 +35,31 @@ describe('tenant module navigation', () => {
     expect(nav.some((item) => item.href === '/admin/kitchen')).toBe(false);
   });
 
-  it('keeps every tenant module reachable from the horizontally scrollable mobile navigation', () => {
-    const nav = getTenantMobileNavigation('11111111-1111-4111-8111-111111111111');
+  it('keeps the requested mobile bar order and moves remaining modules into Mais', () => {
+    const tenantId = '11111111-1111-4111-8111-111111111111';
+    const primaryNav = getTenantMobilePrimaryNavigation(tenantId);
+    const moreNav = getTenantMobileMoreNavigation(tenantId);
+    const allMobileNav = getTenantMobileNavigation(tenantId);
 
-    expect(tenantMobileModuleSlugs).toEqual(tenantModuleSlugs);
-    expect(nav.map((item) => item.slug)).toEqual(tenantModuleSlugs);
-    expect(nav).toHaveLength(11);
-    expect(nav.map((item) => item.label)).not.toContain('Mais');
-    expect(nav.every((item) => item.href.startsWith('/tenants/11111111-1111-4111-8111-111111111111'))).toBe(true);
+    expect(tenantMobilePrimaryModuleSlugs).toEqual([
+      'visao-geral',
+      'pedidos',
+      'cozinha',
+      'caixa',
+      'mesas',
+      'cardapio',
+    ]);
+    expect(primaryNav.map((item) => item.slug)).toEqual(tenantMobilePrimaryModuleSlugs);
+    expect(moreNav.map((item) => item.slug)).toEqual([
+      'produtos',
+      'adicionais',
+      'equipe',
+      'relatorios',
+      'configuracoes',
+    ]);
+    expect(tenantMobileMoreModuleSlugs).toEqual(moreNav.map((item) => item.slug));
+    expect(allMobileNav.map((item) => item.slug)).toEqual(tenantMobileModuleSlugs);
+    expect(new Set(allMobileNav.map((item) => item.slug))).toEqual(new Set(tenantModuleSlugs));
+    expect(allMobileNav.every((item) => item.href.startsWith(`/tenants/${tenantId}`))).toBe(true);
   });
 });

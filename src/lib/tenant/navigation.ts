@@ -21,18 +21,22 @@ export type TenantNavigationItem = {
   href: string;
 };
 
-export const tenantMobileModuleSlugs = [
+export const tenantMobilePrimaryModuleSlugs = [
   'visao-geral',
-  'cardapio',
-  'produtos',
-  'adicionais',
-  'mesas',
   'pedidos',
   'cozinha',
   'caixa',
-  'equipe',
-  'relatorios',
-  'configuracoes',
+  'mesas',
+  'cardapio',
+] as const satisfies readonly TenantModuleSlug[];
+
+export const tenantMobileMoreModuleSlugs = tenantModuleSlugs.filter(
+  (slug) => !(tenantMobilePrimaryModuleSlugs as readonly TenantModuleSlug[]).includes(slug),
+) as TenantModuleSlug[];
+
+export const tenantMobileModuleSlugs = [
+  ...tenantMobilePrimaryModuleSlugs,
+  ...tenantMobileMoreModuleSlugs,
 ] as const satisfies readonly TenantModuleSlug[];
 
 const moduleLabels: Record<TenantModuleSlug, Omit<TenantNavigationItem, 'slug' | 'href'>> = {
@@ -91,9 +95,21 @@ export function getTenantNavigation(tenantId: string): TenantNavigationItem[] {
   }));
 }
 
+function pickTenantNavigation(tenantId: string, slugs: readonly TenantModuleSlug[]): TenantNavigationItem[] {
+  const navBySlug = new Map(getTenantNavigation(tenantId).map((item) => [item.slug, item]));
+  return slugs.map((slug) => navBySlug.get(slug)).filter((item): item is TenantNavigationItem => Boolean(item));
+}
+
+export function getTenantMobilePrimaryNavigation(tenantId: string): TenantNavigationItem[] {
+  return pickTenantNavigation(tenantId, tenantMobilePrimaryModuleSlugs);
+}
+
+export function getTenantMobileMoreNavigation(tenantId: string): TenantNavigationItem[] {
+  return pickTenantNavigation(tenantId, tenantMobileMoreModuleSlugs);
+}
+
 export function getTenantMobileNavigation(tenantId: string): TenantNavigationItem[] {
-  const mobileSlugs = new Set<TenantModuleSlug>(tenantMobileModuleSlugs);
-  return getTenantNavigation(tenantId).filter((item) => mobileSlugs.has(item.slug));
+  return pickTenantNavigation(tenantId, tenantMobileModuleSlugs);
 }
 
 export function getTenantModule(slug: TenantModuleSlug, tenantId: string): TenantNavigationItem {

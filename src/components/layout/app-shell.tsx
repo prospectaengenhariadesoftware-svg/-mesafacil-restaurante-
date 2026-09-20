@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { signOutAction } from '@/app/actions/auth';
 import { NavigationPendingIndicator } from '@/components/navigation/navigation-pending-indicator';
-import { getTenantMobileNavigation, getTenantNavigation, type TenantModuleSlug, type TenantNavigationItem } from '@/lib/tenant/navigation';
+import { getTenantMobileMoreNavigation, getTenantMobilePrimaryNavigation, getTenantNavigation, type TenantModuleSlug, type TenantNavigationItem } from '@/lib/tenant/navigation';
 
 const moduleIcons: Partial<Record<TenantModuleSlug, string>> = {
   'visao-geral': '⌂',
@@ -22,7 +22,7 @@ const moduleShortLabels: Partial<Record<TenantModuleSlug, string>> = {
   cardapio: 'Cardápio',
   produtos: 'Produtos',
   adicionais: 'Adic.',
-  mesas: 'Mesas',
+  mesas: 'Mesa',
   pedidos: 'Pedidos',
   cozinha: 'Cozinha',
   caixa: 'Caixa',
@@ -85,6 +85,28 @@ function MobileNavItem({ item }: Readonly<{ item: TenantNavigationItem }>) {
   );
 }
 
+function MobileMoreMenu({ items }: Readonly<{ items: TenantNavigationItem[] }>) {
+  if (items.length === 0) return null;
+
+  return (
+    <details className="group relative shrink-0">
+      <summary className="flex min-h-16 w-16 cursor-pointer list-none flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2 text-center text-[11px] font-black text-stone-600 transition hover:bg-red-50 hover:text-red-700 [&::-webkit-details-marker]:hidden">
+        <span className="grid h-8 w-8 place-items-center rounded-xl bg-stone-50 text-lg text-stone-700">•••</span>
+        <span>Mais</span>
+      </summary>
+      <div className="absolute bottom-full right-0 mb-3 grid w-56 gap-1 rounded-3xl border border-stone-200 bg-white p-2 shadow-2xl shadow-stone-300/70">
+        {items.map((item) => (
+          <Link key={item.slug} href={item.href} className="flex min-h-11 items-center gap-3 rounded-2xl px-3 py-2 text-sm font-black text-stone-700 transition hover:bg-red-50 hover:text-red-700">
+            <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-stone-50 text-stone-700">{moduleIcons[item.slug] ?? '•'}</span>
+            <span className="truncate">{item.label}</span>
+            <NavigationPendingIndicator />
+          </Link>
+        ))}
+      </div>
+    </details>
+  );
+}
+
 export function AppShell({
   children,
   tenantId,
@@ -93,7 +115,8 @@ export function AppShell({
   tenantId?: string;
 }>) {
   const tenantNav = tenantId ? getTenantNavigation(tenantId) : [];
-  const bottomNav = tenantId ? getTenantMobileNavigation(tenantId) : [];
+  const bottomNav = tenantId ? getTenantMobilePrimaryNavigation(tenantId) : [];
+  const moreNav = tenantId ? getTenantMobileMoreNavigation(tenantId) : [];
   const groupedTenantNav = moduleGroups.map((group) => ({
     ...group,
     items: tenantNav.filter((item) => group.slugs.includes(item.slug)),
@@ -137,9 +160,12 @@ export function AppShell({
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-5 sm:py-8 lg:px-6">{children}</div>
 
       {bottomNav.length > 0 ? (
-        <nav aria-label="Navegação principal do restaurante" className="fixed inset-x-3 bottom-3 z-50 overflow-x-auto rounded-[1.5rem] border border-stone-200 bg-white/95 p-2 shadow-2xl shadow-stone-300/70 backdrop-blur md:hidden">
-          <div className="flex min-w-max gap-1">
-            {bottomNav.map((item) => <MobileNavItem key={item.slug} item={item} />)}
+        <nav aria-label="Navegação principal do restaurante" className="fixed inset-x-3 bottom-3 z-50 rounded-[1.5rem] border border-stone-200 bg-white/95 p-2 shadow-2xl shadow-stone-300/70 backdrop-blur md:hidden">
+          <div className="flex items-center gap-1">
+            <div className="flex min-w-0 flex-1 gap-1 overflow-x-auto">
+              {bottomNav.map((item) => <MobileNavItem key={item.slug} item={item} />)}
+            </div>
+            <MobileMoreMenu items={moreNav} />
           </div>
         </nav>
       ) : null}
