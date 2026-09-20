@@ -1,4 +1,6 @@
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import { buildPublicSiteMetadata, getPublicSiteContactHref } from '@/lib/public-site/site';
 import { createClient } from '@/lib/supabase/server';
 import type { PublicSitePayload } from '@/lib/types/public-site';
 import { normalizeSiteSlug } from '@/lib/validation/public-site';
@@ -7,13 +9,29 @@ function money(cents: number): string {
   return (cents / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
-function contactHref(value: string | null | undefined): string | null {
-  if (!value) return null;
-  if (value.startsWith('http://') || value.startsWith('https://')) return value;
-  const digits = value.replace(/\D/g, '');
-  if (digits.length >= 10) return `tel:${digits}`;
-  if (value.startsWith('@')) return `https://instagram.com/${value.slice(1)}`;
-  return null;
+async function loadPublicSite(restaurantSlug: string): Promise<PublicSitePayload | null> {
+  const slug = normalizeSiteSlug(restaurantSlug);
+  if (!slug) return null;
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc('get_public_site_by_slug', { site_slug: slug });
+  if (error || !data) return null;
+  return data as PublicSitePayload;
+}
+
+function publicOrigin(): string {
+  return process.env.NEXT_PUBLIC_APP_URL ?? 'https://mesafacil-restaurante.vercel.app';
+}
+
+export async function generateMetadata({
+  params,
+}: Readonly<{
+  params: Promise<{ restaurantSlug: string }>;
+}>): Promise<Metadata> {
+  const { restaurantSlug } = await params;
+  const site = await loadPublicSite(restaurantSlug);
+  if (!site) return { title: 'Restaurante não encontrado | MesaFácil' };
+  return buildPublicSiteMetadata(site, publicOrigin());
 }
 
 export default async function PublicRestaurantSitePage({
@@ -22,18 +40,12 @@ export default async function PublicRestaurantSitePage({
   params: Promise<{ restaurantSlug: string }>;
 }>) {
   const { restaurantSlug } = await params;
-  const slug = normalizeSiteSlug(restaurantSlug);
-  if (!slug) notFound();
-
-  const supabase = await createClient();
-  const { data, error } = await supabase.rpc('get_public_site_by_slug', { site_slug: slug });
-  if (error || !data) notFound();
-
-  const site = data as PublicSitePayload;
+  const site = await loadPublicSite(restaurantSlug);
+  if (!site) notFound();
   const productsCount = site.categories.reduce((total, category) => total + category.products.length, 0);
-  const whatsappHref = contactHref(site.profile.whatsapp);
-  const phoneHref = contactHref(site.profile.phone);
-  const instagramHref = contactHref(site.profile.instagram);
+  const whatsappHref = getPublicSiteContactHref(site.profile.whatsapp);
+  const phoneHref = getPublicSiteContactHref(site.profile.phone);
+  const instagramHref = getPublicSiteContactHref(site.profile.instagram);
   const primaryContact = whatsappHref ?? phoneHref ?? instagramHref;
 
   return (
