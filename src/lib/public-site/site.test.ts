@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildPublicSiteMetadata, getPublicSiteContactHref, publicSiteDescription } from './site';
+import { buildPublicSiteMetadata, getPublicSiteContactHref, getPublicSiteContactLabel, getPublicSiteWhatsappHref, productImageStyle, publicSiteDescription } from './site';
 import type { PublicSitePayload } from '@/lib/types/public-site';
 
 const site = {
@@ -35,6 +35,58 @@ describe('getPublicSiteContactHref', () => {
 
   it('converte @perfil em link do Instagram', () => {
     expect(getPublicSiteContactHref('@tuusrestaurante')).toBe('https://instagram.com/tuusrestaurante');
+  });
+});
+
+describe('getPublicSiteContactLabel', () => {
+  it('mostra WhatsApp como chamada legível, não como URL crua', () => {
+    expect(getPublicSiteContactLabel('https://wa.me/13974038515')).toBe('Chamar no WhatsApp');
+  });
+
+  it('mantém telefone em formato legível quando não é URL', () => {
+    expect(getPublicSiteContactLabel('(13) 97403-8515')).toBe('(13) 97403-8515');
+  });
+});
+
+describe('getPublicSiteWhatsappHref', () => {
+  it('preserva link wa.me válido', () => {
+    expect(getPublicSiteWhatsappHref('https://wa.me/13974038515')).toBe('https://wa.me/13974038515');
+  });
+
+  it('converte número de WhatsApp em link wa.me', () => {
+    expect(getPublicSiteWhatsappHref('(13) 97403-8515')).toBe('https://wa.me/5513974038515');
+  });
+
+  it('rejeita URL genérica no campo WhatsApp para não exibir link cru', () => {
+    expect(getPublicSiteWhatsappHref('https://encurtador.example/abc')).toBeNull();
+  });
+
+  it('rejeita URL genérica mesmo quando ela contém números', () => {
+    expect(getPublicSiteWhatsappHref('https://example.com/5513974038515')).toBeNull();
+  });
+});
+
+describe('productImageStyle', () => {
+  it('usa a imagem pública do produto como background seguro', () => {
+    expect(productImageStyle('https://cdn.exemplo.com/prato.jpg')).toEqual({ backgroundImage: 'url("https://cdn.exemplo.com/prato.jpg")' });
+  });
+
+  it('não gera background quando produto não tem imagem', () => {
+    expect(productImageStyle(null)).toBeUndefined();
+  });
+
+  it('bloqueia protocolos inseguros em imagens públicas', () => {
+    expect(productImageStyle('javascript:alert(1)')).toBeUndefined();
+  });
+
+  it('bloqueia URLs protocol-relative e rotas internas como imagem de produto', () => {
+    expect(productImageStyle('//evil.example/prato.jpg')).toBeUndefined();
+    expect(productImageStyle('/api/internal')).toBeUndefined();
+  });
+
+  it('bloqueia URLs malformadas ou capazes de quebrar CSS inline', () => {
+    expect(productImageStyle('https://')).toBeUndefined();
+    expect(productImageStyle('https://cdn.exemplo.com/a);color:red')).toBeUndefined();
   });
 });
 
