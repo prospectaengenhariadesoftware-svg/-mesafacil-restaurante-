@@ -38,6 +38,10 @@ const moduleGuidance: Record<TenantModuleSlug, string[]> = {
     'Fechar contas de pedidos prontos/entregues por mesa.',
     'Registrar forma de pagamento, desconto, taxa de serviço, valor pago e troco; fiscal/NFC-e continua fora do escopo.',
   ],
+  site: [
+    'Publicar uma página comercial simples em /r/[slug] sem expor dados internos.',
+    'Exibir cardápio básico apenas com produtos disponíveis do próprio tenant.',
+  ],
   equipe: [
     'Listar usuários vinculados ao restaurante e seus papéis.',
     'Convites e alteração de papéis devem entrar em fluxo próprio com auditoria.',

@@ -7,6 +7,7 @@ export const tenantModuleSlugs = [
   'pedidos',
   'cozinha',
   'caixa',
+  'site',
   'equipe',
   'relatorios',
   'configuracoes',
@@ -71,6 +72,10 @@ const moduleLabels: Record<TenantModuleSlug, Omit<TenantNavigationItem, 'slug' |
   caixa: {
     label: 'Caixa',
     description: 'Fechamento de contas e registro de pagamentos por mesa.',
+  },
+  site: {
+    label: 'Site público',
+    description: 'Página pública do restaurante com perfil, contato e cardápio básico.',
   },
   equipe: {
     label: 'Equipe',

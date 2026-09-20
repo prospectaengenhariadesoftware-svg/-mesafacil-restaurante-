@@ -21,6 +21,7 @@ describe('tenant module navigation', () => {
       'pedidos',
       'cozinha',
       'caixa',
+      'site',
       'equipe',
       'relatorios',
       'configuracoes',
@@ -30,7 +31,7 @@ describe('tenant module navigation', () => {
   it('builds tenant-scoped hrefs and never uses a global operational route', () => {
     const nav = getTenantNavigation('11111111-1111-4111-8111-111111111111');
 
-    expect(nav).toHaveLength(11);
+    expect(nav).toHaveLength(12);
     expect(nav.every((item) => item.href.startsWith('/tenants/11111111-1111-4111-8111-111111111111'))).toBe(true);
     expect(nav.some((item) => item.href === '/admin/kitchen')).toBe(false);
   });
@@ -53,6 +54,7 @@ describe('tenant module navigation', () => {
     expect(moreNav.map((item) => item.slug)).toEqual([
       'produtos',
       'adicionais',
+      'site',
       'equipe',
       'relatorios',
       'configuracoes',
