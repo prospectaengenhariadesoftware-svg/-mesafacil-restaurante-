@@ -81,11 +81,17 @@ a[class*="bg-red-800"],
 a[class*="bg-rose-500"],
 a[class*="bg-rose-600"],
 a[class*="bg-rose-700"],
-a[class*="bg-rose-800"] {
+a[class*="bg-rose-800"],
+button[class*="bg-[var(--brand)]"],
+button[class*="bg-[var(--brand-dark)]"],
+a[class*="bg-[var(--brand)]"],
+a[class*="bg-[var(--brand-dark)]"],
+.mf-button-primary {
   color: #ffffff !important;
 }
 
 button[class*="bg-white"]:not([class*="bg-white/"]),
-a[class*="bg-white"][class*="px-"]:not([class*="bg-white/"]) {
+a[class*="bg-white"][class*="px-"]:not([class*="bg-white/"]),
+.mf-button-secondary {
   color: var(--brand) !important;
 }

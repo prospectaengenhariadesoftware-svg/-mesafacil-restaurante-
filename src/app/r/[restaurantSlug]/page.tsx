@@ -108,11 +108,11 @@ export default async function PublicRestaurantSitePage({
             </div>
           </div>
           {whatsappHref ? (
-            <a href={whatsappHref} className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-2xl bg-[var(--brand)] px-4 text-sm font-black text-white shadow-lg shadow-red-600/20 transition hover:bg-[var(--brand-dark)]">
+            <a href={whatsappHref} className="mf-button-primary inline-flex min-h-11 shrink-0 items-center justify-center rounded-2xl bg-[var(--brand)] px-4 text-sm font-black text-white shadow-lg shadow-red-600/20 transition hover:bg-[var(--brand-dark)]">
               Pedir
             </a>
           ) : primaryContact ? (
-            <a href={primaryContact} className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-2xl bg-[var(--brand)] px-4 text-sm font-black text-white shadow-lg shadow-red-600/20 transition hover:bg-[var(--brand-dark)]">
+            <a href={primaryContact} className="mf-button-primary inline-flex min-h-11 shrink-0 items-center justify-center rounded-2xl bg-[var(--brand)] px-4 text-sm font-black text-white shadow-lg shadow-red-600/20 transition hover:bg-[var(--brand-dark)]">
               Contato
             </a>
           ) : null}
@@ -130,12 +130,12 @@ export default async function PublicRestaurantSitePage({
 
             <div className="mt-6 flex flex-col gap-3 min-[420px]:flex-row min-[420px]:flex-wrap">
               {whatsappHref ? (
-                <a href={whatsappHref} className="inline-flex min-h-13 items-center justify-center gap-2 rounded-2xl bg-white px-5 py-3 text-sm font-black text-[var(--brand)] shadow-xl shadow-red-950/20 transition hover:-translate-y-0.5 sm:text-base">
+                <a href={whatsappHref} className="mf-button-secondary inline-flex min-h-13 items-center justify-center gap-2 rounded-2xl bg-white px-5 py-3 text-sm font-black text-[var(--brand)] shadow-xl shadow-red-950/20 transition hover:-translate-y-0.5 sm:text-base">
                   <span aria-hidden="true">🛵</span>
                   Pedir pelo WhatsApp
                 </a>
               ) : primaryContact ? (
-                <a href={primaryContact} className="inline-flex min-h-13 items-center justify-center rounded-2xl bg-white px-5 py-3 text-sm font-black text-[var(--brand)] shadow-xl shadow-red-950/20 transition hover:-translate-y-0.5 sm:text-base">Entrar em contato</a>
+                <a href={primaryContact} className="mf-button-secondary inline-flex min-h-13 items-center justify-center rounded-2xl bg-white px-5 py-3 text-sm font-black text-[var(--brand)] shadow-xl shadow-red-950/20 transition hover:-translate-y-0.5 sm:text-base">Entrar em contato</a>
               ) : null}
               {site.profile.show_menu ? <a href="#cardapio" className="inline-flex min-h-13 items-center justify-center rounded-2xl border border-white/25 bg-white/15 px-5 py-3 text-sm font-black text-white backdrop-blur transition hover:-translate-y-0.5 hover:bg-white/20 sm:text-base">Ver cardápio</a> : null}
             </div>
@@ -187,7 +187,7 @@ export default async function PublicRestaurantSitePage({
               <div className="sticky top-[68px] z-20 -mx-4 overflow-x-auto border-y border-stone-200 bg-stone-50/95 px-4 py-3 backdrop-blur sm:-mx-5 sm:px-5 lg:-mx-6 lg:px-6">
                 <div className="flex min-w-max gap-2">
                   {visibleCategories.map((category, index) => (
-                    <a key={`${category.name}-${index}`} href={`#${publicCategoryAnchorId(category.name, index)}`} className="shrink-0 rounded-2xl bg-white px-4 py-3 text-sm font-black text-stone-950 shadow-sm ring-1 ring-stone-200 transition hover:bg-[var(--brand)] hover:text-white">
+                    <a key={`${category.name}-${index}`} href={`#${publicCategoryAnchorId(category.name, index)}`} className="mf-button-secondary shrink-0 rounded-2xl bg-white px-4 py-3 text-sm font-black text-[var(--brand)] shadow-sm ring-1 ring-stone-200 transition hover:bg-red-50 hover:ring-red-200">
                       {category.name}
                     </a>
                   ))}
@@ -225,7 +225,7 @@ export default async function PublicRestaurantSitePage({
                             </div>
                             {product.description ? <p className="mt-2 line-clamp-3 text-sm leading-6 text-stone-500">{product.description}</p> : <p className="mt-2 text-sm leading-6 text-stone-400">Detalhes sob consulta.</p>}
                           </div>
-                          {whatsappHref ? <a href={whatsappHref} className="inline-flex min-h-11 w-full items-center justify-center rounded-2xl bg-[var(--brand)] px-4 text-sm font-black text-white transition hover:bg-[var(--brand-dark)] sm:w-fit">Pedir este item</a> : null}
+                          {whatsappHref ? <a href={whatsappHref} className="mf-button-primary inline-flex min-h-11 w-full items-center justify-center rounded-2xl bg-[var(--brand)] px-4 text-sm font-black text-white transition hover:bg-[var(--brand-dark)] sm:w-fit">Pedir este item</a> : null}
                         </div>
                       </div>
                     ))}
@@ -248,20 +248,20 @@ export default async function PublicRestaurantSitePage({
 
       <nav className="fixed bottom-0 left-0 right-0 z-30 border-t border-stone-200 bg-white/95 px-4 py-3 shadow-[0_-12px_40px_rgba(28,25,23,0.10)] backdrop-blur sm:hidden">
         <div className="mx-auto flex max-w-md gap-2">
-          {site.profile.show_menu ? <a href="#cardapio" className="inline-flex min-h-12 flex-1 items-center justify-center rounded-2xl bg-stone-100 px-4 text-sm font-black text-stone-950">Cardápio</a> : null}
+          {site.profile.show_menu ? <a href="#cardapio" className="mf-button-secondary inline-flex min-h-12 flex-1 items-center justify-center rounded-2xl bg-white px-4 text-sm font-black text-[var(--brand)] ring-1 ring-stone-200">Cardápio</a> : null}
           {whatsappHref ? (
-            <a href={whatsappHref} aria-label="Chamar restaurante no WhatsApp" className="inline-flex min-h-12 flex-[1.4] items-center justify-center gap-2 rounded-2xl bg-[var(--brand)] px-4 text-sm font-black text-white shadow-lg shadow-red-600/20">
+            <a href={whatsappHref} aria-label="Chamar restaurante no WhatsApp" className="mf-button-primary inline-flex min-h-12 flex-[1.4] items-center justify-center gap-2 rounded-2xl bg-[var(--brand)] px-4 text-sm font-black text-white shadow-lg shadow-red-600/20">
               <span aria-hidden="true">🛵</span>
               Pedir WhatsApp
             </a>
           ) : primaryContact ? (
-            <a href={primaryContact} className="inline-flex min-h-12 flex-[1.4] items-center justify-center rounded-2xl bg-[var(--brand)] px-4 text-sm font-black text-white shadow-lg shadow-red-600/20">Contato</a>
+            <a href={primaryContact} className="mf-button-primary inline-flex min-h-12 flex-[1.4] items-center justify-center rounded-2xl bg-[var(--brand)] px-4 text-sm font-black text-white shadow-lg shadow-red-600/20">Contato</a>
           ) : null}
         </div>
       </nav>
 
       {whatsappHref ? (
-        <a href={whatsappHref} aria-label="Chamar restaurante no WhatsApp" className="fixed bottom-5 right-5 z-30 hidden h-16 w-16 items-center justify-center rounded-full bg-[var(--brand)] text-2xl text-white shadow-2xl shadow-red-600/30 transition hover:-translate-y-1 hover:bg-[var(--brand-dark)] sm:inline-flex">
+        <a href={whatsappHref} aria-label="Chamar restaurante no WhatsApp" className="mf-button-primary fixed bottom-5 right-5 z-30 hidden h-16 w-16 items-center justify-center rounded-full bg-[var(--brand)] text-2xl text-white shadow-2xl shadow-red-600/30 transition hover:-translate-y-1 hover:bg-[var(--brand-dark)] sm:inline-flex">
           <span aria-hidden="true">🛵</span>
         </a>
       ) : null}
