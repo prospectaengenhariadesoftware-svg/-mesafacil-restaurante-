@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildPublicSiteMetadata, getPublicSiteContactHref, getPublicSiteContactLabel, getPublicSiteWhatsappHref, productImageStyle, publicSiteDescription } from './site';
+import { buildPublicSiteMetadata, getPublicSiteContactHref, getPublicSiteContactLabel, getPublicSiteWhatsappHref, productImageStyle, publicCategoryAnchorId, publicSiteDescription } from './site';
 import type { PublicSitePayload } from '@/lib/types/public-site';
 
 const site = {
@@ -87,6 +87,16 @@ describe('productImageStyle', () => {
   it('bloqueia URLs malformadas ou capazes de quebrar CSS inline', () => {
     expect(productImageStyle('https://')).toBeUndefined();
     expect(productImageStyle('https://cdn.exemplo.com/a);color:red')).toBeUndefined();
+  });
+});
+
+describe('publicCategoryAnchorId', () => {
+  it('gera âncoras estáveis para navegação por categoria', () => {
+    expect(publicCategoryAnchorId('Pratos Executivos', 2)).toBe('categoria-pratos-executivos-2');
+  });
+
+  it('usa fallback quando o nome da categoria não tem slug válido', () => {
+    expect(publicCategoryAnchorId('***', 0)).toBe('categoria-0');
   });
 });
 

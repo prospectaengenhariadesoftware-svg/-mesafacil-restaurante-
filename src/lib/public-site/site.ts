@@ -44,6 +44,17 @@ export function productImageStyle(imageUrl: string | null | undefined): { backgr
   }
 }
 
+export function publicCategoryAnchorId(name: string, index: number): string {
+  const slug = name
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+
+  return slug ? `categoria-${slug}-${index}` : `categoria-${index}`;
+}
+
 export function buildPublicSiteUrl(origin: string, publicSlug: string): string {
   const safeOrigin = origin.replace(/\/+$/g, '');
   return `${safeOrigin}/r/${publicSlug}`;
