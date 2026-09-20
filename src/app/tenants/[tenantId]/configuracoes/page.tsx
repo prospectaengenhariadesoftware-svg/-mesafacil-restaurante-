@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { RestaurantSettingsForm } from '@/components/tenant/restaurant-settings-form';
 import { TenantModulePage } from '@/components/tenant/tenant-module-page';
 import { requireActiveTenant } from '@/lib/auth/context';
+import { restaurantLogoPublicUrl } from '@/lib/storage/tenant-brand-assets';
 import { createClient } from '@/lib/supabase/server';
 import type { Tenant, TenantSettings } from '@/lib/types/saas';
 import { isUuid } from '@/lib/validation/auth';
@@ -48,6 +49,8 @@ export default async function ConfiguracoesPage({
 
   if (!tenant || tenantError) redirect('/dashboard?erro=tenant-nao-encontrado');
   const loadError = settingsError ? 'Não foi possível carregar as configurações operacionais.' : null;
+  const typedSettings = (settings ?? null) as TenantSettings | null;
+  const logoUrl = restaurantLogoPublicUrl(supabase, typedSettings?.logo_path, tenantId);
   const feedback = {
     mensagem: decodeFeedback(rawParams.mensagem),
     erro: decodeFeedback(rawParams.erro),
@@ -58,7 +61,7 @@ export default async function ConfiguracoesPage({
       {loadError ? <p className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">{loadError}</p> : null}
       {feedback.mensagem ? <p className="rounded-xl border border-green-200 bg-green-50 p-3 text-sm text-green-700">{feedback.mensagem}</p> : null}
       {feedback.erro ? <p className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">{feedback.erro}</p> : null}
-      {loadError ? null : <RestaurantSettingsForm tenant={tenant as Tenant} settings={(settings ?? null) as TenantSettings | null} role={membership.role} />}
+      {loadError ? null : <RestaurantSettingsForm tenant={tenant as Tenant} settings={typedSettings} logoUrl={logoUrl} role={membership.role} />}
     </TenantModulePage>
   );
 }

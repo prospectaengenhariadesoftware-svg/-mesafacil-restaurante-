@@ -56,6 +56,7 @@ export type TenantMembershipWithTenant = TenantUser & {
 export type TenantSettings = {
   id: string;
   tenant_id: string;
+  logo_path: string | null;
   public_description: string | null;
   address_line: string | null;
   city: string | null;

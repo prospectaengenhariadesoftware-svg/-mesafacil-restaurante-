@@ -1,9 +1,11 @@
 import { updateRestaurantSettingsAction } from '@/app/actions/settings';
 import type { Tenant, TenantRole, TenantSettings } from '@/lib/types/saas';
+import { RestaurantLogoInput } from './restaurant-logo-input';
 
 type Props = Readonly<{
   tenant: Tenant;
   settings: TenantSettings | null;
+  logoUrl: string | null;
   role: TenantRole;
 }>;
 
@@ -93,7 +95,7 @@ function SectionCard({ eyebrow, title, description, children }: Readonly<{ eyebr
   );
 }
 
-export function RestaurantSettingsForm({ tenant, settings, role }: Props) {
+export function RestaurantSettingsForm({ tenant, settings, logoUrl, role }: Props) {
   const canEdit = role === 'owner' || role === 'admin';
   const publicMenuUrl = `/r/${tenant.public_slug ?? 'restaurante'}/m/[qr-token-da-mesa]`;
   const operatingStatus = settings?.operating_status ?? 'closed';
@@ -128,11 +130,12 @@ export function RestaurantSettingsForm({ tenant, settings, role }: Props) {
         </div>
       </div>
 
-      <form action={updateRestaurantSettingsAction} className="rounded-[2rem] border border-stone-200 bg-white p-4 shadow-sm sm:p-5">
+      <form action={updateRestaurantSettingsAction} encType="multipart/form-data" className="rounded-[2rem] border border-stone-200 bg-white p-4 shadow-sm sm:p-5">
         <input type="hidden" name="tenantId" value={tenant.id} />
         <fieldset disabled={!canEdit} className="space-y-5 disabled:opacity-60">
           <SectionCard eyebrow="Identidade" title="Dados públicos do restaurante" description="Informações que identificam o estabelecimento para o cliente e para a administração interna.">
-            <div className="grid gap-4 md:grid-cols-2">
+            <RestaurantLogoInput currentLogoUrl={logoUrl} restaurantName={tenant.name} disabled={!canEdit} />
+            <div className="mt-4 grid gap-4 md:grid-cols-2">
               <Field label="Nome fantasia" name="name" defaultValue={tenant.name} required hint="Nome exibido no painel e no cardápio público." />
               <Field label="Slug público" name="publicSlug" defaultValue={tenant.public_slug ?? ''} required placeholder="restaurante-exemplo" hint="Use letras, números e hífens. Ele compõe o link público do cardápio." />
               <Field label="Razão social" name="legalName" defaultValue={tenant.legal_name} />

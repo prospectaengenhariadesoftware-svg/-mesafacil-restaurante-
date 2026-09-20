@@ -2,8 +2,10 @@
 
 import { redirect } from 'next/navigation';
 import { requireActiveTenant } from '@/lib/auth/context';
+import { removeRestaurantLogoIfOwned, uploadRestaurantLogo } from '@/lib/storage/tenant-brand-assets';
 import { createClient } from '@/lib/supabase/server';
 import { isUuid, validateRestaurantSettingsInput } from '@/lib/validation/auth';
+import { validateOptionalRestaurantLogoFile, validateRestaurantLogoSignature } from '@/lib/validation/restaurant-logo';
 
 function getString(formData: FormData, key: string): string {
   const value = formData.get(key);
@@ -48,7 +50,31 @@ export async function updateRestaurantSettingsAction(formData: FormData) {
 
   if (!validation.ok) fail(path, validation.message);
 
+  const logoFile = validateOptionalRestaurantLogoFile(formData.get('logoFile'));
+  if (!logoFile.success) fail(path, logoFile.error);
+  if (logoFile.data) {
+    const signature = await validateRestaurantLogoSignature(logoFile.data);
+    if (!signature.success) fail(path, signature.error);
+  }
+  const removeLogo = formData.getAll('removeLogo').map(String).includes('true');
+  if (logoFile.data && removeLogo) fail(path, 'Escolha enviar uma nova logo ou remover a atual, não ambos.');
+
   const supabase = await createClient();
+  const { data: currentSettings, error: currentSettingsError } = await supabase
+    .from('tenant_settings')
+    .select('logo_path')
+    .eq('tenant_id', tenantId)
+    .maybeSingle();
+  if (currentSettingsError) fail(path, 'Não foi possível carregar a identidade atual do restaurante.');
+
+  let uploadedLogoPath: string | null = null;
+  if (logoFile.data) {
+    const upload = await uploadRestaurantLogo({ supabase, tenantId, file: logoFile.data });
+    if (!upload.success) fail(path, upload.error);
+    uploadedLogoPath = upload.path;
+  }
+
+  const nextLogoPath = uploadedLogoPath ?? (removeLogo ? null : (currentSettings?.logo_path ?? null));
   const { error } = await supabase.rpc('update_tenant_configuration', {
     config_tenant_id: tenantId,
     config_name: validation.data.name,
@@ -57,6 +83,7 @@ export async function updateRestaurantSettingsAction(formData: FormData) {
     config_email: validation.data.email,
     config_phone: validation.data.phone,
     config_public_slug: validation.data.publicSlug,
+    config_logo_path: nextLogoPath,
     config_public_description: validation.data.publicDescription,
     config_address_line: validation.data.addressLine,
     config_city: validation.data.city,
@@ -69,10 +96,15 @@ export async function updateRestaurantSettingsAction(formData: FormData) {
   });
 
   if (error) {
+    if (uploadedLogoPath) await removeRestaurantLogoIfOwned(supabase, uploadedLogoPath, tenantId);
     const message = error.code === '23505'
       ? 'Este slug público já está em uso por outro restaurante.'
       : 'Não foi possível salvar as configurações.';
     fail(path, message);
+  }
+
+  if ((uploadedLogoPath || removeLogo) && currentSettings?.logo_path) {
+    await removeRestaurantLogoIfOwned(supabase, currentSettings.logo_path, tenantId);
   }
 
   redirect(`${path}?mensagem=${encodeURIComponent('Configurações atualizadas com segurança.')}`);
