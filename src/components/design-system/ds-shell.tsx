@@ -9,19 +9,21 @@ const moduleIcons: Partial<Record<TenantModuleSlug, AppIconName>> = {
   'visao-geral': 'home',
   pedidos: 'orders',
   mesas: 'tables',
+  reservas: 'clock',
   cozinha: 'kitchen',
   caixa: 'cash',
   cardapio: 'menu',
   produtos: 'products',
   adicionais: 'addons',
+  site: 'eye',
   relatorios: 'reports',
   equipe: 'team',
   configuracoes: 'settings',
 };
 
 const sidebarGroups: { title: string; items: TenantModuleSlug[] }[] = [
-  { title: 'Operação', items: ['visao-geral', 'pedidos', 'mesas', 'cozinha', 'caixa'] },
-  { title: 'Cardápio', items: ['cardapio', 'produtos', 'adicionais'] },
+  { title: 'Operação', items: ['visao-geral', 'pedidos', 'mesas', 'reservas', 'cozinha', 'caixa'] },
+  { title: 'Cardápio', items: ['cardapio', 'produtos', 'adicionais', 'site'] },
   { title: 'Gestão', items: ['relatorios', 'equipe', 'configuracoes'] },
 ];
 

@@ -9,9 +9,11 @@ const moduleIcons: Partial<Record<TenantModuleSlug, string>> = {
   produtos: '▦',
   adicionais: '+',
   mesas: '▣',
+  reservas: '◴',
   pedidos: '◷',
   cozinha: '♨',
   caixa: '$',
+  site: '◎',
   equipe: '👥',
   relatorios: '▥',
   configuracoes: '⚙',
@@ -23,9 +25,11 @@ const moduleShortLabels: Partial<Record<TenantModuleSlug, string>> = {
   produtos: 'Produtos',
   adicionais: 'Adic.',
   mesas: 'Mesa',
+  reservas: 'Reservas',
   pedidos: 'Pedidos',
   cozinha: 'Cozinha',
   caixa: 'Caixa',
+  site: 'Site',
   equipe: 'Equipe',
   relatorios: 'Gestão',
   configuracoes: 'Ajustes',
@@ -35,8 +39,8 @@ const moduleGroups: ReadonlyArray<{
   title: string;
   slugs: TenantModuleSlug[];
 }> = [
-  { title: 'Operação', slugs: ['visao-geral', 'pedidos', 'cozinha', 'caixa'] },
-  { title: 'Cadastros', slugs: ['cardapio', 'produtos', 'adicionais', 'mesas'] },
+  { title: 'Operação', slugs: ['visao-geral', 'pedidos', 'cozinha', 'caixa', 'reservas'] },
+  { title: 'Cadastros', slugs: ['cardapio', 'produtos', 'adicionais', 'mesas', 'site'] },
   { title: 'Gestão', slugs: ['relatorios', 'equipe', 'configuracoes'] },
 ];
 
