@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildPublicReservationScheduledAt, publicReservationFeedbackPath, validatePublicReservationInput } from './reservation';
+import { buildPublicReservationScheduledAt, buildPublicReservationWhatsappHref, publicReservationFeedbackPath, validatePublicReservationInput } from './reservation';
 
 const NOW = new Date('2026-09-21T12:00:00.000Z');
 
@@ -83,5 +83,36 @@ describe('buildPublicReservationScheduledAt', () => {
 describe('publicReservationFeedbackPath', () => {
   it('redireciona para a área de reservas sem expor dados pessoais na URL', () => {
     expect(publicReservationFeedbackPath('tuus', { reserva: 'ok', mesa: 'Mesa 7', data: '22/09/2026, 19:30' })).toBe('/r/tuus?reserva=ok&mesa=Mesa+7&data=22%2F09%2F2026%2C+19%3A30#reservas');
+  });
+});
+
+
+describe('buildPublicReservationWhatsappHref', () => {
+  it('monta link de WhatsApp com os dados operacionais da reserva sem expor telefone/e-mail no texto', () => {
+    const href = buildPublicReservationWhatsappHref('https://wa.me/5513999990000', {
+      tableNumber: '7',
+      reservationDate: '2026-09-22',
+      reservationTime: '19:30',
+      partySize: '4',
+      customerName: 'Maria Silva',
+      customerPhone: '(13) 97403-8515',
+      customerEmail: 'maria@exemplo.com',
+    });
+
+    expect(href).toContain('https://wa.me/5513999990000?text=');
+    const text = new URL(href ?? '').searchParams.get('text') ?? '';
+    expect(text).toContain('Data e horário: 2026-09-22 às 19:30');
+    expect(text).toContain('Pessoas: 4');
+    expect(text).not.toContain('Maria Silva');
+    expect(text).not.toContain('maria@exemplo.com');
+    expect(text).not.toContain('(13) 97403-8515');
+  });
+
+  it('preserva texto existente no link do WhatsApp do restaurante', () => {
+    const href = buildPublicReservationWhatsappHref('https://wa.me/5513999990000?text=Ol%C3%A1', null, { mesa: 'Mesa 2', data: '22/09/2026, 20:00' });
+
+    const text = new URL(href ?? '').searchParams.get('text') ?? '';
+    expect(text).toContain('Olá\n\nOlá! Acabei de fazer uma reserva pelo site MesaFácil.');
+    expect(text).toContain('Mesa: Mesa 2');
   });
 });

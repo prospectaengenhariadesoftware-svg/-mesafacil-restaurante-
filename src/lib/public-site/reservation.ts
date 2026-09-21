@@ -119,6 +119,42 @@ export function validatePublicReservationInput(input: PublicReservationInput, no
   };
 }
 
+export type PublicReservationWhatsappDetails = {
+  tableNumber?: string;
+  reservationDate?: string;
+  reservationTime?: string;
+  partySize?: string;
+  customerName?: string;
+  customerEmail?: string;
+  customerPhone?: string;
+};
+
+export function buildPublicReservationWhatsappHref(whatsappHref: string | null, details: PublicReservationWhatsappDetails | null, fallback: { mesa?: string; data?: string; pessoas?: string } = {}): string | null {
+  if (!whatsappHref) return null;
+  const table = details?.tableNumber || fallback.mesa || '';
+  const dateTime = details?.reservationDate && details?.reservationTime
+    ? `${details.reservationDate} às ${details.reservationTime}`
+    : fallback.data || '';
+  const partySize = details?.partySize || fallback.pessoas || '';
+  const message = [
+    'Olá! Acabei de fazer uma reserva pelo site MesaFácil.',
+    table ? `Mesa: ${table}` : null,
+    dateTime ? `Data e horário: ${dateTime}` : null,
+    partySize ? `Pessoas: ${partySize}` : null,
+    'Por favor, confirme o recebimento.',
+  ].filter(Boolean).join('\n');
+
+  try {
+    const url = new URL(whatsappHref);
+    const existingText = url.searchParams.get('text');
+    url.searchParams.set('text', existingText ? `${existingText}\n\n${message}` : message);
+    return url.toString();
+  } catch {
+    const separator = whatsappHref.includes('?') ? '&' : '?';
+    return `${whatsappHref}${separator}text=${encodeURIComponent(message)}`;
+  }
+}
+
 export function publicReservationFeedbackPath(restaurantSlug: string, params: Record<string, string>): string {
   const slug = normalizeSiteSlug(restaurantSlug);
   if (!slug) return '/';

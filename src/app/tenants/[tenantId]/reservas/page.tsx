@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { updateReservationStatusAction } from '@/app/actions/reservations';
+import { ReservationRealtimeAlert } from '@/components/reservations/reservation-realtime-alert';
 import { TenantModulePage } from '@/components/tenant/tenant-module-page';
 import { requireActiveTenant } from '@/lib/auth/context';
 import { createClient } from '@/lib/supabase/server';
@@ -226,7 +227,10 @@ export default async function ReservasPage({
       <section className="rounded-[1.75rem] border border-stone-200 bg-white p-5 shadow-sm shadow-stone-200/70">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <h2 className="text-2xl font-black text-stone-950">Calendário de agendamentos</h2>
+            <div className="flex flex-wrap items-center gap-2">
+              <h2 className="text-2xl font-black text-stone-950">Calendário de agendamentos</h2>
+              <ReservationRealtimeAlert tenantId={tenantId} />
+            </div>
             <p className="mt-1 text-sm text-stone-500">{count ?? reservations.length} reserva(s) no período selecionado. Limite visual: {PAGE_LIMIT} cards.</p>
           </div>
           <div className="flex flex-wrap gap-2 text-sm font-black">

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { createPublicReservationAction } from '@/app/actions/public-reservation';
+import { PublicReservationForm } from '@/components/public-site/public-reservation-form';
 import { buildPublicSiteMetadata, getPublicSiteContactHref, getPublicSiteWhatsappHref, productImageStyle, publicCategoryAnchorId } from '@/lib/public-site/site';
 import { createClient } from '@/lib/supabase/server';
 import type { PublicSitePayload, PublicSiteProduct, PublicSiteTable } from '@/lib/types/public-site';
@@ -56,12 +56,13 @@ function ReservationSection({
   restaurantSlug,
   tables,
   feedback,
+  whatsappHref,
 }: Readonly<{
   restaurantSlug: string;
   tables: PublicSiteTable[];
-  feedback: { reserva?: string; mesa?: string; data?: string; erroReserva?: string };
+  feedback: { reserva?: string; mesa?: string; data?: string; pessoas?: string; erroReserva?: string };
+  whatsappHref: string | null;
 }>) {
-  const availableTables = tables.filter((table) => table.reservation_status !== 'reserved');
 
   return (
     <section id="reservas" className="mx-auto max-w-6xl px-4 pt-8 sm:px-5 sm:pt-10 lg:px-6">
@@ -80,52 +81,7 @@ function ReservationSection({
           </div>
         </div>
 
-        <div className="rounded-[1.75rem] bg-stone-50 p-4 ring-1 ring-stone-200 sm:p-5">
-          {feedback.reserva === 'ok' ? (
-            <p className="mb-4 rounded-2xl border border-green-200 bg-green-50 p-4 text-sm font-black text-green-700">Reserva recebida para a mesa {feedback.mesa ?? ''}{feedback.data ? ` em ${feedback.data}` : ''}. O restaurante já consegue acompanhar na Central de Reservas.</p>
-          ) : null}
-          {feedback.erroReserva ? (
-            <p className="mb-4 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-black text-red-700">{feedback.erroReserva}</p>
-          ) : null}
-
-          <form action={createPublicReservationAction} className="space-y-4">
-            <input type="hidden" name="restaurantSlug" value={restaurantSlug} />
-            <label className="block text-sm font-black text-stone-700">
-              Mesa
-              <select name="tableNumber" required disabled={availableTables.length === 0} className="mt-2 w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-stone-950 outline-none focus:border-red-500 disabled:opacity-60">
-                <option value="">Escolha uma mesa livre</option>
-                {availableTables.map((table) => <option key={table.number} value={table.number}>Mesa {table.number} · {table.seats} lugares{table.sector ? ` · ${table.sector}` : ''}</option>)}
-              </select>
-            </label>
-            <label className="block text-sm font-black text-stone-700">
-              Data
-              <input name="reservationDate" required type="date" className="mt-2 w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-stone-950 outline-none focus:border-red-500" />
-            </label>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <label className="block text-sm font-black text-stone-700">
-                Horário
-                <input name="reservationTime" required type="time" step={1800} className="mt-2 w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-stone-950 outline-none focus:border-red-500" />
-              </label>
-              <label className="block text-sm font-black text-stone-700">
-                Pessoas
-                <input name="partySize" required type="number" min={1} max={99} defaultValue={2} className="mt-2 w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-stone-950 outline-none focus:border-red-500" />
-              </label>
-            </div>
-            <label className="block text-sm font-black text-stone-700">
-              Nome
-              <input name="customerName" required minLength={2} maxLength={120} autoComplete="name" placeholder="Seu nome" className="mt-2 w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-stone-950 outline-none focus:border-red-500" />
-            </label>
-            <label className="block text-sm font-black text-stone-700">
-              E-mail
-              <input name="customerEmail" required type="email" maxLength={160} autoComplete="email" placeholder="voce@email.com" className="mt-2 w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-stone-950 outline-none focus:border-red-500" />
-            </label>
-            <label className="block text-sm font-black text-stone-700">
-              Telefone
-              <input name="customerPhone" required inputMode="tel" maxLength={32} autoComplete="tel" placeholder="(00) 00000-0000" className="mt-2 w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-stone-950 outline-none focus:border-red-500" />
-            </label>
-            <button type="submit" disabled={availableTables.length === 0} className="mf-button-primary min-h-12 w-full rounded-2xl bg-[var(--brand)] px-5 py-3 text-sm font-black text-white shadow-lg shadow-red-600/20 transition hover:bg-[var(--brand-dark)] disabled:cursor-not-allowed disabled:opacity-60">Reservar mesa</button>
-          </form>
-        </div>
+        <PublicReservationForm restaurantSlug={restaurantSlug} tables={tables} feedback={feedback} whatsappHref={whatsappHref} />
       </div>
     </section>
   );
@@ -161,7 +117,7 @@ export default async function PublicRestaurantSitePage({
   searchParams,
 }: Readonly<{
   params: Promise<{ restaurantSlug: string }>;
-  searchParams: Promise<{ reserva?: string; mesa?: string; data?: string; erroReserva?: string }>;
+  searchParams: Promise<{ reserva?: string; mesa?: string; data?: string; pessoas?: string; erroReserva?: string }>;
 }>) {
   const { restaurantSlug } = await params;
   const feedback = await searchParams;
@@ -256,7 +212,7 @@ export default async function PublicRestaurantSitePage({
         </div>
       </section>
 
-      {site.profile.accepts_reservations ? <ReservationSection restaurantSlug={restaurantSlug} tables={site.tables ?? []} feedback={feedback} /> : null}
+      {site.profile.accepts_reservations ? <ReservationSection restaurantSlug={restaurantSlug} tables={site.tables ?? []} feedback={feedback} whatsappHref={whatsappHref} /> : null}
 
       <section className="mx-auto max-w-6xl px-4 pt-8 sm:px-5 sm:pt-10 lg:px-6">
         {site.profile.show_menu ? (

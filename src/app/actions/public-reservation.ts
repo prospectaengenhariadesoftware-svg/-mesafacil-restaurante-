@@ -54,5 +54,6 @@ export async function createPublicReservationAction(formData: FormData) {
     reserva: 'ok',
     mesa: payload.table_number ?? validation.data.tableNumber,
     data: formatReservationDateTimeForCustomer(payload.scheduled_at ?? validation.data.scheduledAt),
+    pessoas: String(validation.data.partySize),
   }));
 }
