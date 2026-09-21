@@ -27,6 +27,13 @@ export type PublicSiteCategory = {
   products: PublicSiteProduct[];
 };
 
+export type PublicSiteTable = {
+  number: string;
+  seats: number;
+  sector: string | null;
+  reservation_status: 'available' | 'reserved';
+};
+
 export type PublicSitePayload = {
   profile: PublicSiteProfile;
   tenant: {
@@ -35,6 +42,7 @@ export type PublicSitePayload = {
     status: string;
   };
   categories: PublicSiteCategory[];
+  tables?: PublicSiteTable[];
 };
 
 export type TenantPublicProfile = {

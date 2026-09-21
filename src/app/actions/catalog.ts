@@ -469,6 +469,23 @@ export async function deleteTableAction(formData: FormData) {
 }
 
 
+export async function releaseTableReservationAction(formData: FormData) {
+  const tenantId = requireTenantId(formData);
+  const tableId = getString(formData, 'tableId');
+  const path = `/tenants/${tenantId}/mesas`;
+  await requireActiveTenant(tenantId);
+  if (!isUuid(tableId)) fail(path, 'Mesa inválida para liberar reserva.');
+
+  const supabase = await createClient();
+  const { error } = await supabase.rpc('release_table_reservation', {
+    reservation_tenant_id: tenantId,
+    reservation_table_id: tableId,
+  });
+  if (error) fail(path, 'Não foi possível liberar a reserva desta mesa. Verifique permissões e status da reserva.');
+
+  redirect(`${path}?mensagem=${encodeURIComponent('Reserva liberada e dados do cliente removidos da mesa.')}`);
+}
+
 export async function createProductAddonAction(formData: FormData) {
   const tenantId = requireTenantId(formData);
   const path = `/tenants/${tenantId}/adicionais`;

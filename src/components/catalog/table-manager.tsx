@@ -1,4 +1,4 @@
-import { createTableAction, deleteTableAction, updateTableAction } from '@/app/actions/catalog';
+import { createTableAction, deleteTableAction, releaseTableReservationAction, updateTableAction } from '@/app/actions/catalog';
 import Link from 'next/link';
 import { headers } from 'next/headers';
 import { QrCodeImage } from '@/components/qr/qr-code-svg';
@@ -70,6 +70,14 @@ function TableFields({ table }: Readonly<{ table?: RestaurantTable }>) {
   );
 }
 
+function reservationLabel(table: RestaurantTable): string {
+  return table.reservation_status === 'reserved' ? 'Reservada' : 'Livre';
+}
+
+function reservationBadgeClass(table: RestaurantTable): string {
+  return table.reservation_status === 'reserved' ? 'bg-red-100 text-red-700' : 'bg-green-50 text-green-700';
+}
+
 function buildQuery(tenantId: string, filters: TableFilters, overrides: Partial<TableFilters> = {}) {
   const next = { ...filters, ...overrides };
   const params = new URLSearchParams();
@@ -89,6 +97,7 @@ export async function TableList({
   filters,
   total,
   pageSize,
+  canManageReservations,
 }: Readonly<{
   tenantId: string;
   tables: RestaurantTable[];
@@ -96,6 +105,7 @@ export async function TableList({
   filters: TableFilters;
   total: number;
   pageSize: number;
+  canManageReservations: boolean;
 }>) {
   const headersList = await headers();
   const headerHost = headersList.get('x-forwarded-host') ?? headersList.get('host') ?? 'localhost:3000';
@@ -147,7 +157,10 @@ export async function TableList({
                       <p className="text-xs font-black uppercase tracking-[0.18em] text-stone-400">Mesa</p>
                       <h3 className="mt-1 text-3xl font-black tracking-tight text-stone-950">{table.number}</h3>
                     </div>
-                    <span className={`rounded-full px-3 py-1 text-xs font-black ${table.is_active ? 'bg-red-100 text-red-700' : 'bg-stone-200 text-stone-600'}`}>{table.is_active ? 'Ativa' : 'Inativa'}</span>
+                    <div className="flex flex-col items-end gap-2">
+                      <span className={`rounded-full px-3 py-1 text-xs font-black ${table.is_active ? 'bg-red-100 text-red-700' : 'bg-stone-200 text-stone-600'}`}>{table.is_active ? 'Ativa' : 'Inativa'}</span>
+                      <span className={`rounded-full px-3 py-1 text-xs font-black ${reservationBadgeClass(table)}`}>{reservationLabel(table)}</span>
+                    </div>
                   </div>
                   <div className="mt-4 flex flex-wrap gap-2 text-xs font-black">
                     <span className="rounded-full bg-white px-3 py-1 text-stone-700 shadow-sm">{table.seats} lugares</span>
@@ -166,6 +179,33 @@ export async function TableList({
                     </Link>
                     <p className="mt-2 text-xs text-stone-400">Cliente escaneia, abre o cardápio e faz pedido nesta mesa.</p>
                   </div>
+                </div>
+
+                <div className="px-4 pb-4">
+                  {table.reservation_status === 'reserved' ? (
+                    <div className="rounded-2xl border border-red-100 bg-red-50 p-4">
+                      <p className="text-sm font-black text-red-700">Mesa {table.number} reservada</p>
+                      {canManageReservations ? (
+                        <>
+                          <dl className="mt-3 grid gap-2 text-sm text-stone-700">
+                            <div><dt className="font-black text-stone-500">Cliente</dt><dd className="break-words">{table.reserved_customer_name ?? '—'}</dd></div>
+                            <div><dt className="font-black text-stone-500">E-mail</dt><dd className="break-words">{table.reserved_customer_email ?? '—'}</dd></div>
+                            <div><dt className="font-black text-stone-500">Telefone</dt><dd className="break-words">{table.reserved_customer_phone ?? '—'}</dd></div>
+                            <div><dt className="font-black text-stone-500">Reservada em</dt><dd className="break-words">{table.reserved_at ? new Date(table.reserved_at).toLocaleString('pt-BR') : '—'}</dd></div>
+                          </dl>
+                          <form action={releaseTableReservationAction} className="mt-4">
+                            <input type="hidden" name="tenantId" value={tenantId} />
+                            <input type="hidden" name="tableId" value={table.id} />
+                            <button className="w-full rounded-full border border-red-200 bg-white px-4 py-2 text-sm font-black text-red-700 hover:bg-red-50">Liberar reserva e limpar dados</button>
+                          </form>
+                        </>
+                      ) : (
+                        <p className="mt-2 text-sm font-semibold text-red-700/80">Dados do cliente restritos à gerência.</p>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="rounded-2xl border border-green-100 bg-green-50 p-4 text-sm font-black text-green-700">Mesa disponível para reserva pública.</div>
+                  )}
                 </div>
 
                 <details className="mx-4 mb-4 rounded-2xl border border-stone-200 bg-stone-50 p-4">

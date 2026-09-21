@@ -45,6 +45,11 @@ export type RestaurantTable = {
   sector: string | null;
   qr_token: string;
   is_active: boolean;
+  reservation_status?: 'available' | 'reserved';
+  reserved_customer_name?: string | null;
+  reserved_customer_email?: string | null;
+  reserved_customer_phone?: string | null;
+  reserved_at?: string | null;
   created_at: string;
   updated_at: string;
 };

@@ -1,8 +1,9 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import { createPublicReservationAction } from '@/app/actions/public-reservation';
 import { buildPublicSiteMetadata, getPublicSiteContactHref, getPublicSiteWhatsappHref, productImageStyle, publicCategoryAnchorId } from '@/lib/public-site/site';
 import { createClient } from '@/lib/supabase/server';
-import type { PublicSitePayload, PublicSiteProduct } from '@/lib/types/public-site';
+import type { PublicSitePayload, PublicSiteProduct, PublicSiteTable } from '@/lib/types/public-site';
 import { normalizeSiteSlug } from '@/lib/validation/public-site';
 
 function money(cents: number): string {
@@ -51,6 +52,71 @@ function ContactTile({ label, value, href, icon }: Readonly<{ label: string; val
   return <div className="flex min-h-16 items-center gap-3 rounded-3xl border border-stone-200 bg-white p-3 shadow-sm">{content}</div>;
 }
 
+function ReservationSection({
+  restaurantSlug,
+  tables,
+  feedback,
+}: Readonly<{
+  restaurantSlug: string;
+  tables: PublicSiteTable[];
+  feedback: { reserva?: string; mesa?: string; erroReserva?: string };
+}>) {
+  const availableTables = tables.filter((table) => table.reservation_status !== 'reserved');
+
+  return (
+    <section id="reservas" className="mx-auto max-w-6xl px-4 pt-8 sm:px-5 sm:pt-10 lg:px-6">
+      <div className="grid gap-5 rounded-[2rem] border border-stone-200 bg-white p-5 shadow-sm shadow-stone-200/70 lg:grid-cols-[0.9fr_1.1fr] lg:p-7">
+        <div>
+          <p className="text-sm font-black uppercase tracking-[0.18em] text-[var(--brand)]">Reservas</p>
+          <h2 className="mt-2 text-[clamp(2rem,8vw,3.2rem)] font-black leading-none tracking-[-0.06em] text-stone-950">Reserve sua mesa</h2>
+          <p className="mt-3 text-sm font-semibold leading-6 text-stone-500">Escolha uma mesa livre e informe nome, e-mail e telefone. A reserva aparece imediatamente no painel de mesas do restaurante.</p>
+          <div className="mt-5 grid gap-2 text-sm font-bold text-stone-700 sm:grid-cols-2">
+            {tables.length > 0 ? tables.map((table) => (
+              <div key={table.number} className={`rounded-2xl border p-3 ${table.reservation_status === 'reserved' ? 'border-red-100 bg-red-50 text-red-700' : 'border-green-100 bg-green-50 text-green-700'}`}>
+                Mesa {table.number} · {table.seats} lugares{table.sector ? ` · ${table.sector}` : ''}
+                <span className="block text-xs font-black uppercase tracking-[0.12em]">{table.reservation_status === 'reserved' ? 'Reservada' : 'Livre'}</span>
+              </div>
+            )) : <p className="rounded-2xl border border-stone-200 bg-stone-50 p-4 text-stone-500">Nenhuma mesa ativa disponível para reserva pública.</p>}
+          </div>
+        </div>
+
+        <div className="rounded-[1.75rem] bg-stone-50 p-4 ring-1 ring-stone-200 sm:p-5">
+          {feedback.reserva === 'ok' ? (
+            <p className="mb-4 rounded-2xl border border-green-200 bg-green-50 p-4 text-sm font-black text-green-700">Reserva recebida para a mesa {feedback.mesa ?? ''}. O restaurante já consegue ver seus dados no sistema.</p>
+          ) : null}
+          {feedback.erroReserva ? (
+            <p className="mb-4 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-black text-red-700">{feedback.erroReserva}</p>
+          ) : null}
+
+          <form action={createPublicReservationAction} className="space-y-4">
+            <input type="hidden" name="restaurantSlug" value={restaurantSlug} />
+            <label className="block text-sm font-black text-stone-700">
+              Mesa
+              <select name="tableNumber" required disabled={availableTables.length === 0} className="mt-2 w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-stone-950 outline-none focus:border-red-500 disabled:opacity-60">
+                <option value="">Escolha uma mesa livre</option>
+                {availableTables.map((table) => <option key={table.number} value={table.number}>Mesa {table.number} · {table.seats} lugares{table.sector ? ` · ${table.sector}` : ''}</option>)}
+              </select>
+            </label>
+            <label className="block text-sm font-black text-stone-700">
+              Nome
+              <input name="customerName" required minLength={2} maxLength={120} autoComplete="name" placeholder="Seu nome" className="mt-2 w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-stone-950 outline-none focus:border-red-500" />
+            </label>
+            <label className="block text-sm font-black text-stone-700">
+              E-mail
+              <input name="customerEmail" required type="email" maxLength={160} autoComplete="email" placeholder="voce@email.com" className="mt-2 w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-stone-950 outline-none focus:border-red-500" />
+            </label>
+            <label className="block text-sm font-black text-stone-700">
+              Telefone
+              <input name="customerPhone" required inputMode="tel" maxLength={32} autoComplete="tel" placeholder="(00) 00000-0000" className="mt-2 w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-stone-950 outline-none focus:border-red-500" />
+            </label>
+            <button type="submit" disabled={availableTables.length === 0} className="mf-button-primary min-h-12 w-full rounded-2xl bg-[var(--brand)] px-5 py-3 text-sm font-black text-white shadow-lg shadow-red-600/20 transition hover:bg-[var(--brand-dark)] disabled:cursor-not-allowed disabled:opacity-60">Reservar mesa</button>
+          </form>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 async function loadPublicSite(restaurantSlug: string): Promise<PublicSitePayload | null> {
   const slug = normalizeSiteSlug(restaurantSlug);
   if (!slug) return null;
@@ -78,10 +144,13 @@ export async function generateMetadata({
 
 export default async function PublicRestaurantSitePage({
   params,
+  searchParams,
 }: Readonly<{
   params: Promise<{ restaurantSlug: string }>;
+  searchParams: Promise<{ reserva?: string; mesa?: string; erroReserva?: string }>;
 }>) {
   const { restaurantSlug } = await params;
+  const feedback = await searchParams;
   const site = await loadPublicSite(restaurantSlug);
   if (!site) notFound();
 
@@ -138,6 +207,7 @@ export default async function PublicRestaurantSitePage({
                 <a href={primaryContact} className="mf-button-secondary inline-flex min-h-13 items-center justify-center rounded-2xl bg-white px-5 py-3 text-sm font-black text-[var(--brand)] shadow-xl shadow-red-950/20 transition hover:-translate-y-0.5 sm:text-base">Entrar em contato</a>
               ) : null}
               {site.profile.show_menu ? <a href="#cardapio" className="inline-flex min-h-13 items-center justify-center rounded-2xl border border-white/25 bg-white/15 px-5 py-3 text-sm font-black text-white backdrop-blur transition hover:-translate-y-0.5 hover:bg-white/20 sm:text-base">Ver cardápio</a> : null}
+              {site.profile.accepts_reservations ? <a href="#reservas" className="inline-flex min-h-13 items-center justify-center rounded-2xl border border-white/25 bg-white/15 px-5 py-3 text-sm font-black text-white backdrop-blur transition hover:-translate-y-0.5 hover:bg-white/20 sm:text-base">Reservar mesa</a> : null}
             </div>
           </div>
 
@@ -171,6 +241,8 @@ export default async function PublicRestaurantSitePage({
           {site.profile.instagram ? <ContactTile label="Instagram" value={site.profile.instagram} href={instagramHref} icon="◎" /> : null}
         </div>
       </section>
+
+      {site.profile.accepts_reservations ? <ReservationSection restaurantSlug={restaurantSlug} tables={site.tables ?? []} feedback={feedback} /> : null}
 
       <section className="mx-auto max-w-6xl px-4 pt-8 sm:px-5 sm:pt-10 lg:px-6">
         {site.profile.show_menu ? (
@@ -249,6 +321,7 @@ export default async function PublicRestaurantSitePage({
       <nav className="fixed bottom-0 left-0 right-0 z-30 border-t border-stone-200 bg-white/95 px-4 py-3 shadow-[0_-12px_40px_rgba(28,25,23,0.10)] backdrop-blur sm:hidden">
         <div className="mx-auto flex max-w-md gap-2">
           {site.profile.show_menu ? <a href="#cardapio" className="mf-button-secondary inline-flex min-h-12 flex-1 items-center justify-center rounded-2xl bg-white px-4 text-sm font-black text-[var(--brand)] ring-1 ring-stone-200">Cardápio</a> : null}
+          {site.profile.accepts_reservations ? <a href="#reservas" className="mf-button-secondary inline-flex min-h-12 flex-1 items-center justify-center rounded-2xl bg-white px-4 text-sm font-black text-[var(--brand)] ring-1 ring-stone-200">Reservar</a> : null}
           {whatsappHref ? (
             <a href={whatsappHref} aria-label="Chamar restaurante no WhatsApp" className="mf-button-primary inline-flex min-h-12 flex-[1.4] items-center justify-center gap-2 rounded-2xl bg-[var(--brand)] px-4 text-sm font-black text-white shadow-lg shadow-red-600/20">
               <span aria-hidden="true">🛵</span>
