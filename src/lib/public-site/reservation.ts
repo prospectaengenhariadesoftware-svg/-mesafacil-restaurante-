@@ -27,6 +27,26 @@ export type PublicReservationValidationResult =
   | { success: true; data: PublicReservationData }
   | { success: false; error: string };
 
+
+export type PublicReservationRpcError = {
+  code?: string;
+  message?: string;
+} | null | undefined;
+
+export const PUBLIC_RESERVATION_TABLE_BLOCKED_MESSAGE = 'Esta mesa já está reservada e só será liberada para nova reserva após o fechamento da conta.';
+
+export function mapPublicReservationRpcError(error: PublicReservationRpcError): string {
+  if (
+    error?.code === '23505'
+    || error?.message?.includes('Já existe reserva ativa')
+    || error?.message?.includes('Mesa aguardando fechamento de conta')
+  ) {
+    return PUBLIC_RESERVATION_TABLE_BLOCKED_MESSAGE;
+  }
+
+  return 'Não foi possível reservar a mesa. Ela pode já estar reservada.';
+}
+
 const SAO_PAULO_OFFSET = '-03:00';
 
 function cleanText(value: unknown): string {

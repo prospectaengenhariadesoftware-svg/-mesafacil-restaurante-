@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildPublicReservationScheduledAt, buildPublicReservationWhatsappHref, publicReservationFeedbackPath, validatePublicReservationInput } from './reservation';
+import { PUBLIC_RESERVATION_TABLE_BLOCKED_MESSAGE, buildPublicReservationScheduledAt, buildPublicReservationWhatsappHref, mapPublicReservationRpcError, publicReservationFeedbackPath, validatePublicReservationInput } from './reservation';
 
 const NOW = new Date('2026-09-21T12:00:00.000Z');
 
@@ -114,5 +114,18 @@ describe('buildPublicReservationWhatsappHref', () => {
     const text = new URL(href ?? '').searchParams.get('text') ?? '';
     expect(text).toContain('Olá\n\nOlá! Acabei de fazer uma reserva pelo site MesaFácil.');
     expect(text).toContain('Mesa: Mesa 2');
+  });
+});
+
+
+describe('mapPublicReservationRpcError', () => {
+  it('maps account-close reservation lock errors to the customer-facing blocked-table message', () => {
+    expect(mapPublicReservationRpcError({ code: '23505', message: 'Mesa aguardando fechamento de conta para liberar nova reserva.' })).toBe(PUBLIC_RESERVATION_TABLE_BLOCKED_MESSAGE);
+    expect(mapPublicReservationRpcError({ message: 'Já existe reserva ativa para esta mesa neste horário.' })).toBe(PUBLIC_RESERVATION_TABLE_BLOCKED_MESSAGE);
+    expect(mapPublicReservationRpcError({ message: 'Mesa aguardando fechamento de conta para liberar nova reserva.' })).toBe(PUBLIC_RESERVATION_TABLE_BLOCKED_MESSAGE);
+  });
+
+  it('keeps non-conflict public reservation errors generic', () => {
+    expect(mapPublicReservationRpcError({ code: '42501', message: 'Restaurante não aceita reservas públicas.' })).toBe('Não foi possível reservar a mesa. Ela pode já estar reservada.');
   });
 });

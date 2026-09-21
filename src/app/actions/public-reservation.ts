@@ -2,7 +2,7 @@
 
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
-import { formatReservationDateTimeForCustomer, publicReservationFeedbackPath, validatePublicReservationInput } from '@/lib/public-site/reservation';
+import { formatReservationDateTimeForCustomer, mapPublicReservationRpcError, publicReservationFeedbackPath, validatePublicReservationInput } from '@/lib/public-site/reservation';
 
 function getString(formData: FormData, key: string): string {
   const value = formData.get(key);
@@ -46,9 +46,7 @@ export async function createPublicReservationAction(formData: FormData) {
   });
 
   if (error || !data) {
-    const message = error?.message?.includes('Já existe reserva ativa') || error?.code === '23505'
-      ? 'Já existe uma reserva para esta mesa neste dia e horário. Escolha outro horário ou aguarde a mesa ser liberada após o fechamento da conta.'
-      : 'Não foi possível reservar a mesa. Ela pode já estar reservada.';
+    const message = mapPublicReservationRpcError(error);
     redirect(publicReservationFeedbackPath(validation.data.restaurantSlug, { erroReserva: message }));
   }
 

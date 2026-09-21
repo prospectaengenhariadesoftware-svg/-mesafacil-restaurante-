@@ -44,6 +44,46 @@ values
   ('eeeeeeee-7002-4000-8000-eeeeeeeeeeee', 'eeeeeeee-2000-4000-8000-eeeeeeeeeeee', 'eeeeeeee-3000-4000-8000-eeeeeeeeeeee', 'CASH-003', 'ready', 1000)
 on conflict (id) do update set status = excluded.status, total_cents = excluded.total_cents;
 
+
+insert into public.tenant_table_reservations (
+  id,
+  tenant_id,
+  table_id,
+  customer_name,
+  customer_email,
+  customer_phone,
+  scheduled_at,
+  party_size,
+  status,
+  source
+)
+values
+  (
+    'eeeeeeee-8100-4000-8000-eeeeeeeeeeee',
+    'eeeeeeee-2000-4000-8000-eeeeeeeeeeee',
+    'eeeeeeee-3000-4000-8000-eeeeeeeeeeee',
+    'Reserva Atual',
+    'reserva-atual@mesafacil.test',
+    '13999990000',
+    date_trunc('hour', timezone('utc', now())),
+    2,
+    'confirmed',
+    'public_site'
+  ),
+  (
+    'eeeeeeee-8101-4000-8000-eeeeeeeeeeee',
+    'eeeeeeee-2000-4000-8000-eeeeeeeeeeee',
+    'eeeeeeee-3000-4000-8000-eeeeeeeeeeee',
+    'Reserva Futura',
+    'reserva-futura@mesafacil.test',
+    '13999990001',
+    date_trunc('hour', timezone('utc', now())) + interval '1 hour',
+    2,
+    'confirmed',
+    'public_site'
+  )
+on conflict (id) do update set status = excluded.status, scheduled_at = excluded.scheduled_at;
+
 set local role authenticated;
 set local request.jwt.claim.sub = 'eeeeeeee-1000-4000-8000-eeeeeeeeeeee';
 set local request.jwt.claim.role = 'authenticated';
@@ -101,6 +141,22 @@ begin
   where tenant_id = 'eeeeeeee-2000-4000-8000-eeeeeeeeeeee';
   if payment_count <> 2 then
     raise exception 'Expected 2 paid orders';
+  end if;
+
+  if not exists (
+    select 1 from public.tenant_table_reservations
+    where id = 'eeeeeeee-8100-4000-8000-eeeeeeeeeeee'
+      and status = 'completed'
+  ) then
+    raise exception 'Expected current reservation to complete on account close';
+  end if;
+
+  if not exists (
+    select 1 from public.tenant_table_reservations
+    where id = 'eeeeeeee-8101-4000-8000-eeeeeeeeeeee'
+      and status = 'confirmed'
+  ) then
+    raise exception 'Future reservation was completed before its account close';
   end if;
 
   begin
