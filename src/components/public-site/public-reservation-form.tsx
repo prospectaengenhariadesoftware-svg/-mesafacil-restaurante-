@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { createPublicReservationAction } from '@/app/actions/public-reservation';
 import { buildPublicReservationWhatsappHref } from '@/lib/public-site/reservation';
 import type { PublicSiteTable } from '@/lib/types/public-site';
@@ -28,6 +28,11 @@ export function PublicReservationForm({
   const availableTables = tables.filter((table) => table.reservation_status !== 'reserved');
   const dialogOpen = feedback.reserva === 'ok' && !dismissed;
 
+  useEffect(() => {
+    if (feedback.reserva !== 'ok' && !feedback.erroReserva) return;
+    window.history.replaceState(null, '', `${window.location.pathname}#reservas`);
+  }, [feedback.erroReserva, feedback.reserva]);
+
   const reservationWhatsappHref = useMemo(
     () => buildPublicReservationWhatsappHref(whatsappHref, null, { mesa: feedback.mesa, data: feedback.data, pessoas: feedback.pessoas }),
     [feedback, whatsappHref],
@@ -43,7 +48,9 @@ export function PublicReservationForm({
       ) : null}
 
       <form
+        key={feedback.reserva === 'ok' ? 'reservation-success-clean-form' : feedback.erroReserva ? 'reservation-error-clean-form' : 'reservation-form'}
         action={createPublicReservationAction}
+        autoComplete="off"
         className="space-y-4"
       >
         <input type="hidden" name="restaurantSlug" value={restaurantSlug} />
@@ -70,15 +77,15 @@ export function PublicReservationForm({
         </div>
         <label className="block text-sm font-black text-stone-700">
           Nome
-          <input name="customerName" required minLength={2} maxLength={120} autoComplete="name" placeholder="Seu nome" className="mt-2 w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-stone-950 outline-none focus:border-red-500" />
+          <input name="customerName" required minLength={2} maxLength={120} autoComplete="off" placeholder="Seu nome" className="mt-2 w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-stone-950 outline-none focus:border-red-500" />
         </label>
         <label className="block text-sm font-black text-stone-700">
           E-mail
-          <input name="customerEmail" required type="email" maxLength={160} autoComplete="email" placeholder="voce@email.com" className="mt-2 w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-stone-950 outline-none focus:border-red-500" />
+          <input name="customerEmail" required type="email" maxLength={160} autoComplete="off" placeholder="voce@email.com" className="mt-2 w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-stone-950 outline-none focus:border-red-500" />
         </label>
         <label className="block text-sm font-black text-stone-700">
           Telefone
-          <input name="customerPhone" required inputMode="tel" maxLength={32} autoComplete="tel" placeholder="(00) 00000-0000" className="mt-2 w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-stone-950 outline-none focus:border-red-500" />
+          <input name="customerPhone" required inputMode="tel" maxLength={32} autoComplete="off" placeholder="(00) 00000-0000" className="mt-2 w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-stone-950 outline-none focus:border-red-500" />
         </label>
         <button type="submit" disabled={availableTables.length === 0} className="mf-button-primary min-h-12 w-full rounded-2xl bg-[var(--brand)] px-5 py-3 text-sm font-black text-white shadow-lg shadow-red-600/20 transition hover:bg-[var(--brand-dark)] disabled:cursor-not-allowed disabled:opacity-60">Reservar mesa</button>
       </form>

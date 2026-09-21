@@ -46,7 +46,10 @@ export async function createPublicReservationAction(formData: FormData) {
   });
 
   if (error || !data) {
-    redirect(publicReservationFeedbackPath(validation.data.restaurantSlug, { erroReserva: 'Não foi possível reservar a mesa. Ela pode já estar reservada.' }));
+    const message = error?.message?.includes('Já existe reserva ativa') || error?.code === '23505'
+      ? 'Já existe uma reserva para esta mesa neste dia e horário. Escolha outro horário ou aguarde a mesa ser liberada após o fechamento da conta.'
+      : 'Não foi possível reservar a mesa. Ela pode já estar reservada.';
+    redirect(publicReservationFeedbackPath(validation.data.restaurantSlug, { erroReserva: message }));
   }
 
   const payload = data as { table_number?: string; scheduled_at?: string };
