@@ -4,6 +4,7 @@ export const tenantModuleSlugs = [
   'produtos',
   'adicionais',
   'mesas',
+  'reservas',
   'pedidos',
   'cozinha',
   'caixa',
@@ -60,6 +61,10 @@ const moduleLabels: Record<TenantModuleSlug, Omit<TenantNavigationItem, 'slug' |
   mesas: {
     label: 'Mesas',
     description: 'Mesas, setores e QR Codes do cardápio público.',
+  },
+  reservas: {
+    label: 'Central de reservas',
+    description: 'Agenda de reservas por dia, semana e mês, com filtros e relatórios.',
   },
   pedidos: {
     label: 'Pedidos',

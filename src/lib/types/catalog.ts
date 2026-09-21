@@ -53,3 +53,22 @@ export type RestaurantTable = {
   created_at: string;
   updated_at: string;
 };
+
+export type TableReservationStatus = 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'no_show';
+
+export type TableReservation = {
+  id: string;
+  tenant_id: string;
+  table_id: string;
+  customer_name: string;
+  customer_email: string;
+  customer_phone: string;
+  scheduled_at: string;
+  party_size: number | null;
+  status: TableReservationStatus;
+  source: 'public_site' | 'manual' | 'phone' | 'whatsapp';
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+  tenant_tables?: Pick<RestaurantTable, 'id' | 'number' | 'seats' | 'sector'> | null;
+};

@@ -59,7 +59,7 @@ function ReservationSection({
 }: Readonly<{
   restaurantSlug: string;
   tables: PublicSiteTable[];
-  feedback: { reserva?: string; mesa?: string; erroReserva?: string };
+  feedback: { reserva?: string; mesa?: string; data?: string; erroReserva?: string };
 }>) {
   const availableTables = tables.filter((table) => table.reservation_status !== 'reserved');
 
@@ -69,12 +69,12 @@ function ReservationSection({
         <div>
           <p className="text-sm font-black uppercase tracking-[0.18em] text-[var(--brand)]">Reservas</p>
           <h2 className="mt-2 text-[clamp(2rem,8vw,3.2rem)] font-black leading-none tracking-[-0.06em] text-stone-950">Reserve sua mesa</h2>
-          <p className="mt-3 text-sm font-semibold leading-6 text-stone-500">Escolha uma mesa livre e informe nome, e-mail e telefone. A reserva aparece imediatamente no painel de mesas do restaurante.</p>
+          <p className="mt-3 text-sm font-semibold leading-6 text-stone-500">Escolha mesa, data, horário e informe nome, e-mail e telefone. A solicitação cria um card na Central de Reservas do restaurante.</p>
           <div className="mt-5 grid gap-2 text-sm font-bold text-stone-700 sm:grid-cols-2">
             {tables.length > 0 ? tables.map((table) => (
               <div key={table.number} className={`rounded-2xl border p-3 ${table.reservation_status === 'reserved' ? 'border-red-100 bg-red-50 text-red-700' : 'border-green-100 bg-green-50 text-green-700'}`}>
                 Mesa {table.number} · {table.seats} lugares{table.sector ? ` · ${table.sector}` : ''}
-                <span className="block text-xs font-black uppercase tracking-[0.12em]">{table.reservation_status === 'reserved' ? 'Reservada' : 'Livre'}</span>
+                <span className="block text-xs font-black uppercase tracking-[0.12em]">Sujeita à disponibilidade no horário escolhido</span>
               </div>
             )) : <p className="rounded-2xl border border-stone-200 bg-stone-50 p-4 text-stone-500">Nenhuma mesa ativa disponível para reserva pública.</p>}
           </div>
@@ -82,7 +82,7 @@ function ReservationSection({
 
         <div className="rounded-[1.75rem] bg-stone-50 p-4 ring-1 ring-stone-200 sm:p-5">
           {feedback.reserva === 'ok' ? (
-            <p className="mb-4 rounded-2xl border border-green-200 bg-green-50 p-4 text-sm font-black text-green-700">Reserva recebida para a mesa {feedback.mesa ?? ''}. O restaurante já consegue ver seus dados no sistema.</p>
+            <p className="mb-4 rounded-2xl border border-green-200 bg-green-50 p-4 text-sm font-black text-green-700">Reserva recebida para a mesa {feedback.mesa ?? ''}{feedback.data ? ` em ${feedback.data}` : ''}. O restaurante já consegue acompanhar na Central de Reservas.</p>
           ) : null}
           {feedback.erroReserva ? (
             <p className="mb-4 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-black text-red-700">{feedback.erroReserva}</p>
@@ -97,6 +97,20 @@ function ReservationSection({
                 {availableTables.map((table) => <option key={table.number} value={table.number}>Mesa {table.number} · {table.seats} lugares{table.sector ? ` · ${table.sector}` : ''}</option>)}
               </select>
             </label>
+            <label className="block text-sm font-black text-stone-700">
+              Data
+              <input name="reservationDate" required type="date" className="mt-2 w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-stone-950 outline-none focus:border-red-500" />
+            </label>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <label className="block text-sm font-black text-stone-700">
+                Horário
+                <input name="reservationTime" required type="time" step={1800} className="mt-2 w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-stone-950 outline-none focus:border-red-500" />
+              </label>
+              <label className="block text-sm font-black text-stone-700">
+                Pessoas
+                <input name="partySize" required type="number" min={1} max={99} defaultValue={2} className="mt-2 w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-stone-950 outline-none focus:border-red-500" />
+              </label>
+            </div>
             <label className="block text-sm font-black text-stone-700">
               Nome
               <input name="customerName" required minLength={2} maxLength={120} autoComplete="name" placeholder="Seu nome" className="mt-2 w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-stone-950 outline-none focus:border-red-500" />
@@ -147,7 +161,7 @@ export default async function PublicRestaurantSitePage({
   searchParams,
 }: Readonly<{
   params: Promise<{ restaurantSlug: string }>;
-  searchParams: Promise<{ reserva?: string; mesa?: string; erroReserva?: string }>;
+  searchParams: Promise<{ reserva?: string; mesa?: string; data?: string; erroReserva?: string }>;
 }>) {
   const { restaurantSlug } = await params;
   const feedback = await searchParams;

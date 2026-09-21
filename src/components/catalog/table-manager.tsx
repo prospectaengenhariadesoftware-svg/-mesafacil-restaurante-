@@ -1,4 +1,4 @@
-import { createTableAction, deleteTableAction, releaseTableReservationAction, updateTableAction } from '@/app/actions/catalog';
+import { createTableAction, deleteTableAction, updateTableAction } from '@/app/actions/catalog';
 import Link from 'next/link';
 import { headers } from 'next/headers';
 import { QrCodeImage } from '@/components/qr/qr-code-svg';
@@ -97,7 +97,6 @@ export async function TableList({
   filters,
   total,
   pageSize,
-  canManageReservations,
 }: Readonly<{
   tenantId: string;
   tables: RestaurantTable[];
@@ -105,7 +104,6 @@ export async function TableList({
   filters: TableFilters;
   total: number;
   pageSize: number;
-  canManageReservations: boolean;
 }>) {
   const headersList = await headers();
   const headerHost = headersList.get('x-forwarded-host') ?? headersList.get('host') ?? 'localhost:3000';
@@ -183,25 +181,8 @@ export async function TableList({
 
                 <div className="px-4 pb-4">
                   {table.reservation_status === 'reserved' ? (
-                    <div className="rounded-2xl border border-red-100 bg-red-50 p-4">
-                      <p className="text-sm font-black text-red-700">Mesa {table.number} reservada</p>
-                      {canManageReservations ? (
-                        <>
-                          <dl className="mt-3 grid gap-2 text-sm text-stone-700">
-                            <div><dt className="font-black text-stone-500">Cliente</dt><dd className="break-words">{table.reserved_customer_name ?? '—'}</dd></div>
-                            <div><dt className="font-black text-stone-500">E-mail</dt><dd className="break-words">{table.reserved_customer_email ?? '—'}</dd></div>
-                            <div><dt className="font-black text-stone-500">Telefone</dt><dd className="break-words">{table.reserved_customer_phone ?? '—'}</dd></div>
-                            <div><dt className="font-black text-stone-500">Reservada em</dt><dd className="break-words">{table.reserved_at ? new Date(table.reserved_at).toLocaleString('pt-BR') : '—'}</dd></div>
-                          </dl>
-                          <form action={releaseTableReservationAction} className="mt-4">
-                            <input type="hidden" name="tenantId" value={tenantId} />
-                            <input type="hidden" name="tableId" value={table.id} />
-                            <button className="w-full rounded-full border border-red-200 bg-white px-4 py-2 text-sm font-black text-red-700 hover:bg-red-50">Liberar reserva e limpar dados</button>
-                          </form>
-                        </>
-                      ) : (
-                        <p className="mt-2 text-sm font-semibold text-red-700/80">Dados do cliente restritos à gerência.</p>
-                      )}
+                    <div className="rounded-2xl border border-amber-100 bg-amber-50 p-4 text-sm font-bold text-amber-800">
+                      Esta mesa possui marcação legada. Use a <Link href={`/tenants/${tenantId}/reservas`} className="font-black text-red-700 underline">Central de Reservas</Link> para consultar e gerenciar agendamentos por data e horário.
                     </div>
                   ) : (
                     <div className="rounded-2xl border border-green-100 bg-green-50 p-4 text-sm font-black text-green-700">Mesa disponível para reserva pública.</div>

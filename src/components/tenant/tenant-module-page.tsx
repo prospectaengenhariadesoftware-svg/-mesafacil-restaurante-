@@ -26,6 +26,10 @@ const moduleGuidance: Record<TenantModuleSlug, string[]> = {
     'Mesas já podem ser cadastradas com identificação, lugares, setor e QR Code visual.',
     'O QR Code aponta para o cardápio público da mesa no domínio oficial.',
   ],
+  reservas: [
+    'Acompanhar reservas públicas em cards com nome, e-mail, telefone, mesa, data e status.',
+    'Usar filtros e visões de dia, semana e mês para confirmar, cancelar, concluir ou marcar não comparecimento.',
+  ],
   pedidos: [
     'Pedidos enviados pelo cardápio público já aparecem nesta listagem.',
     'O status pode ser confirmado, enviado para cozinha, marcado como pronto, entregue ou cancelado.',

@@ -43,10 +43,6 @@ function buildTablesPath(tenantId: string, filters: { q: string; status: TableSt
   return `/tenants/${tenantId}/mesas${suffix ? `?${suffix}` : ''}`;
 }
 
-function canManageTableReservations(role: string): boolean {
-  return role === 'owner' || role === 'admin' || role === 'manager';
-}
-
 export default async function MesasPage({
   params,
   searchParams,
@@ -57,8 +53,7 @@ export default async function MesasPage({
   const { tenantId } = await params;
   const rawParams = await searchParams;
   if (!isUuid(tenantId)) redirect('/dashboard?erro=tenant-invalido');
-  const membership = await requireActiveTenant(tenantId);
-  const canManageReservations = canManageTableReservations(membership.role);
+  await requireActiveTenant(tenantId);
 
   const filters = {
     q: cleanSearch(rawParams.q),
@@ -71,9 +66,7 @@ export default async function MesasPage({
   const to = from + PAGE_SIZE - 1;
 
   const supabase = await createClient();
-  const tableSelect = canManageReservations
-    ? '*'
-    : 'id, tenant_id, number, seats, sector, qr_token, is_active, reservation_status, created_at, updated_at';
+  const tableSelect = 'id, tenant_id, number, seats, sector, qr_token, is_active, reservation_status, created_at, updated_at';
   let query = supabase
     .from('tenant_tables')
     .select(tableSelect, { count: 'exact' })
@@ -116,7 +109,6 @@ export default async function MesasPage({
           filters={filters}
           total={total}
           pageSize={PAGE_SIZE}
-          canManageReservations={canManageReservations}
         />
       </div>
       {loadError ? <p className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">{loadError}</p> : null}

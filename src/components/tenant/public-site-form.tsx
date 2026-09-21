@@ -121,7 +121,7 @@ export function PublicSiteForm({ tenantId, tenantName, tenantSlug, profile, role
             <div className="mt-4 grid gap-3 md:grid-cols-2">
               <Toggle name="isPublished" label="Publicar site" hint="Quando desmarcado, /r/slug retorna página não encontrada." defaultChecked={profile?.is_published ?? false} />
               <Toggle name="showMenu" label="Mostrar cardápio básico" hint="Exibe categorias e produtos disponíveis do tenant atual." defaultChecked={profile?.show_menu ?? true} />
-              <Toggle name="acceptsReservations" label="Aceitar reservas públicas" hint="Mostra formulário público de reserva, coleta nome/e-mail/telefone do cliente e marca a mesa como reservada no painel de Mesas." defaultChecked={profile?.accepts_reservations ?? false} />
+              <Toggle name="acceptsReservations" label="Aceitar reservas públicas" hint="Mostra formulário público com mesa, data, horário, quantidade de pessoas e contato; cada solicitação cria um card na Central de Reservas." defaultChecked={profile?.accepts_reservations ?? false} />
               <Toggle name="acceptsOnlineOrders" label="Sinalizar pedidos online" hint="Indica intenção comercial; pedidos reais continuam pelo QR da mesa." defaultChecked={profile?.accepts_online_orders ?? false} />
             </div>
           </section>

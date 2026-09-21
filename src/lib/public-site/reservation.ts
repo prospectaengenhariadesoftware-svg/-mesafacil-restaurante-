@@ -6,6 +6,9 @@ export type PublicReservationInput = {
   customerName: string;
   customerEmail: string;
   customerPhone: string;
+  reservationDate: string;
+  reservationTime: string;
+  partySize: string;
 };
 
 export type PublicReservationData = {
@@ -14,26 +17,81 @@ export type PublicReservationData = {
   customerName: string;
   customerEmail: string;
   customerPhone: string;
+  scheduledAt: string;
+  reservationDate: string;
+  reservationTime: string;
+  partySize: number;
 };
 
 export type PublicReservationValidationResult =
   | { success: true; data: PublicReservationData }
   | { success: false; error: string };
 
+const SAO_PAULO_OFFSET = '-03:00';
+
 function cleanText(value: unknown): string {
   return typeof value === 'string' ? value.trim().replace(/\s+/g, ' ') : '';
+}
+
+function cleanDate(value: unknown): string {
+  const date = cleanText(value);
+  return /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : '';
+}
+
+function cleanTime(value: unknown): string {
+  const time = cleanText(value);
+  return /^\d{2}:\d{2}$/.test(time) ? time : '';
 }
 
 export function normalizePublicReservationPhone(value: unknown): string {
   return cleanText(value).replace(/[^0-9+()\s.-]/g, '').slice(0, 32);
 }
 
-export function validatePublicReservationInput(input: PublicReservationInput): PublicReservationValidationResult {
+export function buildPublicReservationScheduledAt(date: string, time: string): string | null {
+  const reservationDate = cleanDate(date);
+  const reservationTime = cleanTime(time);
+  if (!reservationDate || !reservationTime) return null;
+
+  const scheduledAt = new Date(`${reservationDate}T${reservationTime}:00${SAO_PAULO_OFFSET}`);
+  if (Number.isNaN(scheduledAt.getTime())) return null;
+  return scheduledAt.toISOString();
+}
+
+export function formatReservationDateTimeForCustomer(value: string): string {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  return date.toLocaleString('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: 'America/Sao_Paulo',
+  });
+}
+
+export function validatePublicReservationInput(input: PublicReservationInput, now = new Date()): PublicReservationValidationResult {
   const restaurantSlug = normalizeSiteSlug(input.restaurantSlug);
   if (!restaurantSlug) return { success: false, error: 'Restaurante inválido para reserva.' };
 
   const tableNumber = cleanText(input.tableNumber).slice(0, 20);
   if (!tableNumber) return { success: false, error: 'Escolha a mesa para reservar.' };
+
+  const reservationDate = cleanDate(input.reservationDate);
+  const reservationTime = cleanTime(input.reservationTime);
+  const scheduledAt = buildPublicReservationScheduledAt(reservationDate, reservationTime);
+  if (!scheduledAt) return { success: false, error: 'Escolha data e horário da reserva.' };
+
+  const scheduledDate = new Date(scheduledAt);
+  if (scheduledDate.getUTCMinutes() !== 0 && scheduledDate.getUTCMinutes() !== 30) {
+    return { success: false, error: 'Escolha um horário em intervalo de 30 minutos.' };
+  }
+  if (scheduledDate.getTime() < now.getTime() + 30 * 60 * 1000) {
+    return { success: false, error: 'Escolha um horário com pelo menos 30 minutos de antecedência.' };
+  }
+
+  const partySize = Number.parseInt(cleanText(input.partySize), 10);
+  if (!Number.isInteger(partySize) || partySize < 1 || partySize > 99) return { success: false, error: 'Informe a quantidade de pessoas.' };
 
   const customerName = cleanText(input.customerName).slice(0, 120);
   if (customerName.length < 2) return { success: false, error: 'Informe seu nome completo.' };
@@ -53,6 +111,10 @@ export function validatePublicReservationInput(input: PublicReservationInput): P
       customerName,
       customerEmail,
       customerPhone,
+      scheduledAt,
+      reservationDate,
+      reservationTime,
+      partySize,
     },
   };
 }
