@@ -26,7 +26,13 @@ export function PublicReservationForm({
 }>) {
   const [dismissed, setDismissed] = useState(false);
   const availableTables = tables.filter((table) => table.reservation_status !== 'reserved');
-  const dialogOpen = feedback.reserva === 'ok' && !dismissed;
+  const successMessage = feedback.reserva === 'ok'
+    ? `Reserva feita com sucesso para a mesa ${feedback.mesa ?? ''}${feedback.data ? ` em ${feedback.data}` : ''}. O restaurante já consegue acompanhar na Central de Reservas.`
+    : null;
+  const errorMessage = feedback.erroReserva ?? null;
+  const dialogMessage = successMessage ?? errorMessage;
+  const dialogType = successMessage ? 'success' : 'error';
+  const dialogOpen = Boolean(dialogMessage) && !dismissed;
 
   useEffect(() => {
     if (feedback.reserva !== 'ok' && !feedback.erroReserva) return;
@@ -40,13 +46,6 @@ export function PublicReservationForm({
 
   return (
     <div className="rounded-[1.75rem] bg-stone-50 p-4 ring-1 ring-stone-200 sm:p-5">
-      {feedback.reserva === 'ok' ? (
-        <p className="mb-4 rounded-2xl border border-green-200 bg-green-50 p-4 text-sm font-black text-green-700">Reserva feita com sucesso para a mesa {feedback.mesa ?? ''}{feedback.data ? ` em ${feedback.data}` : ''}. O restaurante já consegue acompanhar na Central de Reservas.</p>
-      ) : null}
-      {feedback.erroReserva ? (
-        <p className="mb-4 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-black text-red-700">{feedback.erroReserva}</p>
-      ) : null}
-
       <form
         key={feedback.reserva === 'ok' ? 'reservation-success-clean-form' : feedback.erroReserva ? 'reservation-error-clean-form' : 'reservation-form'}
         action={createPublicReservationAction}
@@ -90,19 +89,21 @@ export function PublicReservationForm({
         <button type="submit" disabled={availableTables.length === 0} className="mf-button-primary min-h-12 w-full rounded-2xl bg-[var(--brand)] px-5 py-3 text-sm font-black text-white shadow-lg shadow-red-600/20 transition hover:bg-[var(--brand-dark)] disabled:cursor-not-allowed disabled:opacity-60">Reservar mesa</button>
       </form>
 
-      {dialogOpen ? (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-stone-950/55 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="reservation-success-title">
+      {dialogOpen && dialogMessage ? (
+        <div className="fixed inset-0 z-50 grid place-items-center bg-stone-950/55 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="reservation-alert-title">
           <div className="w-full max-w-md rounded-[2rem] bg-white p-6 text-center shadow-2xl shadow-stone-950/30">
-            <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-green-100 text-3xl">✅</div>
-            <h2 id="reservation-success-title" className="mt-4 text-2xl font-black tracking-[-0.04em] text-stone-950">Reserva feita com sucesso!</h2>
-            <p className="mt-2 text-sm font-semibold leading-6 text-stone-600">Sua solicitação foi registrada no sistema do restaurante. Para avisar também pelo WhatsApp, envie mesa, data, horário e pessoas pelo botão abaixo.</p>
-            {reservationWhatsappHref ? (
-              <a href={reservationWhatsappHref} target="_blank" rel="noopener noreferrer" className="mf-button-primary mt-5 inline-flex min-h-12 w-full items-center justify-center rounded-2xl bg-[var(--brand)] px-5 text-sm font-black text-white shadow-lg shadow-red-600/20">
-                Enviar dados para o WhatsApp do restaurante
-              </a>
-            ) : (
-              <p className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 p-3 text-sm font-black text-amber-700">O restaurante ainda não cadastrou WhatsApp público.</p>
-            )}
+            <div className={`mx-auto grid h-14 w-14 place-items-center rounded-full text-3xl ${dialogType === 'success' ? 'bg-green-100' : 'bg-red-100'}`}>{dialogType === 'success' ? '✅' : '⚠️'}</div>
+            <h2 id="reservation-alert-title" className="mt-4 text-2xl font-black tracking-[-0.04em] text-stone-950">{dialogType === 'success' ? 'Reserva feita com sucesso!' : 'Atenção na reserva'}</h2>
+            <p className="mt-2 rounded-2xl bg-stone-50 p-4 text-sm font-black leading-6 text-stone-700">{dialogMessage}</p>
+            {dialogType === 'success' ? (
+              reservationWhatsappHref ? (
+                <a href={reservationWhatsappHref} target="_blank" rel="noopener noreferrer" className="mf-button-primary mt-5 inline-flex min-h-12 w-full items-center justify-center rounded-2xl bg-[var(--brand)] px-5 text-sm font-black text-white shadow-lg shadow-red-600/20">
+                  Enviar dados para o WhatsApp do restaurante
+                </a>
+              ) : (
+                <p className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 p-3 text-sm font-black text-amber-700">O restaurante ainda não cadastrou WhatsApp público.</p>
+              )
+            ) : null}
             <button type="button" onClick={() => setDismissed(true)} className="mt-3 min-h-11 w-full rounded-2xl border border-stone-200 bg-white px-5 text-sm font-black text-stone-700 hover:bg-stone-50">Fechar</button>
           </div>
         </div>
