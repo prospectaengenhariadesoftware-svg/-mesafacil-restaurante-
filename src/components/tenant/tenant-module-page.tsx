@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { AppShell } from '@/components/layout/app-shell';
+import { DesignSystemShell } from '@/components/design-system/ds-shell';
 import { requireActiveTenant } from '@/lib/auth/context';
 import { getTenantModule, type TenantModuleSlug } from '@/lib/tenant/navigation';
 import { isUuid } from '@/lib/validation/auth';
@@ -76,7 +76,7 @@ export async function TenantModulePage({
   const currentModule = getTenantModule(module, tenantId);
 
   return (
-    <AppShell tenantId={tenantId}>
+    <DesignSystemShell tenantId={tenantId} activeModule={module}>
       <section className="space-y-6">
         <div className="rounded-3xl border border-stone-200 bg-white p-6">
           <p className="text-sm font-semibold text-red-600">{tenant?.name}</p>
@@ -120,6 +120,6 @@ export async function TenantModulePage({
           Voltar para visão geral
         </Link>
       </section>
-    </AppShell>
+    </DesignSystemShell>
   );
 }
